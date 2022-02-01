@@ -1,11 +1,11 @@
 use super::enum_json::EnumJson;
 
 pub const HTTP_ENUM_STRUCTURE: &str =
-    "my_http_server::middlewares::controllers::documentation::data_types::HttpEnumStructure";
+    "my_http_server_controllers::controllers::documentation::data_types::HttpEnumStructure";
 const ENUM_TYPE: &str =
-    "my_http_server::middlewares::controllers::documentation::data_types::EnumType";
+    "my_http_server_controllers::controllers::documentation::data_types::EnumType";
 const HTTP_ENUM_CASE: &str =
-    "my_http_server::middlewares::controllers::documentation::data_types::HttpEnumCase";
+    "my_http_server_controllers::controllers::documentation::data_types::HttpEnumCase";
 
 pub fn generate(name: &str, is_string: bool, enum_cases: &[EnumJson]) -> String {
     let mut result = String::new();

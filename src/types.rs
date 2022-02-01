@@ -1,18 +1,18 @@
 use crate::reflection::PropertyType;
 
 pub const HTTP_INPUT_PARAMETER_TYPE: &str =
-    "my_http_server::middlewares::controllers::documentation::in_parameters::HttpInputParameter";
+    "my_http_server_controllers::controllers::documentation::in_parameters::HttpInputParameter";
 
 const HTTP_FIELD_TYPE: &str =
-    "my_http_server::middlewares::controllers::documentation::data_types::HttpField";
+    "my_http_server_controllers::controllers::documentation::data_types::HttpField";
 
-pub const HTTP_PARAMETER_INPUT_SRC: &str = "my_http_server::middlewares::controllers::documentation::in_parameters::HttpParameterInputSource";
+pub const HTTP_PARAMETER_INPUT_SRC: &str = "my_http_server_controllers::controllers::documentation::in_parameters::HttpParameterInputSource";
 
 pub const HTTP_DATA_TYPE: &str =
-    "my_http_server::middlewares::controllers::documentation::data_types::HttpDataType";
+    "my_http_server_controllers::controllers::documentation::data_types::HttpDataType";
 
 pub const HTTP_OBJECT_STRUCTURE: &str =
-    "my_http_server::middlewares::controllers::documentation::data_types::HttpObjectStructure";
+    "my_http_server_controllers::controllers::documentation::data_types::HttpObjectStructure";
 
 pub fn compile_http_field(
     name: &str,
