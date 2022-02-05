@@ -1,3 +1,5 @@
+use crate::consts::{HTTP_ENUM_STRUCTURE, NAME_SPACE};
+
 use proc_macro::TokenStream;
 
 use crate::{
@@ -29,7 +31,7 @@ pub fn impl_enum_doc(ast: &syn::DeriveInput, is_string: bool) -> TokenStream {
 
     let code = format!(
         r###" impl {name}{{
-            pub fn {fn_name}()->{http_enum_structure}{{
+            pub fn {fn_name}()->{NAME_SPACE}::{HTTP_ENUM_STRUCTURE}{{
                 {doc}
             }}
 
@@ -37,7 +39,6 @@ pub fn impl_enum_doc(ast: &syn::DeriveInput, is_string: bool) -> TokenStream {
         }}
         "###,
         name = name,
-        http_enum_structure = super::http_enum_structure::HTTP_ENUM_STRUCTURE,
         doc = doc,
         fn_name = crate::consts::FN_GET_HTTP_DATA_STRUCTURE
     );

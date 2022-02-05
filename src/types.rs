@@ -1,18 +1,7 @@
+use crate::consts::{
+    HTTP_ARRAY_ELEMENT, HTTP_DATA_TYPE, HTTP_FIELD_TYPE, HTTP_SIMPLE_TYPE, NAME_SPACE,
+};
 use crate::reflection::PropertyType;
-
-pub const HTTP_INPUT_PARAMETER_TYPE: &str =
-    "my_http_server_controllers::controllers::documentation::in_parameters::HttpInputParameter";
-
-const HTTP_FIELD_TYPE: &str =
-    "my_http_server_controllers::controllers::documentation::data_types::HttpField";
-
-pub const HTTP_PARAMETER_INPUT_SRC: &str = "my_http_server_controllers::controllers::documentation::in_parameters::HttpParameterInputSource";
-
-pub const HTTP_DATA_TYPE: &str =
-    "my_http_server_controllers::controllers::documentation::data_types::HttpDataType";
-
-pub const HTTP_OBJECT_STRUCTURE: &str =
-    "my_http_server_controllers::controllers::documentation::data_types::HttpObjectStructure";
 
 pub fn compile_http_field(
     name: &str,
@@ -27,8 +16,7 @@ pub fn compile_http_field(
     };
 
     format!(
-        "{http_field_type}::new(\"{name}\", {data_type}, {required}, {default})",
-        http_field_type = HTTP_FIELD_TYPE,
+        "{NAME_SPACE}::{HTTP_FIELD_TYPE}::new(\"{name}\", {data_type}, {required}, {default})",
         name = name,
         data_type = compile_data_type(pt, TypeIsWrappedTo::None),
         required = required,
@@ -49,7 +37,7 @@ pub fn compile_http_field_with_object(
     };
 
     format!(
-        "{HTTP_FIELD_TYPE}::new(\"{name}\", {data_type}, {required}, {default})",
+        "{NAME_SPACE}::{HTTP_FIELD_TYPE}::new(\"{name}\", {data_type}, {required}, {default})",
         data_type = format!(
             "{body_type}::{fn_name}().into_http_data_type_object()",
             fn_name = crate::consts::FN_GET_HTTP_DATA_STRUCTURE
@@ -69,59 +57,27 @@ fn compile_data_type(pt: &PropertyType, type_is_wrapped_to: TypeIsWrappedTo) -> 
     }
 
     if pt.is_vec() {
+        let generic = &pt.get_generic();
+        println!("Getting vec of: {}", generic.type_name);
         return compile_data_type(&pt.get_generic(), TypeIsWrappedTo::Vec);
     }
 
-    if pt.type_name == "String" {
-        return format!("{}::as_string()", HTTP_DATA_TYPE);
-    }
-
-    if pt.type_name == "u8" {
-        return format!("{}::as_integer()", HTTP_DATA_TYPE);
-    }
-
-    if pt.type_name == "i8" {
-        return format!("{}::as_integer()", HTTP_DATA_TYPE);
-    }
-
-    if pt.type_name == "u16" {
-        return format!("{}::as_integer()", HTTP_DATA_TYPE);
-    }
-
-    if pt.type_name == "i16" {
-        return format!("{}::as_integer()", HTTP_DATA_TYPE);
-    }
-
-    if pt.type_name == "u32" {
-        return format!("{}::as_integer()", HTTP_DATA_TYPE);
-    }
-
-    if pt.type_name == "i32" {
-        return format!("{}::as_integer()", HTTP_DATA_TYPE);
-    }
-
-    if pt.type_name == "u64" {
-        return format!("{}::as_long()", HTTP_DATA_TYPE);
-    }
-
-    if pt.type_name == "i64" {
-        return format!("{}::as_long()", HTTP_DATA_TYPE);
-    }
-
-    if pt.type_name == "usize" {
-        return format!("{}::as_long()", HTTP_DATA_TYPE);
-    }
-
-    if pt.type_name == "bool" {
-        return format!("{}::as_bool()", HTTP_DATA_TYPE);
-    }
-
-    if pt.type_name == "isize" {
-        return format!("{}::as_long()", HTTP_DATA_TYPE);
-    }
-
-    if pt.type_name == "Vec" {
-        return format!("{}::None", HTTP_DATA_TYPE);
+    if let Some(simple_type) = get_simple_type(pt.type_name.as_str()) {
+        match type_is_wrapped_to {
+            TypeIsWrappedTo::None => {
+                return format!("{NAME_SPACE}::{HTTP_DATA_TYPE}::SimpleType({simple_type})",)
+            }
+            TypeIsWrappedTo::Option => {
+                return format!("{NAME_SPACE}::{HTTP_DATA_TYPE}::SimpleType({simple_type})",)
+            }
+            TypeIsWrappedTo::Vec => {
+                let result = format!(
+                    "{NAME_SPACE}::{HTTP_DATA_TYPE}::ArrayOf({NAME_SPACE}::{HTTP_ARRAY_ELEMENT}::SimpleType({simple_type}))",
+                );
+                println!("Vec result : {}", result);
+                return result;
+            }
+        };
     }
 
     match type_is_wrapped_to {
@@ -142,5 +98,23 @@ fn compile_data_type(pt: &PropertyType, type_is_wrapped_to: TypeIsWrappedTo) -> 
                 func_name = crate::consts::FN_GET_HTTP_DATA_STRUCTURE
             )
         }
+    }
+}
+
+fn get_simple_type(type_name: &str) -> Option<String> {
+    match type_name {
+        "String" => format!("{NAME_SPACE}::{HTTP_SIMPLE_TYPE}::String").into(),
+        "u8" => format!("{NAME_SPACE}::{HTTP_SIMPLE_TYPE}::Integer").into(),
+        "i8" => format!("{NAME_SPACE}::{HTTP_SIMPLE_TYPE}::Integer").into(),
+        "u16" => format!("{NAME_SPACE}::{HTTP_SIMPLE_TYPE}::Integer").into(),
+        "i16" => format!("{NAME_SPACE}::{HTTP_SIMPLE_TYPE}::Integer").into(),
+        "u32" => format!("{NAME_SPACE}::{HTTP_SIMPLE_TYPE}::Integer").into(),
+        "i32" => format!("{NAME_SPACE}::{HTTP_SIMPLE_TYPE}::Integer").into(),
+        "u64" => format!("{NAME_SPACE}::{HTTP_SIMPLE_TYPE}::Long").into(),
+        "i64" => format!("{NAME_SPACE}::{HTTP_SIMPLE_TYPE}::Long").into(),
+        "usize" => format!("{NAME_SPACE}::{HTTP_SIMPLE_TYPE}::Long").into(),
+        "isize" => format!("{NAME_SPACE}::{HTTP_SIMPLE_TYPE}::Long").into(),
+        "bool" => format!("{NAME_SPACE}::{HTTP_SIMPLE_TYPE}::Boolean").into(),
+        _ => None,
     }
 }

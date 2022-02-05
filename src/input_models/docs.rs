@@ -1,3 +1,5 @@
+use crate::consts::{HTTP_INPUT_PARAMETER_TYPE, HTTP_PARAMETER_INPUT_SRC, NAME_SPACE};
+
 use super::input_fields::{InputField, InputFieldSource, InputFields};
 
 pub fn generate_http_input(fields: &InputFields) -> String {
@@ -38,12 +40,11 @@ fn generate_http_input_parameter(input_field: &InputField) -> String {
     };
 
     format!(
-        r###"{http_input_parameter_type}{{
+        r###"{NAME_SPACE}::{HTTP_INPUT_PARAMETER_TYPE}{{
                     field: {http_field},
                     description: "{description}".to_string(),
                     source: {source},
                 }},"###,
-        http_input_parameter_type = crate::types::HTTP_INPUT_PARAMETER_TYPE,
         http_field = http_field,
         description = input_field.description(),
         source = get_input_src(input_field)
@@ -59,5 +60,5 @@ fn get_input_src(field: &InputField) -> String {
         InputFieldSource::Form => "Form",
     };
 
-    return format!("{}::{}", crate::types::HTTP_PARAMETER_INPUT_SRC, field);
+    return format!("{NAME_SPACE}::{HTTP_PARAMETER_INPUT_SRC}::{field}",);
 }

@@ -2,6 +2,8 @@ use proc_macro::TokenStream;
 
 use crate::reflection::StructProperty;
 
+use crate::consts::{HTTP_OBJECT_STRUCTURE, NAME_SPACE};
+
 pub fn impl_output_types(ast: &syn::DeriveInput) -> TokenStream {
     let name = &ast.ident.to_string();
     let fields = StructProperty::read(ast);
@@ -9,12 +11,11 @@ pub fn impl_output_types(ast: &syn::DeriveInput) -> TokenStream {
 
     let code = format!(
         r###" impl {name}{{
-            pub fn {fn_name}()->{http_object_structure}{{
+            pub fn {fn_name}()->{NAME_SPACE}::{HTTP_OBJECT_STRUCTURE}{{
                 {get_http_object_structure}
             }}
         }}"###,
         name = name,
-        http_object_structure = crate::types::HTTP_OBJECT_STRUCTURE,
         get_http_object_structure = get_http_object_structure,
         fn_name = crate::consts::FN_GET_HTTP_DATA_STRUCTURE
     );

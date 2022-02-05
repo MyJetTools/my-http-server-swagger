@@ -1,3 +1,4 @@
+use crate::consts::{HTTP_INPUT_PARAMETER_TYPE, NAME_SPACE};
 use proc_macro::TokenStream;
 
 use super::input_fields::InputFields;
@@ -17,7 +18,7 @@ pub fn impl_input_types(ast: &syn::DeriveInput) -> TokenStream {
 
     let code = format!(
         r###"impl {struct_name}{{
-            pub fn get_input_params()->Vec<{http_input_parameter}>{{
+            pub fn get_input_params()->Vec<{NAME_SPACE}::{HTTP_INPUT_PARAMETER_TYPE}>{{
                 {doc}
             }}
             pub async fn parse_http_input(ctx:&mut my_http_server::HttpContext)->Result<Self, my_http_server::HttpFailResult>{{
@@ -26,7 +27,6 @@ pub fn impl_input_types(ast: &syn::DeriveInput) -> TokenStream {
     }}"###,
         struct_name = struct_name,
         doc = doc,
-        http_input_parameter = crate::types::HTTP_INPUT_PARAMETER_TYPE,
         model_reader = model_reader,
     );
 
