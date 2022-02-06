@@ -57,8 +57,6 @@ fn compile_data_type(pt: &PropertyType, type_is_wrapped_to: TypeIsWrappedTo) -> 
     }
 
     if pt.is_vec() {
-        let generic = &pt.get_generic();
-        println!("Getting vec of: {}", generic.type_name);
         return compile_data_type(&pt.get_generic(), TypeIsWrappedTo::Vec);
     }
 
@@ -74,7 +72,6 @@ fn compile_data_type(pt: &PropertyType, type_is_wrapped_to: TypeIsWrappedTo) -> 
                 let result = format!(
                     "{NAME_SPACE}::{HTTP_DATA_TYPE}::ArrayOf({NAME_SPACE}::{HTTP_ARRAY_ELEMENT}::SimpleType({simple_type}))",
                 );
-                println!("Vec result : {}", result);
                 return result;
             }
         };
