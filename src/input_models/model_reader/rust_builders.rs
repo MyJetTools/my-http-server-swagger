@@ -66,9 +66,9 @@ pub fn read_from_headers(input_field: &InputField) -> String {
     if input_field.required() {
         if input_field.property.ty.is_string() {
             format!(
-                "{struct_field_name}: ctx.request.get_required_header(\"{http_name}\")?.to_string(),\n",
+                "{struct_field_name}: ctx.request.get_required_header(\"{header_name}\")?.to_string(),\n",
                 struct_field_name = input_field.struct_field_name(),
-                http_name = input_field.name()
+                header_name = input_field.name().to_lowercase()
             )
         } else {
             panic!("Header can only be read to String typed property");
@@ -76,8 +76,8 @@ pub fn read_from_headers(input_field: &InputField) -> String {
     } else {
         if input_field.property.ty.get_generic().is_string() {
             let get_optional_header = format!(
-                "ctx.request.get_optional_header(\"{http_name}\")",
-                http_name = input_field.name()
+                "ctx.request.get_optional_header(\"{header_name}\")",
+                header_name = input_field.name().to_lowercase()
             );
 
             format!(
