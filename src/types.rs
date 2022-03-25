@@ -83,17 +83,21 @@ fn compile_data_type(pt: &PropertyType, type_is_wrapped_to: TypeIsWrappedTo) -> 
                 "{}::{}().into_http_data_type_object()",
                 pt.type_name,
                 func_name = crate::consts::FN_GET_HTTP_DATA_STRUCTURE
-            )
+            );
         }
         TypeIsWrappedTo::Option => {
-            panic!("Not supported type: Option<{}>", pt.type_name)
+            return format!(
+                "{}::{}().into_http_data_type_object()",
+                pt.type_name,
+                func_name = crate::consts::FN_GET_HTTP_DATA_STRUCTURE
+            );
         }
         TypeIsWrappedTo::Vec => {
             return format!(
                 "{}::{}().into_http_data_type_array()",
                 pt.type_name,
                 func_name = crate::consts::FN_GET_HTTP_DATA_STRUCTURE
-            )
+            );
         }
     }
 }
