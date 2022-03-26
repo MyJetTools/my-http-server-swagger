@@ -51,16 +51,28 @@ pub fn generate(name: &str, input_fields: &InputFields) -> String {
     }
 
     if let Some(body_field) = input_fields.get_body_field() {
-        let line_to_add = format!(
-            "{}: ctx.request.get_body_raw().await?,",
-            body_field.struct_field_name()
-        );
-        result.push_str(line_to_add.as_str());
+        add_reading_body(&mut result, body_field);
     }
 
     result.push_str("})");
 
     result
+}
+
+fn add_reading_body(result: &mut String, body_field: &InputField) {
+    let line_to_add = if body_field.property.ty.is_vec() {
+        format!(
+            "{}: ctx.request.get_body_raw().await?,",
+            body_field.struct_field_name()
+        )
+    } else {
+        format!(
+            "{}: serde_json::from_slice(ctx.request.get_body_raw().await?.as_slice())?,",
+            body_field.struct_field_name()
+        )
+    };
+
+    result.push_str(line_to_add.as_str());
 }
 
 fn build_reading(input_field: &InputField, form_data: bool) -> String {
