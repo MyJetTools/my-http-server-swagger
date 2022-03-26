@@ -67,7 +67,7 @@ fn add_reading_body(result: &mut String, body_field: &InputField) {
         )
     } else {
         format!(
-            "{}: serde_json::from_slice(ctx.request.get_body_raw().await?.as_slice())?,",
+            "{}: serde_json::from_slice(ctx.request.get_body_raw().await.unwrap().as_slice())?,",
             body_field.struct_field_name()
         )
     };
