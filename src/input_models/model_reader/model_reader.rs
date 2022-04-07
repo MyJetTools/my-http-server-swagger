@@ -30,7 +30,7 @@ pub fn generate(name: &str, input_fields: &InputFields) -> String {
                     )
                 } else {
                     format!(
-                        "{}: ctx.request.get_value_from_path_optional(\"{}\")?,",
+                        "{}: ctx.request.get_value_from_path_optional_as_string(\"{}\")?,",
                         input_field.struct_field_name(),
                         input_field.name()
                     )
