@@ -12,7 +12,14 @@ mod types;
 
 #[proc_macro_derive(
     MyHttpInput,
-    attributes(http_query, http_header, http_body, http_form, http_body_type)
+    attributes(
+        http_query,
+        http_header,
+        http_body,
+        http_form,
+        http_path,
+        http_body_type
+    )
 )]
 pub fn my_http_input_doc_derive(input: TokenStream) -> TokenStream {
     let ast = syn::parse(input).unwrap();
