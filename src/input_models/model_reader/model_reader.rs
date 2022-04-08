@@ -8,7 +8,7 @@ pub fn generate(name: &str, input_fields: &InputFields) -> String {
     }
 
     if input_fields.has_form_data() {
-        result.push_str("let form_data = ctx.request.get_form_data()?;\n");
+        result.push_str("let form_data = ctx.request.get_form_data().await?;\n");
     }
 
     result.push_str("Ok(");
