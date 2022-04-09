@@ -9,7 +9,7 @@ impl PropertyType {
         let tp = if let syn::Type::Path(tp) = &field.ty {
             tp.clone()
         } else {
-            panic!("Type is not struct");
+            panic!("Type is not struct but: {:?}", &field.ty);
         };
 
         Self {
