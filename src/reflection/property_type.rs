@@ -41,8 +41,8 @@ impl PropertyType {
 
     pub fn is_system_type(&self) -> bool {
         return self.type_name == "String"
-            || self.type_name == "i8"
-            || self.type_name == "u8"
+            || self.is_i8()
+            || self.is_u8()
             || self.type_name == "i16"
             || self.type_name == "u16"
             || self.type_name == "i32"
@@ -62,6 +62,14 @@ impl PropertyType {
 
     pub fn is_vec(&self) -> bool {
         self.type_name == "Vec"
+    }
+
+    pub fn is_u8(&self) -> bool {
+        self.type_name == "u8"
+    }
+
+    pub fn is_i8(&self) -> bool {
+        self.type_name == "i8"
     }
 }
 

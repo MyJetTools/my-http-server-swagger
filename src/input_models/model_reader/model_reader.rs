@@ -61,10 +61,17 @@ pub fn generate(name: &str, input_fields: &InputFields) -> String {
 
 fn add_reading_body(result: &mut String, body_field: &InputField) {
     let line_to_add = if body_field.property.ty.is_vec() {
-        format!(
-            "{}: ctx.request.get_body_raw().await?,",
-            body_field.struct_field_name()
-        )
+        if body_field.property.ty.get_generic().is_u8() {
+            format!(
+                "{}: ctx.request.get_body_raw().await?,",
+                body_field.struct_field_name()
+            )
+        } else {
+            format!(
+                "{}: serde_json::from_slice(ctx.request.get_body_raw().await?.as_slice()).unwrap(),",
+                body_field.struct_field_name()
+            )
+        }
     } else {
         format!(
             "{}: serde_json::from_slice(ctx.request.get_body_raw().await?.as_slice()).unwrap(),",
