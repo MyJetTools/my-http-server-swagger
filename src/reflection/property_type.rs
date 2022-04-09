@@ -75,6 +75,10 @@ impl PropertyType {
     pub fn is_i8(&self) -> bool {
         self.type_name == "i8"
     }
+
+    pub fn is_str(&self) -> bool {
+        self.type_name == "&str"
+    }
 }
 
 fn get_http_type(field: &syn::Field) -> String {
@@ -82,7 +86,7 @@ fn get_http_type(field: &syn::Field) -> String {
         syn::Type::Slice(_) => panic!("Slice type is not supported"),
         syn::Type::Array(_) => panic!("Array type is not supported"),
         syn::Type::Ptr(_) => panic!("Ptr type is not supported"),
-        syn::Type::Reference(_) => panic!("Reference type is not supported"),
+        syn::Type::Reference(type_reference) => get_type_reference_as_string(type_reference),
         syn::Type::BareFn(_) => panic!("BareFn type is not supported"),
         syn::Type::Never(_) => panic!("Never type is not supported"),
         syn::Type::Tuple(_) => panic!("Tuple type is not supported"),
@@ -107,4 +111,9 @@ fn get_type_as_string(field: &syn::TypePath) -> String {
     let result = result.unwrap();
 
     return result.ident.to_string();
+}
+
+fn get_type_reference_as_string(_: &syn::TypeReference) -> String {
+    //For now we support only &str
+    "&str".to_string()
 }
