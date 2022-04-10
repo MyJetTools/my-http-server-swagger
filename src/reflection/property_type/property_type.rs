@@ -81,6 +81,9 @@ impl PropertyType {
             BOOL => PropertyType::Bool,
             STRING => PropertyType::String,
             "Option" => {
+                if type_path.is_none() {
+                    panic!("We have an option, byt not type_path to parse a generic");
+                }
                 PropertyType::OptionOf(Box::new(super::utils::get_generic(type_path.unwrap())))
             }
             "Vec" => PropertyType::VecOf(Box::new(super::utils::get_generic(type_path.unwrap()))),
