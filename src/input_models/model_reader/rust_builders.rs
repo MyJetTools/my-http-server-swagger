@@ -1,4 +1,7 @@
-use crate::{input_models::input_fields::InputField, reflection::PropertyType};
+use crate::{
+    input_models::input_fields::{InputField, InputFields},
+    reflection::PropertyType,
+};
 
 pub enum SourceToRead {
     FormData,
@@ -81,57 +84,47 @@ pub fn read_optional_parameter(source_to_read: &SourceToRead, input_field: &Inpu
     compile_read_line(input_field, get_value.as_str())
 }
 
-pub fn read_from_headers(input_field: &InputField) -> String {
-    if input_field.required() {
-        if input_field.property.ty.is_string() {
-            return format!(
-                "{struct_field_name}: ctx.request.get_required_header(\"{header_name}\")?.to_string(),\n",
-                struct_field_name = input_field.struct_field_name(),
-                header_name = input_field.name().to_lowercase()
+pub fn init_header_variables(result: &mut String, input_fields: &InputFields) {
+    for input_field_header in input_fields.get_from_header_elements() {
+        let mut valid_type = false;
+
+        if input_field_header.property.ty.is_string() {
+            valid_type = true;
+        }
+
+        if let PropertyType::OptionOf(inner_generic) = &input_field_header.property.ty {
+            if inner_generic.is_string() {
+                valid_type = true;
+            }
+        }
+
+        if !valid_type {
+            panic!(
+                "Can not read {} type to from header to property {}",
+                input_field_header.property.ty.as_str(),
+                input_field_header.struct_field_name()
             );
         }
-        if input_field.property.ty.is_str() {
-            return format!(
-                "{struct_field_name}: ctx.request.get_required_header(\"{header_name}\")?,\n",
-                struct_field_name = input_field.struct_field_name(),
-                header_name = input_field.name().to_lowercase()
-            );
+
+        let line = if input_field_header.required() {
+            format!("let {field_name}_header = ctx.request.get_required_header(\"{header_key}\")?.to_string();\n", field_name=input_field_header.struct_field_name(), header_key=input_field_header.name())
         } else {
-            panic!("Header can only be read to String or str typed property");
-        }
+            let reading_command = format!(
+                "ctx.request.get_optional_header(\"{header_key}\")",
+                header_key = input_field_header.name()
+            );
+
+            let reading_command =
+                super::rust_builders::option_of_str_to_option_of_string(reading_command.as_str());
+
+            format!(
+                "let {field_name}_header = {reading_command};\n",
+                field_name = input_field_header.struct_field_name(),
+            )
+        };
+
+        result.push_str(line.as_str());
     }
-
-    if let PropertyType::OptionOf(inner_generic) = &input_field.property.ty {
-        if inner_generic.is_string() {
-            let get_optional_header = format!(
-                "ctx.request.get_optional_header(\"{header_name}\")",
-                header_name = input_field.name().to_lowercase()
-            );
-
-            return format!(
-                "{struct_field_name}: {str_converions},\n",
-                struct_field_name = input_field.struct_field_name(),
-                str_converions = option_of_str_to_option_of_string(get_optional_header.as_str())
-            );
-        }
-
-        if inner_generic.is_string() {
-            let get_optional_header = format!(
-                "ctx.request.get_optional_header(\"{header_name}\")",
-                header_name = input_field.name().to_lowercase()
-            );
-
-            return format!(
-                "{struct_field_name}: {str_converions},\n",
-                struct_field_name = input_field.struct_field_name(),
-                str_converions = option_of_str_to_option_of_string(get_optional_header.as_str())
-            );
-        }
-
-        panic!("Header can only be read to String or str typed property");
-    }
-
-    panic!("Non required filed must be optional");
 }
 
 fn compile_read_line(input_field: &InputField, reading_line: &str) -> String {
