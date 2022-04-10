@@ -164,7 +164,7 @@ fn generate_read_optional_parameter(
     )
 }
 
-fn option_of_str_to_option_of_string(expr: &str) -> String {
+pub fn option_of_str_to_option_of_string(expr: &str) -> String {
     format!(
         r###"
         if let Some(value) = {expr}{{
