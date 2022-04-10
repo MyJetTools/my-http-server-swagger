@@ -65,6 +65,7 @@ fn compile_data_type(pt: &PropertyType, type_is_wrapped_to: TypeIsWrappedTo) -> 
             TypeIsWrappedTo::None => {
                 return format!("{NAME_SPACE}::{HTTP_DATA_TYPE}::SimpleType({simple_type})",)
             }
+
             TypeIsWrappedTo::Option => {
                 return format!("{NAME_SPACE}::{HTTP_DATA_TYPE}::SimpleType({simple_type})",)
             }
@@ -105,6 +106,7 @@ fn compile_data_type(pt: &PropertyType, type_is_wrapped_to: TypeIsWrappedTo) -> 
 fn get_simple_type(pt: &PropertyType) -> Option<String> {
     match pt {
         PropertyType::String => format!("{NAME_SPACE}::{HTTP_SIMPLE_TYPE}::String").into(),
+        PropertyType::Str => format!("{NAME_SPACE}::{HTTP_SIMPLE_TYPE}::String").into(),
         PropertyType::U8 => format!("{NAME_SPACE}::{HTTP_SIMPLE_TYPE}::Integer").into(),
         PropertyType::I8 => format!("{NAME_SPACE}::{HTTP_SIMPLE_TYPE}::Integer").into(),
         PropertyType::U16 => format!("{NAME_SPACE}::{HTTP_SIMPLE_TYPE}::Integer").into(),

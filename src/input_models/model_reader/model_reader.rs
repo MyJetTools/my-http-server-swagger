@@ -154,6 +154,13 @@ fn read_required(form_data: bool, input_field: &InputField) -> String {
             src = src,
             http_name = input_field.name()
         )
+    } else if input_field.property.ty.is_str() {
+        format!(
+            "{struct_field_name}: {src}.get_required_string_parameter(\"{http_name}\")?,\n",
+            struct_field_name = input_field.struct_field_name(),
+            src = src,
+            http_name = input_field.name()
+        )
     } else {
         format!(
             "{struct_field_name}: {src}.get_required_parameter(\"{http_name}\")?,\n",
