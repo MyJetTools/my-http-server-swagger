@@ -6,6 +6,8 @@ use crate::{
 pub fn generate(name: &str, input_fields: &InputFields) -> String {
     let mut result = String::new();
 
+    add_init_lines(&mut result, input_fields);
+
     if input_fields.has_query() {
         result.push_str("let query_string = ctx.request.get_query_string()?;\n");
     }
@@ -13,7 +15,7 @@ pub fn generate(name: &str, input_fields: &InputFields) -> String {
     if let Some(form_data) = input_fields.get_form_data() {
         if let PropertyType::VecOf(inner_generic) = &form_data.property.ty {
             if inner_generic.is_u8() {
-                result.push_str("let body = ctx.request.get_body_raw().await?;\n");
+                result.push_str("let body = ctx.request.get_body().await?;\n");
             } else {
                 result.push_str("let body = ctx.request.get_body_as_json().await?;\n");
             }
@@ -68,6 +70,20 @@ pub fn generate(name: &str, input_fields: &InputFields) -> String {
     result.push_str("})");
 
     result
+}
+
+fn add_init_lines(result: &mut String, input_fields: &InputFields) {
+    if input_fields.has_query() {
+        result.push_str("ctx.request.init_query_string()?;\n");
+    }
+
+    if input_fields.has_form_data() {
+        result.push_str("ctx.request.init_form_data().await?;\n");
+    }
+
+    if input_fields.has_body_data() {
+        result.push_str("ctx.request.init_body().await?;\n");
+    }
 }
 
 fn add_reading_body(result: &mut String, body_field: &InputField) {

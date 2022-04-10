@@ -123,6 +123,24 @@ impl InputFields {
         return false;
     }
 
+    pub fn has_form_data(&self) -> bool {
+        for field in &self.fields {
+            if let InputFieldSource::Form = &field.src {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    pub fn has_body_data(&self) -> bool {
+        for field in &self.fields {
+            if let InputFieldSource::Body = &field.src {
+                return true;
+            }
+        }
+        return false;
+    }
+
     pub fn has_life_time(&self) -> bool {
         for field in &self.fields {
             if field.property.ty.is_str() {
