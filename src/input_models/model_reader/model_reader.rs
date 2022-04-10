@@ -10,8 +10,16 @@ pub fn generate(name: &str, input_fields: &InputFields) -> String {
         result.push_str("let query_string = ctx.request.get_query_string()?;\n");
     }
 
-    if input_fields.has_form_data() {
-        result.push_str("let form_data = ctx.request.get_form_data().await?;\n");
+    if let Some(form_data) = input_fields.get_form_data() {
+        if let PropertyType::VecOf(inner_generic) = &form_data.property.ty {
+            if inner_generic.is_u8() {
+                result.push_str("let body = ctx.request.get_body_raw().await?;\n");
+            } else {
+                result.push_str("let body = ctx.request.get_body_as_json().await?;\n");
+            }
+        } else {
+            result.push_str("let body = ctx.request.get_body_as_json().await?;\n");
+        }
     }
 
     result.push_str("Ok(");
@@ -63,26 +71,7 @@ pub fn generate(name: &str, input_fields: &InputFields) -> String {
 }
 
 fn add_reading_body(result: &mut String, body_field: &InputField) {
-    let line_to_add = if let PropertyType::VecOf(generic_type) = &body_field.property.ty {
-        if generic_type.is_u8() {
-            format!(
-                "{}: ctx.request.get_body_raw().await?,",
-                body_field.struct_field_name()
-            )
-        } else {
-            format!(
-                "{}: serde_json::from_slice(ctx.request.get_body_raw().await?.as_slice()).unwrap(),",
-                body_field.struct_field_name()
-            )
-        }
-    } else {
-        format!(
-            "{}: serde_json::from_slice(ctx.request.get_body_raw().await?.as_slice()).unwrap(),",
-            body_field.struct_field_name()
-        )
-    };
-
-    result.push_str(line_to_add.as_str());
+    result.push_str(format!("{}: body,\n", body_field.struct_field_name()).as_str());
 }
 
 fn build_reading(input_field: &InputField, form_data: bool) -> String {

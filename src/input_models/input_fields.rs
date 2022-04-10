@@ -144,13 +144,13 @@ impl InputFields {
         return false;
     }
 
-    pub fn has_form_data(&self) -> bool {
+    pub fn get_form_data(&self) -> Option<&InputField> {
         for field in &self.fields {
             if let InputFieldSource::Form = &field.src {
-                return true;
+                return Some(field);
             }
         }
-        return false;
+        return None;
     }
 
     pub fn get_body_field<'s>(&'s self) -> Option<&'s InputField> {
