@@ -1,4 +1,7 @@
-use crate::input_models::input_fields::{InputField, InputFieldSource, InputFields};
+use crate::{
+    input_models::input_fields::{InputField, InputFieldSource, InputFields},
+    reflection::PropertyType,
+};
 
 pub fn generate(name: &str, input_fields: &InputFields) -> String {
     let mut result = String::new();
@@ -60,8 +63,8 @@ pub fn generate(name: &str, input_fields: &InputFields) -> String {
 }
 
 fn add_reading_body(result: &mut String, body_field: &InputField) {
-    let line_to_add = if body_field.property.ty.is_vec() {
-        if body_field.property.ty.get_generic().is_u8() {
+    let line_to_add = if let PropertyType::VecOf(generic_type) = &body_field.property.ty {
+        if generic_type.is_u8() {
             format!(
                 "{}: ctx.request.get_body_raw().await?,",
                 body_field.struct_field_name()
@@ -93,14 +96,19 @@ fn build_reading(input_field: &InputField, form_data: bool) -> String {
 
     if input_field.required() {
         return read_required(form_data, input_field);
-    } else {
-        let type_of_option = input_field.property.ty.get_generic();
-        if type_of_option.is_string() {
+    }
+
+    if let PropertyType::OptionOf(inner_generic) = &input_field.property.ty {
+        if inner_generic.is_string() {
             return super::rust_builders::read_optional_string_parameter(form_data, input_field);
+        } else if inner_generic.is_str() {
+            return super::rust_builders::read_optional_str_parameter(form_data, input_field);
         } else {
             return super::rust_builders::read_optional_parameter(form_data, input_field);
         }
     }
+
+    panic!("Non Required type must be Option");
 }
 
 fn read_with_default(form_data: bool, input_field: &InputField, default: &str) -> String {
@@ -111,7 +119,7 @@ fn read_with_default(form_data: bool, input_field: &InputField, default: &str) -
             default,
         );
     }
-    if input_field.property.ty.is_system_type() {
+    if input_field.property.ty.is_simple_type() {
         return super::rust_builders::read_system_parameter_with_default_value(
             form_data,
             input_field,

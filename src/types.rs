@@ -52,15 +52,15 @@ enum TypeIsWrappedTo {
 }
 
 fn compile_data_type(pt: &PropertyType, type_is_wrapped_to: TypeIsWrappedTo) -> String {
-    if pt.is_option() {
-        return compile_data_type(&pt.get_generic(), TypeIsWrappedTo::Option);
+    if let PropertyType::OptionOf(generic_type) = pt {
+        return compile_data_type(generic_type.as_ref(), TypeIsWrappedTo::Option);
     }
 
-    if pt.is_vec() {
-        return compile_data_type(&pt.get_generic(), TypeIsWrappedTo::Vec);
+    if let PropertyType::VecOf(generic_type) = pt {
+        return compile_data_type(generic_type.as_ref(), TypeIsWrappedTo::Vec);
     }
 
-    if let Some(simple_type) = get_simple_type(pt.type_name.as_str()) {
+    if let Some(simple_type) = get_simple_type(pt) {
         match type_is_wrapped_to {
             TypeIsWrappedTo::None => {
                 return format!("{NAME_SPACE}::{HTTP_DATA_TYPE}::SimpleType({simple_type})",)
@@ -70,8 +70,8 @@ fn compile_data_type(pt: &PropertyType, type_is_wrapped_to: TypeIsWrappedTo) -> 
             }
             TypeIsWrappedTo::Vec => {
                 let result = format!(
-                    "{NAME_SPACE}::{HTTP_DATA_TYPE}::ArrayOf({NAME_SPACE}::{HTTP_ARRAY_ELEMENT}::SimpleType({simple_type}))",
-                );
+                        "{NAME_SPACE}::{HTTP_DATA_TYPE}::ArrayOf({NAME_SPACE}::{HTTP_ARRAY_ELEMENT}::SimpleType({simple_type}))",
+                    );
                 return result;
             }
         };
@@ -81,41 +81,41 @@ fn compile_data_type(pt: &PropertyType, type_is_wrapped_to: TypeIsWrappedTo) -> 
         TypeIsWrappedTo::None => {
             return format!(
                 "{}::{}().into_http_data_type_object()",
-                pt.type_name,
+                pt.as_str(),
                 func_name = crate::consts::FN_GET_HTTP_DATA_STRUCTURE
             );
         }
         TypeIsWrappedTo::Option => {
             return format!(
                 "{}::{}().into_http_data_type_object()",
-                pt.type_name,
+                pt.as_str(),
                 func_name = crate::consts::FN_GET_HTTP_DATA_STRUCTURE
             );
         }
         TypeIsWrappedTo::Vec => {
             return format!(
                 "{}::{}().into_http_data_type_array()",
-                pt.type_name,
+                pt.as_str(),
                 func_name = crate::consts::FN_GET_HTTP_DATA_STRUCTURE
             );
         }
     }
 }
 
-fn get_simple_type(type_name: &str) -> Option<String> {
-    match type_name {
-        "String" => format!("{NAME_SPACE}::{HTTP_SIMPLE_TYPE}::String").into(),
-        "u8" => format!("{NAME_SPACE}::{HTTP_SIMPLE_TYPE}::Integer").into(),
-        "i8" => format!("{NAME_SPACE}::{HTTP_SIMPLE_TYPE}::Integer").into(),
-        "u16" => format!("{NAME_SPACE}::{HTTP_SIMPLE_TYPE}::Integer").into(),
-        "i16" => format!("{NAME_SPACE}::{HTTP_SIMPLE_TYPE}::Integer").into(),
-        "u32" => format!("{NAME_SPACE}::{HTTP_SIMPLE_TYPE}::Integer").into(),
-        "i32" => format!("{NAME_SPACE}::{HTTP_SIMPLE_TYPE}::Integer").into(),
-        "u64" => format!("{NAME_SPACE}::{HTTP_SIMPLE_TYPE}::Long").into(),
-        "i64" => format!("{NAME_SPACE}::{HTTP_SIMPLE_TYPE}::Long").into(),
-        "usize" => format!("{NAME_SPACE}::{HTTP_SIMPLE_TYPE}::Long").into(),
-        "isize" => format!("{NAME_SPACE}::{HTTP_SIMPLE_TYPE}::Long").into(),
-        "bool" => format!("{NAME_SPACE}::{HTTP_SIMPLE_TYPE}::Boolean").into(),
+fn get_simple_type(pt: &PropertyType) -> Option<String> {
+    match pt {
+        PropertyType::String => format!("{NAME_SPACE}::{HTTP_SIMPLE_TYPE}::String").into(),
+        PropertyType::U8 => format!("{NAME_SPACE}::{HTTP_SIMPLE_TYPE}::Integer").into(),
+        PropertyType::I8 => format!("{NAME_SPACE}::{HTTP_SIMPLE_TYPE}::Integer").into(),
+        PropertyType::U16 => format!("{NAME_SPACE}::{HTTP_SIMPLE_TYPE}::Integer").into(),
+        PropertyType::I16 => format!("{NAME_SPACE}::{HTTP_SIMPLE_TYPE}::Integer").into(),
+        PropertyType::U32 => format!("{NAME_SPACE}::{HTTP_SIMPLE_TYPE}::Integer").into(),
+        PropertyType::I32 => format!("{NAME_SPACE}::{HTTP_SIMPLE_TYPE}::Integer").into(),
+        PropertyType::U64 => format!("{NAME_SPACE}::{HTTP_SIMPLE_TYPE}::Long").into(),
+        PropertyType::I64 => format!("{NAME_SPACE}::{HTTP_SIMPLE_TYPE}::Long").into(),
+        PropertyType::USize => format!("{NAME_SPACE}::{HTTP_SIMPLE_TYPE}::Long").into(),
+        PropertyType::ISize => format!("{NAME_SPACE}::{HTTP_SIMPLE_TYPE}::Long").into(),
+        PropertyType::Bool => format!("{NAME_SPACE}::{HTTP_SIMPLE_TYPE}::Boolean").into(),
         _ => None,
     }
 }

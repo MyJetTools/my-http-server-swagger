@@ -50,6 +50,17 @@ pub fn read_optional_string_parameter(form_data: bool, input_field: &InputField)
     compile_read_line(input_field, get_value.as_str())
 }
 
+pub fn read_optional_str_parameter(form_data: bool, input_field: &InputField) -> String {
+    let src = get_source_to_read(form_data);
+    let get_optional_str_value = format!(
+        "{src}.get_optional_string_parameter(\"{http_name}\")",
+        src = src,
+        http_name = input_field.name()
+    );
+
+    compile_read_line(input_field, get_optional_str_value.as_str())
+}
+
 pub fn read_optional_parameter(form_data: bool, input_field: &InputField) -> String {
     let src = get_source_to_read(form_data);
 
@@ -65,30 +76,47 @@ pub fn read_optional_parameter(form_data: bool, input_field: &InputField) -> Str
 pub fn read_from_headers(input_field: &InputField) -> String {
     if input_field.required() {
         if input_field.property.ty.is_string() {
-            format!(
+            return format!(
                 "{struct_field_name}: ctx.request.get_required_header(\"{header_name}\")?.to_string(),\n",
                 struct_field_name = input_field.struct_field_name(),
                 header_name = input_field.name().to_lowercase()
-            )
+            );
         } else {
             panic!("Header can only be read to String typed property");
         }
-    } else {
-        if input_field.property.ty.get_generic().is_string() {
+    }
+
+    if let PropertyType::OptionOf(inner_generic) = &input_field.property.ty {
+        if inner_generic.is_string() {
             let get_optional_header = format!(
                 "ctx.request.get_optional_header(\"{header_name}\")",
                 header_name = input_field.name().to_lowercase()
             );
 
-            format!(
+            return format!(
                 "{struct_field_name}: {str_converions},\n",
                 struct_field_name = input_field.struct_field_name(),
                 str_converions = option_of_str_to_option_of_string(get_optional_header.as_str())
-            )
-        } else {
-            panic!("Header can only be read to String typed property");
+            );
         }
+
+        if inner_generic.is_string() {
+            let get_optional_header = format!(
+                "ctx.request.get_optional_header(\"{header_name}\")",
+                header_name = input_field.name().to_lowercase()
+            );
+
+            return format!(
+                "{struct_field_name}: {str_converions},\n",
+                struct_field_name = input_field.struct_field_name(),
+                str_converions = option_of_str_to_option_of_string(get_optional_header.as_str())
+            );
+        }
+
+        panic!("Header can only be read to String or str typed property");
     }
+
+    panic!("Non required filed must be optional");
 }
 
 fn compile_read_line(input_field: &InputField, reading_line: &str) -> String {
@@ -171,7 +199,7 @@ fn option_to_default(expr: &str, default: &str, ty: &PropertyType) -> String {
     "###,
         expr = expr,
         default = default,
-        ty = ty.type_name,
+        ty = ty.as_str(),
         fn_parse_str = crate::consts::FN_PARSE_STR
     )
 }
