@@ -21,12 +21,12 @@ pub fn generate(name: &str, input_fields: &InputFields) -> String {
     if let Some(body_data) = input_fields.get_body_data() {
         if let PropertyType::VecOf(inner_generic) = &body_data.property.ty {
             if inner_generic.is_u8() {
-                result.push_str("let body = ctx.request.get_body().await?;\n");
+                result.push_str("let body = ctx.request.get_body()?;\n");
             } else {
-                result.push_str("let body = ctx.request.get_body_as_json().await?;\n");
+                result.push_str("let body = ctx.request.get_body_as_json()?;\n");
             }
         } else {
-            result.push_str("let body = ctx.request.get_body_as_json().await?;\n");
+            result.push_str("let body = ctx.request.get_body_as_json()?;\n");
         }
     }
 
