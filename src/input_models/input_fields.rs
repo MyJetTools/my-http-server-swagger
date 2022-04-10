@@ -162,9 +162,9 @@ impl InputFields {
         return false;
     }
 
-    pub fn get_form_data(&self) -> Option<&InputField> {
+    pub fn get_body_data(&self) -> Option<&InputField> {
         for field in &self.fields {
-            if let InputFieldSource::Form = &field.src {
+            if let InputFieldSource::Body = &field.src {
                 return Some(field);
             }
         }

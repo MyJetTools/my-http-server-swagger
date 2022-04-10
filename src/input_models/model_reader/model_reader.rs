@@ -16,17 +16,15 @@ pub fn generate(name: &str, input_fields: &InputFields) -> String {
         result.push_str("let form_data = ctx.request.get_form_data()?;\n");
     }
 
-    if input_fields.has_body_data() {
-        if let Some(form_data) = input_fields.get_form_data() {
-            if let PropertyType::VecOf(inner_generic) = &form_data.property.ty {
-                if inner_generic.is_u8() {
-                    result.push_str("let body = ctx.request.get_body().await?;\n");
-                } else {
-                    result.push_str("let body = ctx.request.get_body_as_json().await?;\n");
-                }
+    if let Some(body_data) = input_fields.get_body_data() {
+        if let PropertyType::VecOf(inner_generic) = &body_data.property.ty {
+            if inner_generic.is_u8() {
+                result.push_str("let body = ctx.request.get_body().await?;\n");
             } else {
                 result.push_str("let body = ctx.request.get_body_as_json().await?;\n");
             }
+        } else {
+            result.push_str("let body = ctx.request.get_body_as_json().await?;\n");
         }
     }
 
