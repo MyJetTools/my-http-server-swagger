@@ -58,7 +58,10 @@ pub fn generate(name: &str, input_fields: &InputFields) -> String {
                 result.push_str(line_to_add.as_str());
             }
             InputFieldSource::Header => {
-                let line_to_add = super::rust_builders::read_from_headers(input_field);
+                let line_to_add = format!(
+                    "{field_name}:{field_name}_header,",
+                    field_name = input_field.struct_field_name()
+                );
                 result.push_str(line_to_add.as_str());
             }
             InputFieldSource::Body => {}
