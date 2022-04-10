@@ -81,8 +81,15 @@ pub fn read_from_headers(input_field: &InputField) -> String {
                 struct_field_name = input_field.struct_field_name(),
                 header_name = input_field.name().to_lowercase()
             );
+        }
+        if input_field.property.ty.is_str() {
+            return format!(
+                "{struct_field_name}: ctx.request.get_required_header(\"{header_name}\")?,\n",
+                struct_field_name = input_field.struct_field_name(),
+                header_name = input_field.name().to_lowercase()
+            );
         } else {
-            panic!("Header can only be read to String typed property");
+            panic!("Header can only be read to String or str typed property");
         }
     }
 
