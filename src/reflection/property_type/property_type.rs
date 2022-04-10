@@ -39,6 +39,7 @@ pub enum PropertyType {
     Bool,
     OptionOf(Box<PropertyType>),
     VecOf(Box<PropertyType>),
+    Struct(String),
 }
 
 impl PropertyType {
@@ -87,7 +88,7 @@ impl PropertyType {
                 PropertyType::OptionOf(Box::new(super::utils::get_generic(type_path.unwrap())))
             }
             "Vec" => PropertyType::VecOf(Box::new(super::utils::get_generic(type_path.unwrap()))),
-            _ => panic!("Can not parse type: {}", src),
+            _ => PropertyType::Struct(src.to_string()),
         }
     }
 
@@ -112,6 +113,7 @@ impl PropertyType {
             PropertyType::VecOf(generic_type) => {
                 AsStr::create_as_string(format!("Vec<{}>", generic_type.as_str()))
             }
+            PropertyType::Struct(name) => AsStr::create_as_str(name.as_str()),
         }
     }
 
