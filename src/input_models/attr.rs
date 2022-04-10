@@ -22,7 +22,7 @@ pub fn impl_input_types(ast: &syn::DeriveInput) -> TokenStream {
                 pub fn get_input_params()->Vec<{NAME_SPACE}::{HTTP_INPUT_PARAMETER_TYPE}>{{
                     {doc}
                 }}
-                pub async fn parse_http_input(ctx:&'s mut my_http_server::HttpContext)->Result<Self, my_http_server::HttpFailResult>{{
+                pub async fn parse_http_input(ctx:&'s mut my_http_server::HttpContext)->Result<{struct_name}<'s>, my_http_server::HttpFailResult>{{
                     {model_reader}
                 }}
         }}"###,
