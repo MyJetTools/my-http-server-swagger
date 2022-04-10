@@ -79,6 +79,16 @@ pub fn generate(name: &str, input_fields: &InputFields) -> String {
 }
 
 fn add_init_lines(result: &mut String, input_fields: &InputFields) {
+    for input_field_header in input_fields.get_from_header_elements() {
+        let line = if input_field_header.required() {
+            format!("let {field_name}_header = ctx.request.get_required_header(\"{header_key}\")?.to_string()", field_name=input_field_header.struct_field_name(), header_key=input_field_header.name())
+        } else {
+            format!("let {field_name}_header = ctx.request.get_optional_header(\"{header_key}\")?.to_string()", field_name=input_field_header.struct_field_name(), header_key=input_field_header.name())
+        };
+
+        result.push_str(line.as_str());
+    }
+
     if input_fields.has_query() {
         result.push_str("ctx.request.init_query_string()?;\n");
     }
