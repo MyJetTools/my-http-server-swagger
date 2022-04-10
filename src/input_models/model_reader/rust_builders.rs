@@ -1,48 +1,56 @@
 use crate::{input_models::input_fields::InputField, reflection::PropertyType};
 
-pub fn get_source_to_read<'s>(form_data: bool) -> &'s str {
-    if form_data {
-        "form_data"
-    } else {
-        "query_string"
+pub enum SourceToRead {
+    FormData,
+    QueryString,
+}
+
+impl SourceToRead {
+    pub fn get_source_variable(&self) -> &str {
+        match self {
+            SourceToRead::FormData => "form_data",
+            SourceToRead::QueryString => "query_string",
+        }
     }
 }
 
 pub fn read_string_parameter_with_default_value(
-    form_data: bool,
+    source_to_read: &SourceToRead,
     input_field: &InputField,
     default: &str,
 ) -> String {
-    let optional_string = generate_read_optional_string_parameter(form_data, input_field);
+    let optional_string = generate_read_optional_string_parameter(source_to_read, input_field);
     let get_value = option_of_str_to_default(optional_string.as_str(), default);
     compile_read_line(input_field, get_value.as_str())
 }
 
 pub fn read_system_parameter_with_default_value(
-    form_data: bool,
+    source_to_read: &SourceToRead,
     input_field: &InputField,
     default: &str,
 ) -> String {
-    let optional_string = generate_read_optional_parameter(form_data, input_field);
+    let optional_string = generate_read_optional_parameter(source_to_read, input_field);
     let get_value = option_to_system_default(optional_string.as_str(), default);
     compile_read_line(input_field, get_value.as_str())
 }
 
 pub fn read_parameter_with_default_value(
-    form_data: bool,
+    source_to_read: &SourceToRead,
     input_field: &InputField,
     default: &str,
 ) -> String {
-    let optional_string = generate_read_optional_string_parameter(form_data, input_field);
+    let optional_string = generate_read_optional_string_parameter(source_to_read, input_field);
     let get_value = option_to_default(optional_string.as_str(), default, &input_field.property.ty);
     compile_read_line(input_field, get_value.as_str())
 }
 
-pub fn read_optional_string_parameter(form_data: bool, input_field: &InputField) -> String {
-    let src = get_source_to_read(form_data);
+pub fn read_optional_string_parameter(
+    source_to_read: &SourceToRead,
+    input_field: &InputField,
+) -> String {
     let get_optional_value = format!(
         "{src}.get_optional_string_parameter(\"{http_name}\")",
-        src = src,
+        src = source_to_read.get_source_variable(),
         http_name = input_field.name()
     );
 
@@ -50,23 +58,23 @@ pub fn read_optional_string_parameter(form_data: bool, input_field: &InputField)
     compile_read_line(input_field, get_value.as_str())
 }
 
-pub fn read_optional_str_parameter(form_data: bool, input_field: &InputField) -> String {
-    let src = get_source_to_read(form_data);
+pub fn read_optional_str_parameter(
+    source_to_read: &SourceToRead,
+    input_field: &InputField,
+) -> String {
     let get_optional_str_value = format!(
         "{src}.get_optional_string_parameter(\"{http_name}\")",
-        src = src,
+        src = source_to_read.get_source_variable(),
         http_name = input_field.name()
     );
 
     compile_read_line(input_field, get_optional_str_value.as_str())
 }
 
-pub fn read_optional_parameter(form_data: bool, input_field: &InputField) -> String {
-    let src = get_source_to_read(form_data);
-
+pub fn read_optional_parameter(source_to_read: &SourceToRead, input_field: &InputField) -> String {
     let get_value = format!(
         "{src}.get_optional_parameter(\"{http_name}\")",
-        src = src,
+        src = source_to_read.get_source_variable(),
         http_name = input_field.name()
     );
 
@@ -134,22 +142,24 @@ fn compile_read_line(input_field: &InputField, reading_line: &str) -> String {
     )
 }
 
-fn generate_read_optional_string_parameter(form_data: bool, input_field: &InputField) -> String {
-    let src = get_source_to_read(form_data);
-
+fn generate_read_optional_string_parameter(
+    source_to_read: &SourceToRead,
+    input_field: &InputField,
+) -> String {
     format!(
         "{src}.get_optional_string_parameter(\"{http_name}\")",
-        src = src,
+        src = source_to_read.get_source_variable(),
         http_name = input_field.name()
     )
 }
 
-fn generate_read_optional_parameter(form_data: bool, input_field: &InputField) -> String {
-    let src = get_source_to_read(form_data);
-
+fn generate_read_optional_parameter(
+    source_to_read: &SourceToRead,
+    input_field: &InputField,
+) -> String {
     format!(
         "{src}.get_optional_parameter(\"{http_name}\")",
-        src = src,
+        src = source_to_read.get_source_variable(),
         http_name = input_field.name()
     )
 }
