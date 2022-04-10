@@ -54,7 +54,7 @@ impl PropertyType {
             syn::Type::Tuple(_) => panic!("Tuple type is not supported"),
             syn::Type::Path(type_path) => {
                 let type_as_string = super::utils::simple_type_to_string(type_path);
-                return PropertyType::parse(type_as_string.as_str(), Some(type_path));
+                return PropertyType::parse(type_as_string.as_str(), type_path);
             }
             syn::Type::TraitObject(_) => panic!("TraitObject type is not supported"),
             syn::Type::ImplTrait(_) => panic!("ImplTrait type is not supported"),
@@ -67,7 +67,7 @@ impl PropertyType {
         }
     }
 
-    pub fn parse(src: &str, type_path: Option<&TypePath>) -> Self {
+    pub fn parse(src: &str, type_path: &TypePath) -> Self {
         match src {
             U8 => PropertyType::U8,
             I8 => PropertyType::I8,
@@ -81,13 +81,8 @@ impl PropertyType {
             I_SIZE => PropertyType::ISize,
             BOOL => PropertyType::Bool,
             STRING => PropertyType::String,
-            "Option" => {
-                if type_path.is_none() {
-                    panic!("We have an option, byt not type_path to parse a generic");
-                }
-                PropertyType::OptionOf(Box::new(super::utils::get_generic(type_path.unwrap())))
-            }
-            "Vec" => PropertyType::VecOf(Box::new(super::utils::get_generic(type_path.unwrap()))),
+            "Option" => PropertyType::OptionOf(Box::new(super::utils::get_generic(type_path))),
+            "Vec" => PropertyType::VecOf(Box::new(super::utils::get_generic(type_path))),
             _ => PropertyType::Struct(src.to_string()),
         }
     }
