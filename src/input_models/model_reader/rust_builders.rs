@@ -42,8 +42,27 @@ pub fn read_parameter_with_default_value(
     input_field: &InputField,
     default: &str,
 ) -> String {
-    let optional_string = generate_read_optional_string_parameter(source_to_read, input_field);
-    let get_value = option_to_default(optional_string.as_str(), default, &input_field.property.ty);
+    let (read_value_expresion, default_value, to_string) = if input_field.property.ty.is_string() {
+        let rve = generate_read_optional_string_parameter(source_to_read, input_field);
+        (rve, format!("\"{}\"", default), ".to_string")
+    } else if input_field.property.ty.is_str() {
+        let rve = generate_read_optional_string_parameter(source_to_read, input_field);
+        (rve, format!("\"{}\"", default), "")
+    } else {
+        let rve = generate_read_optional_parameter(source_to_read, input_field);
+        (rve, format!("{}", default), "")
+    };
+
+    let get_value = format!(
+        r###"
+        if let Some(value) = {read_value_expresion}{{
+            value{to_string}
+        }}else{{
+            {default_value}{to_string}
+        }}
+    "###,
+    );
+
     compile_read_line(input_field, get_value.as_str())
 }
 
@@ -195,21 +214,5 @@ fn option_to_system_default(expr: &str, default: &str) -> String {
     "###,
         expr = expr,
         default = default
-    )
-}
-
-fn option_to_default(expr: &str, default: &str, ty: &PropertyType) -> String {
-    format!(
-        r###"
-        if let Some(value) = {expr}{{
-            {ty}::{fn_parse_str}(value)?
-        }}else{{
-            {ty}::{fn_parse_str}("{default}")?
-        }}
-    "###,
-        expr = expr,
-        default = default,
-        ty = ty.as_str(),
-        fn_parse_str = crate::consts::FN_PARSE_STR
     )
 }
