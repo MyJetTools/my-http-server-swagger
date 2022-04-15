@@ -37,35 +37,6 @@ pub fn read_system_parameter_with_default_value(
     compile_read_line(input_field, get_value.as_str())
 }
 
-pub fn read_parameter_with_default_value(
-    source_to_read: &SourceToRead,
-    input_field: &InputField,
-    default: &str,
-) -> String {
-    let (read_value_expresion, default_value, to_string) = if input_field.property.ty.is_string() {
-        let rve = generate_read_optional_string_parameter(source_to_read, input_field);
-        (rve, format!("\"{}\"", default), ".to_string")
-    } else if input_field.property.ty.is_str() {
-        let rve = generate_read_optional_string_parameter(source_to_read, input_field);
-        (rve, format!("\"{}\"", default), "")
-    } else {
-        let rve = generate_read_optional_parameter(source_to_read, input_field);
-        (rve, format!("{}", default), "")
-    };
-
-    let get_value = format!(
-        r###"
-        if let Some(value) = {read_value_expresion}{{
-            value{to_string}
-        }}else{{
-            {default_value}{to_string}
-        }}
-    "###,
-    );
-
-    compile_read_line(input_field, get_value.as_str())
-}
-
 pub fn read_optional_string_parameter(
     source_to_read: &SourceToRead,
     input_field: &InputField,

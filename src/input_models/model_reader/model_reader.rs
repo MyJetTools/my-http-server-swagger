@@ -150,14 +150,17 @@ fn read_with_default(
         );
     }
 
-    return super::rust_builders::read_parameter_with_default_value(
-        source_to_read,
-        input_field,
-        format!(
-            "{type_name}::parse_str(\"{default}\")?",
-            type_name = input_field.property.ty.as_str()
-        )
-        .as_str(),
+    return format!(
+        r###"
+        if let Some(value) = {src}.get_required_string_parameter(\"{http_name}\")?{{
+            {type_name}::parse_str(value)?
+        }}else{{
+            {type_name}::parse_str(\"{default}\")?
+        }}
+    "###,
+        type_name = input_field.property.ty.as_str(),
+        http_name = input_field.name(),
+        src = source_to_read.get_source_variable()
     );
 }
 
