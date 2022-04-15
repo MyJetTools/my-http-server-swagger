@@ -152,7 +152,7 @@ fn read_with_default(
 
     return format!(
         r###"
-        {property_name}: if let Some(value) = {src}.get_optional_string_parameter("{http_name}")?{{
+        {property_name}: if let Some(value) = {src}.get_optional_string_parameter("{http_name}"){{
             {type_name}::parse_str(value)?
         }}else{{
             {type_name}::parse_str("{default}")?
