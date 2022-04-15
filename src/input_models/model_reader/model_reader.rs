@@ -153,7 +153,11 @@ fn read_with_default(
     return super::rust_builders::read_parameter_with_default_value(
         source_to_read,
         input_field,
-        format!("{name}::parse(\"{default}\")", name = input_field.name()).as_str(),
+        format!(
+            "{type_name}::parse(\"{default}\")",
+            type_name = input_field.property.ty.as_str()
+        )
+        .as_str(),
     );
 }
 
