@@ -148,13 +148,13 @@ fn read_with_default(
             input_field,
             default,
         );
-    } else {
-        return super::rust_builders::read_parameter_with_default_value(
-            source_to_read,
-            input_field,
-            default,
-        );
     }
+
+    return super::rust_builders::read_parameter_with_default_value(
+        source_to_read,
+        input_field,
+        format!("{default}::parse()").as_str(),
+    );
 }
 
 fn read_required(source_to_read: &SourceToRead, input_field: &InputField) -> String {
