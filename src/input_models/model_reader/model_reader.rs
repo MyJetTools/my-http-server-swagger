@@ -154,7 +154,7 @@ fn read_with_default(
         source_to_read,
         input_field,
         format!(
-            "{type_name}::parse(\"{default}\")?",
+            "{type_name}::parse_str(\"{default}\")?",
             type_name = input_field.property.ty.as_str()
         )
         .as_str(),
