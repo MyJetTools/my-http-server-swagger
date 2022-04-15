@@ -152,10 +152,10 @@ fn read_with_default(
 
     return format!(
         r###"
-        if let Some(value) = {src}.get_required_string_parameter(\"{http_name}\")?{{
+        if let Some(value) = {src}.get_required_string_parameter("{http_name}")?{{
             {type_name}::parse_str(value)?
         }}else{{
-            {type_name}::parse_str(\"{default}\")?
+            {type_name}::parse_str("{default}")?
         }}
     "###,
         type_name = input_field.property.ty.as_str(),
