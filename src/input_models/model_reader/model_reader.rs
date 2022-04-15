@@ -26,7 +26,11 @@ pub fn generate(name: &str, input_fields: &InputFields) -> String {
                 result.push_str("let body = ctx.request.get_body_as_json()?;\n");
             }
         } else {
-            result.push_str("let body = ctx.request.get_body_as_json()?;\n");
+            if body_data.property.ty.as_str().get_str().starts_with('&') {
+                result.push_str("let body = ctx.request.get_body_as_slice()?;\n");
+            } else {
+                result.push_str("let body = ctx.request.get_body_as_json()?;\n");
+            }
         }
     }
 
