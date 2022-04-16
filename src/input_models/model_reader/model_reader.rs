@@ -11,27 +11,11 @@ pub fn generate(name: &str, input_fields: &InputFields) -> String {
     add_init_lines(&mut result, input_fields);
 
     if input_fields.has_query() {
-        result.push_str("let query_string = ctx.request.get_query_string()?;\n");
+        result.push_str("let query_string = request.get_query_string()?;\n");
     }
 
-    if input_fields.has_form_data() {
-        result.push_str("let form_data = ctx.request.get_form_data()?;\n");
-    }
-
-    if let Some(body_data) = input_fields.get_body_data() {
-        if let PropertyType::VecOf(inner_generic) = &body_data.property.ty {
-            if inner_generic.is_u8() {
-                result.push_str("let body = ctx.request.get_body()?;\n");
-            } else {
-                result.push_str("let body = ctx.request.get_body_as_json()?;\n");
-            }
-        } else {
-            if body_data.property.ty.as_str().get_str().starts_with('&') {
-                result.push_str("let body = ctx.request.get_body_as_slice()?;\n");
-            } else {
-                result.push_str("let body = ctx.request.get_body_as_json()?;\n");
-            }
-        }
+    if input_fields.has_body_data() || input_fields.has_form_data() {
+        result.push_str("let body = request.get_body()?;\n");
     }
 
     result.push_str("Ok(");
@@ -47,13 +31,13 @@ pub fn generate(name: &str, input_fields: &InputFields) -> String {
             InputFieldSource::Path => {
                 let line_to_add = if input_field.required() {
                     format!(
-                        "{}: ctx.request.get_value_from_path(\"{}\")?.to_string(),",
+                        "{}: request.get_value_from_path(\"{}\")?.to_string(),",
                         input_field.struct_field_name(),
                         input_field.name()
                     )
                 } else {
                     format!(
-                        "{}: ctx.request.get_value_from_path_optional_as_string(\"{}\")?,",
+                        "{}: request.get_value_from_path_optional_as_string(\"{}\")?,",
                         input_field.struct_field_name(),
                         input_field.name()
                     )
@@ -87,18 +71,6 @@ pub fn generate(name: &str, input_fields: &InputFields) -> String {
 
 fn add_init_lines(result: &mut String, input_fields: &InputFields) {
     super::rust_builders::init_header_variables(result, input_fields);
-
-    if input_fields.has_query() {
-        result.push_str("ctx.request.init_query_string()?;\n");
-    }
-
-    if input_fields.has_form_data() {
-        result.push_str("ctx.request.init_form_data().await?;\n");
-    }
-
-    if input_fields.has_body_data() {
-        result.push_str("ctx.request.init_body().await?;\n");
-    }
 }
 
 fn add_reading_body(result: &mut String, body_field: &InputField) {

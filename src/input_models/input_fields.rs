@@ -162,15 +162,6 @@ impl InputFields {
         return false;
     }
 
-    pub fn get_body_data(&self) -> Option<&InputField> {
-        for field in &self.fields {
-            if let InputFieldSource::Body = &field.src {
-                return Some(field);
-            }
-        }
-        return None;
-    }
-
     pub fn get_from_header_elements(&self) -> Vec<&InputField> {
         let mut result = Vec::new();
         for field in &self.fields {

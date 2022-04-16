@@ -1,4 +1,4 @@
-use crate::consts::{HTTP_INPUT_PARAMETER_TYPE, NAME_SPACE};
+use crate::consts::{HTTP_FAIL_RESULT, HTTP_INPUT_PARAMETER_TYPE, HTTP_REQUEST_BUCKET, NAME_SPACE};
 use proc_macro::TokenStream;
 
 use super::input_fields::InputFields;
@@ -22,7 +22,7 @@ pub fn impl_input_types(ast: &syn::DeriveInput) -> TokenStream {
                 pub fn get_input_params()->Vec<{NAME_SPACE}::{HTTP_INPUT_PARAMETER_TYPE}>{{
                     {doc}
                 }}
-                pub async fn parse_http_input(ctx:&'s mut my_http_server::HttpContext)->Result<{struct_name}<'s>, my_http_server::HttpFailResult>{{
+                pub async fn parse_http_input(request:&'s {HTTP_REQUEST_BUCKET})->Result<{struct_name}<'s>, {HTTP_FAIL_RESULT}>{{
                     {model_reader}
                 }}
         }}"###,
@@ -36,7 +36,7 @@ pub fn impl_input_types(ast: &syn::DeriveInput) -> TokenStream {
                 pub fn get_input_params()->Vec<{NAME_SPACE}::{HTTP_INPUT_PARAMETER_TYPE}>{{
                     {doc}
                 }}
-                pub async fn parse_http_input(ctx:&mut my_http_server::HttpContext)->Result<Self, my_http_server::HttpFailResult>{{
+                pub async fn parse_http_input(request: &{HTTP_REQUEST_BUCKET})->Result<Self, {HTTP_FAIL_RESULT}>{{
                     {model_reader}
                 }}
         }}"###,

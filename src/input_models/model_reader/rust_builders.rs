@@ -97,10 +97,10 @@ pub fn init_header_variables(result: &mut String, input_fields: &InputFields) {
         }
 
         let line = if input_field_header.required() {
-            format!("let {field_name}_header = ctx.request.get_required_header(\"{header_key}\")?.to_string();\n", field_name=input_field_header.struct_field_name(), header_key=input_field_header.name())
+            format!("let {field_name}_header = request.get_required_header(\"{header_key}\")?.to_string();\n", field_name=input_field_header.struct_field_name(), header_key=input_field_header.name())
         } else {
             let reading_command = format!(
-                "ctx.request.get_optional_header(\"{header_key}\")",
+                "request.get_optional_header(\"{header_key}\")",
                 header_key = input_field_header.name()
             );
 

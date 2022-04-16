@@ -11,13 +11,6 @@ impl<'s> AsStr<'s> {
     pub fn create_as_string(src: String) -> Self {
         Self::AsString(src)
     }
-
-    pub fn get_str(&self) -> &str {
-        match self {
-            AsStr::AsStr(src) => src,
-            AsStr::AsString(src) => src,
-        }
-    }
 }
 
 impl<'s> std::fmt::Display for AsStr<'s> {
