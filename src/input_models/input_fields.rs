@@ -1,4 +1,4 @@
-use crate::reflection::{MyAttribute, PropertyType, StructProperty};
+use crate::reflection::{MyAttribute, StructProperty};
 
 pub enum InputFieldSource {
     Query,
@@ -136,27 +136,6 @@ impl InputFields {
         for field in &self.fields {
             if let InputFieldSource::Body = &field.src {
                 return true;
-            }
-        }
-        return false;
-    }
-
-    pub fn has_life_time(&self) -> bool {
-        for field in &self.fields {
-            if field.property.ty.is_str() {
-                return true;
-            }
-
-            if let PropertyType::VecOf(inner_generic) = &field.property.ty {
-                if inner_generic.is_str() {
-                    return true;
-                }
-            }
-
-            if let PropertyType::OptionOf(inner_generic) = &field.property.ty {
-                if inner_generic.is_str() {
-                    return true;
-                }
             }
         }
         return false;

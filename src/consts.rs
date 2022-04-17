@@ -21,6 +21,6 @@ pub const HTTP_ENUM_STRUCTURE: &str = "data_types::HttpEnumStructure";
 pub const ENUM_TYPE: &str = "data_types::EnumType";
 pub const HTTP_ENUM_CASE: &str = "data_types::HttpEnumCase";
 
-pub const HTTP_REQUEST_BUCKET: &str = "my_http_server::HttpRequestBucket";
+pub const HTTP_REQUEST: &str = "my_http_server::HttpRequest";
 
 pub const HTTP_FAIL_RESULT: &str = "my_http_server::HttpFailResult";
