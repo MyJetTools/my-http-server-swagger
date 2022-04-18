@@ -33,7 +33,7 @@ pub fn init_header_variables(result: &mut String, input_fields: &InputFields) {
             let reading_command = option_of_str_to_option_of_string(reading_command.as_str());
 
             format!(
-                "let {field_name}_header = {reading_command};\n",
+                "let {field_name} = {reading_command};\n",
                 field_name = input_field_header.struct_field_name(),
             )
         };
