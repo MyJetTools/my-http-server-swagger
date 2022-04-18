@@ -15,10 +15,6 @@ pub fn generate(name: &str, input_fields: &InputFields) -> String {
         );
     }
 
-    if input_fields.has_form_data() {
-        result.push_str("let body = ctx.request.get_body()?;\n");
-    }
-
     result.push_str("Ok(");
     result.push_str(name);
     result.push('{');

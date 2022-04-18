@@ -5,7 +5,7 @@ pub fn generate_read_body(result: &mut String, input_field: &InputField) {
 
     if let PropertyType::VecOf(inner_generic) = &input_field.property.ty {
         if inner_generic.is_u8() {
-            result.push_str(": ctx.request.receive_body().await?.get_body()");
+            result.push_str(": ctx.request.receive_body().await?.get_body(),\n");
         } else {
             panic!("Unsuppored type: {}", input_field.property.ty.as_str());
         }

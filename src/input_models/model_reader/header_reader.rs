@@ -26,7 +26,7 @@ pub fn init_header_variables(result: &mut String, input_fields: &InputFields) {
             format!("let {field_name} = ctx.request.get_required_header(\"{header_key}\")?.to_string();\n", field_name=input_field_header.struct_field_name(), header_key=input_field_header.name())
         } else {
             let reading_command = format!(
-                "request.get_optional_header(\"{header_key}\")",
+                "ctx.request.get_optional_header(\"{header_key}\")",
                 header_key = input_field_header.name()
             );
 
@@ -46,10 +46,10 @@ fn option_of_str_to_option_of_string(expr: &str) -> String {
     format!(
         r###"
         if let Some(value) = {expr}{{
-            Some(value.as_string()?)
+            Some(value.to_string())
         }}else{{
             None
-        }}
+        }};
     "###,
         expr = expr,
     )
