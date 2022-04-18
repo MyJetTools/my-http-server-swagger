@@ -26,6 +26,13 @@ impl InputFieldSource {
             _ => false,
         }
     }
+
+    pub fn is_query(&self) -> bool {
+        match self {
+            InputFieldSource::Query => true,
+            _ => false,
+        }
+    }
 }
 
 pub struct InputField {

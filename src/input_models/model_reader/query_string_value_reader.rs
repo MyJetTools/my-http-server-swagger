@@ -17,6 +17,54 @@ impl SourceToRead {
     }
 }
 
+pub fn read_required_string_parameter(
+    source_to_read: &SourceToRead,
+    input_field: &InputField,
+) -> String {
+    format!(
+        "{struct_field_name}: {src}.get_required_string_parameter(\"{http_name}\")?.to_string(),\n",
+        struct_field_name = input_field.struct_field_name(),
+        src = source_to_read.get_source_variable(),
+        http_name = input_field.name()
+    )
+}
+
+pub fn read_required_str_parameter(
+    source_to_read: &SourceToRead,
+    input_field: &InputField,
+) -> String {
+    format!(
+        "{struct_field_name}: {src}.get_required_string_parameter(\"{http_name}\")?,\n",
+        struct_field_name = input_field.struct_field_name(),
+        src = source_to_read.get_source_variable(),
+        http_name = input_field.name()
+    )
+}
+
+pub fn read_required_simple_parameter(
+    source_to_read: &SourceToRead,
+    input_field: &InputField,
+) -> String {
+    format!(
+        "{struct_field_name}: {src}.get_required_parameter(\"{http_name}\")?,\n",
+        struct_field_name = input_field.struct_field_name(),
+        src = source_to_read.get_source_variable(),
+        http_name = input_field.name()
+    )
+}
+
+pub fn read_required_struct_parameter(
+    source_to_read: &SourceToRead,
+    input_field: &InputField,
+) -> String {
+    format!(
+        "{struct_field_name}: {src}.get_required_parameter(\"{http_name}\")?,\n",
+        struct_field_name = input_field.struct_field_name(),
+        src = source_to_read.get_source_variable(),
+        http_name = input_field.name()
+    )
+}
+
 pub fn read_string_parameter_with_default_value(
     source_to_read: &SourceToRead,
     input_field: &InputField,
@@ -35,6 +83,26 @@ pub fn read_system_parameter_with_default_value(
     let optional_string = generate_read_optional_parameter(source_to_read, input_field);
     let get_value = option_to_system_default(optional_string.as_str(), default);
     compile_read_line(input_field, get_value.as_str())
+}
+
+pub fn read_struct_parameter_with_default_value(
+    source_to_read: &SourceToRead,
+    input_field: &InputField,
+    default: &str,
+) -> String {
+    format!(
+        r###"
+            {property_name}: if let Some(value) = {src}.get_optional_string_parameter("{http_name}"){{
+                {type_name}::parse_str(value)?
+            }}else{{
+                {type_name}::parse_str("{default}")?
+            }},
+        "###,
+        property_name = input_field.property.name,
+        type_name = input_field.property.ty.as_str(),
+        http_name = input_field.name(),
+        src = source_to_read.get_source_variable()
+    )
 }
 
 pub fn read_optional_string_parameter(
@@ -105,7 +173,9 @@ pub fn init_header_variables(result: &mut String, input_fields: &InputFields) {
             );
 
             let reading_command =
-                super::rust_builders::option_of_str_to_option_of_string(reading_command.as_str());
+                super::query_string_value_reader::option_of_str_to_option_of_string(
+                    reading_command.as_str(),
+                );
 
             format!(
                 "let {field_name}_header = {reading_command};\n",

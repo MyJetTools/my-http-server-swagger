@@ -1,9 +1,6 @@
-use crate::{
-    input_models::input_fields::{InputField, InputFieldSource, InputFields},
-    reflection::PropertyType,
-};
+use crate::input_models::input_fields::{InputField, InputFieldSource, InputFields};
 
-use super::rust_builders::SourceToRead;
+use super::query_string_value_reader::SourceToRead;
 
 pub fn generate(name: &str, input_fields: &InputFields) -> String {
     let mut result = String::new();
@@ -11,11 +8,15 @@ pub fn generate(name: &str, input_fields: &InputFields) -> String {
     add_init_lines(&mut result, input_fields);
 
     if input_fields.has_query() {
-        result.push_str("let query_string = request.get_query_string()?;\n");
+        super::query_string::generate_init_line(
+            &mut result,
+            input_fields,
+            SourceToRead::QueryString,
+        );
     }
 
-    if input_fields.has_body_data() || input_fields.has_form_data() {
-        result.push_str("let body = request.get_body()?;\n");
+    if input_fields.has_form_data() {
+        result.push_str("let body = ctx.request.get_body()?;\n");
     }
 
     result.push_str("Ok(");
@@ -25,8 +26,8 @@ pub fn generate(name: &str, input_fields: &InputFields) -> String {
     for input_field in &input_fields.fields {
         match &input_field.src {
             InputFieldSource::Query => {
-                let line_to_add = build_reading(input_field, &SourceToRead::QueryString);
-                result.push_str(line_to_add.as_str());
+                result.push_str(input_field.property.name.as_str());
+                result.push(',');
             }
             InputFieldSource::Path => {
                 let line_to_add = if input_field.required() {
@@ -52,10 +53,12 @@ pub fn generate(name: &str, input_fields: &InputFields) -> String {
                 );
                 result.push_str(line_to_add.as_str());
             }
-            InputFieldSource::Body => {}
+            InputFieldSource::Body => {
+                super::read_body::generate_read_body(&mut result, input_field);
+            }
             InputFieldSource::Form => {
-                let line_to_add = build_reading(input_field, &SourceToRead::FormData);
-                result.push_str(line_to_add.as_str());
+                result.push_str(input_field.property.name.as_str());
+                result.push(',');
             }
         }
     }
@@ -70,100 +73,38 @@ pub fn generate(name: &str, input_fields: &InputFields) -> String {
 }
 
 fn add_init_lines(result: &mut String, input_fields: &InputFields) {
-    super::rust_builders::init_header_variables(result, input_fields);
+    super::query_string_value_reader::init_header_variables(result, input_fields);
 }
 
 fn add_reading_body(result: &mut String, body_field: &InputField) {
     result.push_str(format!("{}: body,\n", body_field.struct_field_name()).as_str());
 }
 
-fn build_reading(input_field: &InputField, source_to_read: &SourceToRead) -> String {
-    if let Some(default) = input_field.default() {
-        if input_field.property.ty.is_option() {
-            panic!("It does not make sence to have default value and Option type");
-        }
-
-        return read_with_default(source_to_read, input_field, default);
-    }
-
-    if input_field.required() {
-        return read_required(source_to_read, input_field);
-    }
-
-    if let PropertyType::OptionOf(inner_generic) = &input_field.property.ty {
-        if inner_generic.is_string() {
-            return super::rust_builders::read_optional_string_parameter(
-                source_to_read,
-                input_field,
-            );
-        } else if inner_generic.is_str() {
-            return super::rust_builders::read_optional_str_parameter(source_to_read, input_field);
-        } else {
-            return super::rust_builders::read_optional_parameter(source_to_read, input_field);
-        }
-    }
-
-    panic!("Non Required type must be Option");
-}
-
+/*
 fn read_with_default(
     source_to_read: &SourceToRead,
     input_field: &InputField,
     default: &str,
 ) -> String {
     if input_field.property.ty.is_string() {
-        return super::rust_builders::read_string_parameter_with_default_value(
+        return super::query_string_value_reader::read_string_parameter_with_default_value(
             source_to_read,
             input_field,
             default,
         );
     }
     if input_field.property.ty.is_simple_type() {
-        return super::rust_builders::read_system_parameter_with_default_value(
+        return super::query_string_value_reader::read_system_parameter_with_default_value(
             source_to_read,
             input_field,
             default,
         );
     }
 
-    return format!(
-        r###"
-        {property_name}: if let Some(value) = {src}.get_optional_string_parameter("{http_name}"){{
-            {type_name}::parse_str(value)?
-        }}else{{
-            {type_name}::parse_str("{default}")?
-        }},
-    "###,
-        property_name = input_field.property.name,
-        type_name = input_field.property.ty.as_str(),
-        http_name = input_field.name(),
-        src = source_to_read.get_source_variable()
+    return super::query_string_value_reader::read_struct_parameter_with_default_value(
+        source_to_read,
+        input_field,
+        default,
     );
 }
-
-fn read_required(source_to_read: &SourceToRead, input_field: &InputField) -> String {
-    if input_field.property.ty.is_string() {
-        return format!(
-            "{struct_field_name}: {src}.get_required_string_parameter(\"{http_name}\")?.to_string(),\n",
-            struct_field_name = input_field.struct_field_name(),
-            src = source_to_read.get_source_variable(),
-            http_name = input_field.name()
-        );
-    }
-
-    if input_field.property.ty.is_str() {
-        return format!(
-            "{struct_field_name}: {src}.get_required_string_parameter(\"{http_name}\")?,\n",
-            struct_field_name = input_field.struct_field_name(),
-            src = source_to_read.get_source_variable(),
-            http_name = input_field.name()
-        );
-    }
-
-    format!(
-        "{struct_field_name}: {src}.get_required_parameter(\"{http_name}\")?,\n",
-        struct_field_name = input_field.struct_field_name(),
-        src = source_to_read.get_source_variable(),
-        http_name = input_field.name()
-    )
-}
+ */
