@@ -20,10 +20,6 @@ pub fn generate_init_line(result: &mut String, input_fields: &InputFields, src: 
             result.push_str(" = ");
 
             if input_field.required() {
-                if input_field.property.ty.is_option() {
-                    panic!("It does not make sence to have default value and Option type");
-                }
-
                 result.push_str(generate_reading_required_value(input_field, &src).as_str());
                 result.push_str(";\n");
             } else {
@@ -113,6 +109,8 @@ fn generate_reading_optional_value(
                 super::query_string_value_reader::read_optional_string_parameter(src, input_field);
             result.push_str(line.as_str());
             result.push_str(",\n");
+        } else {
+            result.push_str(format!("{}", generic_type.as_str()).as_str());
         }
     } else {
         panic!("Somehow we got here");
