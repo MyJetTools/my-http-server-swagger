@@ -108,9 +108,9 @@ fn generate_reading_optional_value(
             let line =
                 super::query_string_value_reader::read_optional_string_parameter(src, input_field);
             result.push_str(line.as_str());
-            result.push_str(",\n");
+            result.push_str(";\n");
         } else {
-            result.push_str(format!("{}", generic_type.as_str()).as_str());
+            panic!("We do not support: {}", generic_type.as_str());
         }
     } else {
         panic!("Somehow we got here");
