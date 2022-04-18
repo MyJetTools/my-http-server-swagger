@@ -86,7 +86,7 @@ pub fn read_struct_parameter_with_default_value(
 ) -> String {
     format!(
         r###"
-             if let Some(value) = {src}.get_optional_string_parameter("{http_name}"){{
+             if let Some(value) = {src}.get_optional("{http_name}"){{
                value.parse::<{type_name}>()?
             }}else{{
                "{default}".parse::<{type_name}>()?
@@ -103,7 +103,7 @@ pub fn read_optional_string_parameter(
     input_field: &InputField,
 ) -> String {
     let get_optional_value = format!(
-        "{src}.get_optional_string_parameter(\"{http_name}\")",
+        "{src}.get_optional(\"{http_name}\")",
         src = source_to_read.get_source_variable(),
         http_name = input_field.name()
     );
@@ -116,7 +116,7 @@ pub fn read_optional_str_parameter(
     input_field: &InputField,
 ) -> String {
     format!(
-        "{src}.get_optional_string_parameter(\"{http_name}\")",
+        "{src}.get_optional(\"{http_name}\")",
         src = source_to_read.get_source_variable(),
         http_name = input_field.name()
     )
@@ -124,7 +124,7 @@ pub fn read_optional_str_parameter(
 
 pub fn read_optional_parameter(source_to_read: &SourceToRead, input_field: &InputField) -> String {
     format!(
-        "{src}.get_optional_parameter(\"{http_name}\")",
+        "{src}.get_optional(\"{http_name}\")",
         src = source_to_read.get_source_variable(),
         http_name = input_field.name()
     )
@@ -180,7 +180,7 @@ fn generate_read_optional_string_parameter(
     input_field: &InputField,
 ) -> String {
     format!(
-        "{src}.get_optional_string_parameter(\"{http_name}\")",
+        "{src}.get_optional(\"{http_name}\")",
         src = source_to_read.get_source_variable(),
         http_name = input_field.name()
     )
