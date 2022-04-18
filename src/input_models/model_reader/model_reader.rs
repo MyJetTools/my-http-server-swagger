@@ -47,11 +47,8 @@ pub fn generate(name: &str, input_fields: &InputFields) -> String {
                 result.push_str(line_to_add.as_str());
             }
             InputFieldSource::Header => {
-                let line_to_add = format!(
-                    "{field_name}:{field_name}_header,",
-                    field_name = input_field.struct_field_name()
-                );
-                result.push_str(line_to_add.as_str());
+                result.push_str(input_field.struct_field_name());
+                result.push(',');
             }
             InputFieldSource::Body => {
                 super::read_body::generate_read_body(&mut result, input_field);
