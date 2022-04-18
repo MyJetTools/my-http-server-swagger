@@ -37,5 +37,5 @@ fn generate_read_optional_from_query_string_first_line(
 }
 
 fn generate_read_optional_from_query_string_second_line(result: &mut String) {
-    result.push_str(")else{None}");
+    result.push_str(")}else{None}");
 }
