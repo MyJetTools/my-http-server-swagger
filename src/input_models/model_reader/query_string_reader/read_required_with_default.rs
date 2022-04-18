@@ -11,7 +11,7 @@ pub fn as_string(
     generate_read_optional_from_query_string_first_line(result, source_to_read, input_field);
     super::extensions::as_string(result);
 
-    result.push_str(")else{\"");
+    result.push_str("}else{\"");
     result.push_str(default);
     result.push_str("\".to_string()}");
 }
@@ -25,7 +25,7 @@ pub fn parse_as_type(
     generate_read_optional_from_query_string_first_line(result, source_to_read, input_field);
     super::extensions::parse_as_type(result, input_field);
 
-    result.push_str(")else{\"");
+    result.push_str("}else{\"");
     result.push_str(default);
     result.push_str("\"");
     super::extensions::parse_as_type(result, input_field);
@@ -40,7 +40,7 @@ pub fn as_bool(
 ) {
     generate_read_optional_from_query_string_first_line(result, source_to_read, input_field);
     super::extensions::as_bool(result);
-    result.push_str(")}else{");
+    result.push_str("}else{");
     result.push_str(default);
     result.push_str("}");
 }
@@ -67,5 +67,5 @@ fn generate_read_optional_from_query_string_first_line(
     result.push_str(source_to_read.get_source_variable());
     result.push_str(".get_optional(\"");
     result.push_str(input_field.name());
-    result.push_str("\"){Some(value");
+    result.push_str("\"){value");
 }
