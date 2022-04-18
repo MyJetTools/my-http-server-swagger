@@ -22,6 +22,7 @@ pub fn generate_init_line(result: &mut String, input_fields: &InputFields, src: 
                 }
 
                 result.push_str(generate_reading_required_value(input_field, &src).as_str());
+                result.push_str(";\n");
             } else {
                 generate_reading_optional_value(result, input_field, &src);
 
