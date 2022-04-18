@@ -191,7 +191,7 @@ fn generate_read_optional_parameter(
     input_field: &InputField,
 ) -> String {
     format!(
-        "{src}.get_optional_parameter(\"{http_name}\")",
+        "{src}.get_optional(\"{http_name}\")",
         src = source_to_read.get_source_variable(),
         http_name = input_field.name()
     )
@@ -201,7 +201,7 @@ pub fn option_of_str_to_option_of_string(expr: &str) -> String {
     format!(
         r###"
         if let Some(value) = {expr}{{
-            Some(value.to_string())
+            Some(value.as_string()?)
         }}else{{
             None
         }}
