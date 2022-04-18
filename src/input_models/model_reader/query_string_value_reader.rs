@@ -22,8 +22,7 @@ pub fn read_required_string_parameter(
     input_field: &InputField,
 ) -> String {
     format!(
-        "{struct_field_name}: {src}.get_required_string_parameter(\"{http_name}\")?.to_string(),\n",
-        struct_field_name = input_field.struct_field_name(),
+        "{src}.get_required_string_parameter(\"{http_name}\")?.to_string(),\n",
         src = source_to_read.get_source_variable(),
         http_name = input_field.name()
     )
@@ -34,8 +33,7 @@ pub fn read_required_str_parameter(
     input_field: &InputField,
 ) -> String {
     format!(
-        "{struct_field_name}: {src}.get_required_string_parameter(\"{http_name}\")?,\n",
-        struct_field_name = input_field.struct_field_name(),
+        "{src}.get_required_string_parameter(\"{http_name}\")?,\n",
         src = source_to_read.get_source_variable(),
         http_name = input_field.name()
     )
@@ -46,8 +44,7 @@ pub fn read_required_simple_parameter(
     input_field: &InputField,
 ) -> String {
     format!(
-        "{struct_field_name}: {src}.get_required_parameter(\"{http_name}\")?,\n",
-        struct_field_name = input_field.struct_field_name(),
+        " {src}.get_required_parameter(\"{http_name}\")?,\n",
         src = source_to_read.get_source_variable(),
         http_name = input_field.name()
     )
@@ -58,8 +55,7 @@ pub fn read_required_struct_parameter(
     input_field: &InputField,
 ) -> String {
     format!(
-        "{struct_field_name}: {src}.get_required_parameter(\"{http_name}\")?,\n",
-        struct_field_name = input_field.struct_field_name(),
+        "{src}.get_required_parameter(\"{http_name}\")?,\n",
         src = source_to_read.get_source_variable(),
         http_name = input_field.name()
     )
