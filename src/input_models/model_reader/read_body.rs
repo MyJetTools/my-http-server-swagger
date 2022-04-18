@@ -9,7 +9,7 @@ pub fn generate_read_body(result: &mut String, input_field: &InputField) {
         } else {
             panic!("Unsuppored type: {}", input_field.property.ty.as_str());
         }
+    } else {
+        panic!("Unsuppored type: {}", input_field.property.ty.as_str());
     }
-
-    panic!("Unsuppored type: {}", input_field.property.ty.as_str());
 }
