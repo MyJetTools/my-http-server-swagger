@@ -32,13 +32,13 @@ pub fn generate(name: &str, input_fields: &InputFields) -> String {
             InputFieldSource::Path => {
                 let line_to_add = if input_field.required() {
                     format!(
-                        "{}: request.get_value_from_path(\"{}\")?.to_string(),",
+                        "{}: request.get_value_from_path(\"{}\")?.to_string()",
                         input_field.struct_field_name(),
                         input_field.name()
                     )
                 } else {
                     format!(
-                        "{}: request.get_value_from_path_optional_as_string(\"{}\")?,",
+                        "{}: request.get_value_from_path_optional_as_string(\"{}\")?",
                         input_field.struct_field_name(),
                         input_field.name()
                     )
