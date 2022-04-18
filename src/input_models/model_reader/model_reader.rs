@@ -1,4 +1,4 @@
-use crate::input_models::input_fields::{InputField, InputFieldSource, InputFields};
+use crate::input_models::input_fields::{InputFieldSource, InputFields};
 
 use super::query_string_value_reader::SourceToRead;
 
@@ -63,10 +63,6 @@ pub fn generate(name: &str, input_fields: &InputFields) -> String {
         }
     }
 
-    if let Some(body_field) = input_fields.get_body_field() {
-        add_reading_body(&mut result, body_field);
-    }
-
     result.push_str("})");
 
     result
@@ -74,10 +70,6 @@ pub fn generate(name: &str, input_fields: &InputFields) -> String {
 
 fn add_init_lines(result: &mut String, input_fields: &InputFields) {
     super::query_string_value_reader::init_header_variables(result, input_fields);
-}
-
-fn add_reading_body(result: &mut String, body_field: &InputField) {
-    result.push_str(format!("{}: body,\n", body_field.struct_field_name()).as_str());
 }
 
 /*
