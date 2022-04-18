@@ -137,6 +137,14 @@ impl PropertyType {
         false
     }
 
+    pub fn is_boolean(&self) -> bool {
+        if let PropertyType::Bool = self {
+            return true;
+        }
+
+        false
+    }
+
     pub fn is_option(&self) -> bool {
         if let PropertyType::OptionOf(_) = self {
             return true;

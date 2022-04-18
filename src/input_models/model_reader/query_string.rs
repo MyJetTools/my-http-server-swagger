@@ -73,6 +73,14 @@ fn generate_reading_required_value(input_field: &InputField, src: &SourceToRead)
             );
         }
 
+        if input_field.property.ty.is_boolean() {
+            return super::query_string_value_reader::read_boolean_with_default_value(
+                src,
+                input_field,
+                default_value,
+            );
+        }
+
         if input_field.property.ty.is_simple_type() {
             return super::query_string_value_reader::read_system_parameter_with_default_value(
                 src,
