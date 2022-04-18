@@ -3,7 +3,7 @@ use crate::{
     reflection::PropertyType,
 };
 
-use super::query_string_value_reader::SourceToRead;
+use super::SourceToRead;
 
 pub fn generate_init_line(result: &mut String, input_fields: &InputFields, src: SourceToRead) {
     result.push_str("let ");
@@ -20,7 +20,7 @@ pub fn generate_init_line(result: &mut String, input_fields: &InputFields, src: 
             result.push_str(" = ");
 
             if input_field.required() {
-                result.push_str(generate_reading_required_value(input_field, &src).as_str());
+                generate_reading_required_value(result, input_field, &src);
                 result.push_str(";\n");
             } else {
                 generate_reading_optional_value(result, input_field, &src);
@@ -63,47 +63,46 @@ fn generate_init_fields(result: &mut String, input_fields: &InputFields) {
     result.push(')');
 }
 
-fn generate_reading_required_value(input_field: &InputField, src: &SourceToRead) -> String {
+fn generate_reading_required_value(
+    result: &mut String,
+    input_field: &InputField,
+    src: &SourceToRead,
+) {
     if let Some(default_value) = input_field.default() {
         if input_field.property.ty.is_string() {
-            return super::query_string_value_reader::read_string_parameter_with_default_value(
-                src,
-                input_field,
-                default_value,
-            );
+            super::read_required_with_default::as_string(result, src, input_field, default_value);
+            return;
         }
 
         if input_field.property.ty.is_boolean() {
-            return super::query_string_value_reader::read_boolean_with_default_value(
-                src,
-                input_field,
-                default_value,
-            );
+            super::read_required_with_default::as_bool(result, src, input_field, default_value);
+            return;
         }
 
         if input_field.property.ty.is_simple_type() {
-            return super::query_string_value_reader::read_system_parameter_with_default_value(
+            super::read_required_with_default::as_simple_type(
+                result,
                 src,
                 input_field,
                 default_value,
             );
+            return;
         }
-        return super::query_string_value_reader::read_struct_parameter_with_default_value(
-            src,
-            input_field,
-            default_value,
-        );
+
+        super::read_required_with_default::parse_as_type(result, src, input_field, default_value);
     }
 
     if input_field.property.ty.is_string() {
-        return super::query_string_value_reader::read_required_string_parameter(src, input_field);
+        super::read_required_value::as_string(result, src, input_field);
+        return;
     }
 
-    if input_field.property.ty.is_simple_type() {
-        return super::query_string_value_reader::read_required_simple_parameter(src, input_field);
+    if input_field.property.ty.is_boolean() {
+        super::read_required_value::as_bool(result, src, input_field);
+        return;
     }
 
-    return super::query_string_value_reader::read_required_struct_parameter(src, input_field);
+    super::read_required_value::parse_as_type(result, src, input_field);
 }
 
 fn generate_reading_optional_value(
@@ -113,13 +112,17 @@ fn generate_reading_optional_value(
 ) {
     if let PropertyType::OptionOf(generic_type) = &input_field.property.ty {
         if generic_type.is_string() {
-            let line =
-                super::query_string_value_reader::read_optional_string_parameter(src, input_field);
-            result.push_str(line.as_str());
+            super::read_optional_value::as_string(result, src, input_field);
             result.push_str(";\n");
-        } else {
-            panic!("We do not support: {}", generic_type.as_str());
+            return;
+        } else if generic_type.is_boolean() {
+            super::read_optional_value::as_bool(result, src, input_field);
+            result.push_str(";\n");
+            return;
         }
+        super::read_optional_value::parase_as_type(result, src, input_field);
+        result.push_str(";\n");
+        return;
     } else {
         panic!("Somehow we got here");
     }

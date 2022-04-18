@@ -1,6 +1,6 @@
 use crate::input_models::input_fields::{InputFieldSource, InputFields};
 
-use super::query_string_value_reader::SourceToRead;
+use super::query_string_reader::SourceToRead;
 
 pub fn generate(name: &str, input_fields: &InputFields) -> String {
     let mut result = String::new();
@@ -8,7 +8,7 @@ pub fn generate(name: &str, input_fields: &InputFields) -> String {
     add_init_lines(&mut result, input_fields);
 
     if input_fields.has_query() {
-        super::query_string::generate_init_line(
+        super::query_string_reader::generate_init_line(
             &mut result,
             input_fields,
             SourceToRead::QueryString,
@@ -66,7 +66,7 @@ pub fn generate(name: &str, input_fields: &InputFields) -> String {
 }
 
 fn add_init_lines(result: &mut String, input_fields: &InputFields) {
-    super::query_string_value_reader::init_header_variables(result, input_fields);
+    super::header_reader::init_header_variables(result, input_fields)
 }
 
 /*
