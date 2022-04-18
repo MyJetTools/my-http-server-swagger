@@ -1,4 +1,7 @@
-use crate::input_models::input_fields::{InputField, InputFields};
+use crate::{
+    input_models::input_fields::{InputField, InputFields},
+    reflection::PropertyType,
+};
 
 use super::query_string_value_reader::SourceToRead;
 
@@ -104,10 +107,14 @@ fn generate_reading_optional_value(
     input_field: &InputField,
     src: &SourceToRead,
 ) {
-    if input_field.property.ty.is_string() {
-        result.push_str(
-            super::query_string_value_reader::read_optional_string_parameter(src, input_field)
-                .as_str(),
-        );
+    if let PropertyType::OptionOf(generic_type) = &input_field.property.ty {
+        if generic_type.is_string() {
+            let line =
+                super::query_string_value_reader::read_optional_string_parameter(src, input_field);
+            result.push_str(line.as_str());
+            result.push_str(",\n");
+        }
+    } else {
+        panic!("Somehow we got here");
     }
 }
