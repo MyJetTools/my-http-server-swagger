@@ -70,12 +70,19 @@ fn generate_reading_required_value(
                 result,
                 src,
                 input_field,
+                &input_field.property.ty,
                 default_value,
             );
             return;
         }
 
-        super::read_required_with_default::parse_as_type(result, src, input_field, default_value);
+        super::read_required_with_default::parse_as_type(
+            result,
+            src,
+            input_field,
+            &input_field.property.ty,
+            default_value,
+        );
         return;
     }
 
@@ -107,7 +114,7 @@ fn generate_reading_optional_value(
             result.push_str(";\n");
             return;
         }
-        super::read_optional_value::parase_as_type(result, src, input_field);
+        super::read_optional_value::parase_as_type(result, src, input_field, generic_type);
         result.push_str(";\n");
         return;
     } else {

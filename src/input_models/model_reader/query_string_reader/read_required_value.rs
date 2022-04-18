@@ -9,7 +9,7 @@ pub fn as_string(result: &mut String, source_to_read: &SourceToRead, input_field
 
 pub fn parse_as_type(result: &mut String, source_to_read: &SourceToRead, input_field: &InputField) {
     generate_read_required_from_query_string(result, source_to_read, input_field);
-    super::extensions::parse_as_type(result, input_field);
+    super::extensions::parse_as_type(result, &input_field.property.ty);
 }
 
 pub fn as_bool(result: &mut String, source_to_read: &SourceToRead, input_field: &InputField) {

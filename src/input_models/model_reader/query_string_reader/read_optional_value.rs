@@ -1,4 +1,4 @@
-use crate::input_models::input_fields::InputField;
+use crate::{input_models::input_fields::InputField, reflection::PropertyType};
 
 use super::SourceToRead;
 
@@ -18,9 +18,10 @@ pub fn parase_as_type(
     result: &mut String,
     source_to_read: &SourceToRead,
     input_field: &InputField,
+    generic_type: &PropertyType,
 ) {
     generate_read_optional_from_query_string_first_line(result, source_to_read, input_field);
-    super::extensions::parse_as_type(result, input_field);
+    super::extensions::parse_as_type(result, generic_type);
     generate_read_optional_from_query_string_second_line(result);
 }
 
