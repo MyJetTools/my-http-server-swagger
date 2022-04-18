@@ -24,21 +24,7 @@ pub fn generate_init_line(result: &mut String, input_fields: &InputFields, src: 
                 result.push_str(";\n");
             } else {
                 generate_reading_optional_value(result, input_field, &src);
-
-                /*
-                                if let PropertyType::OptionOf(inner_generic) = &input_field.property.ty {
-                    if inner_generic.is_string() {
-                        return super::rust_builders::read_optional_string_parameter(
-                            source_to_read,
-                            input_field,
-                        );
-                    } else if inner_generic.is_str() {
-                        return super::rust_builders::read_optional_str_parameter(source_to_read, input_field);
-                    } else {
-                        return super::rust_builders::read_optional_parameter(source_to_read, input_field);
-                    }
-                }
-                             */
+                result.push_str(";\n");
             }
         }
     }
@@ -90,6 +76,7 @@ fn generate_reading_required_value(
         }
 
         super::read_required_with_default::parse_as_type(result, src, input_field, default_value);
+        return;
     }
 
     if input_field.property.ty.is_string() {
