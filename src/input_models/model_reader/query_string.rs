@@ -3,6 +3,7 @@ use crate::input_models::input_fields::{InputField, InputFields};
 use super::query_string_value_reader::SourceToRead;
 
 pub fn generate_init_line(result: &mut String, input_fields: &InputFields, src: SourceToRead) {
+    result.push_str("let ");
     generate_init_fields(result, input_fields);
 
     result.push_str("={\n");
@@ -44,15 +45,20 @@ pub fn generate_init_line(result: &mut String, input_fields: &InputFields, src: 
         }
     }
 
+    generate_init_fields(result, input_fields);
     result.push_str("};\n");
 }
 
 fn generate_init_fields(result: &mut String, input_fields: &InputFields) {
     result.push('(');
+    let mut no = 0;
     for field in &input_fields.fields {
         if field.src.is_query() {
+            if no > 0 {
+                result.push(',');
+            }
             result.push_str(field.property.name.as_str());
-            result.push(',');
+            no += 1;
         }
     }
 
