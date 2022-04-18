@@ -67,8 +67,7 @@ pub fn read_string_parameter_with_default_value(
     default: &str,
 ) -> String {
     let optional_string = generate_read_optional_string_parameter(source_to_read, input_field);
-    let get_value = option_of_str_to_default(optional_string.as_str(), default);
-    compile_read_line(input_field, get_value.as_str())
+    option_of_str_to_default(optional_string.as_str(), default)
 }
 
 pub fn read_system_parameter_with_default_value(
@@ -77,8 +76,7 @@ pub fn read_system_parameter_with_default_value(
     default: &str,
 ) -> String {
     let optional_string = generate_read_optional_parameter(source_to_read, input_field);
-    let get_value = option_to_system_default(optional_string.as_str(), default);
-    compile_read_line(input_field, get_value.as_str())
+    option_to_system_default(optional_string.as_str(), default)
 }
 
 pub fn read_struct_parameter_with_default_value(
@@ -111,31 +109,26 @@ pub fn read_optional_string_parameter(
         http_name = input_field.name()
     );
 
-    let get_value = option_of_str_to_option_of_string(get_optional_value.as_str());
-    compile_read_line(input_field, get_value.as_str())
+    option_of_str_to_option_of_string(get_optional_value.as_str())
 }
 
 pub fn read_optional_str_parameter(
     source_to_read: &SourceToRead,
     input_field: &InputField,
 ) -> String {
-    let get_optional_str_value = format!(
+    format!(
         "{src}.get_optional_string_parameter(\"{http_name}\")",
         src = source_to_read.get_source_variable(),
         http_name = input_field.name()
-    );
-
-    compile_read_line(input_field, get_optional_str_value.as_str())
+    )
 }
 
 pub fn read_optional_parameter(source_to_read: &SourceToRead, input_field: &InputField) -> String {
-    let get_value = format!(
+    format!(
         "{src}.get_optional_parameter(\"{http_name}\")",
         src = source_to_read.get_source_variable(),
         http_name = input_field.name()
-    );
-
-    compile_read_line(input_field, get_value.as_str())
+    )
 }
 
 pub fn init_header_variables(result: &mut String, input_fields: &InputFields) {
@@ -181,14 +174,6 @@ pub fn init_header_variables(result: &mut String, input_fields: &InputFields) {
 
         result.push_str(line.as_str());
     }
-}
-
-fn compile_read_line(input_field: &InputField, reading_line: &str) -> String {
-    format!(
-        "{struct_field_name}: {reading_line},\n",
-        struct_field_name = input_field.struct_field_name(),
-        reading_line = reading_line
-    )
 }
 
 fn generate_read_optional_string_parameter(
