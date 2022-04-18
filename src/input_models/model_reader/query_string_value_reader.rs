@@ -22,7 +22,7 @@ pub fn read_required_string_parameter(
     input_field: &InputField,
 ) -> String {
     format!(
-        "{src}.get_required_string_parameter(\"{http_name}\")?.to_string()\n",
+        "{src}.get_required(\"{http_name}\")?.as_string()?\n",
         src = source_to_read.get_source_variable(),
         http_name = input_field.name()
     )

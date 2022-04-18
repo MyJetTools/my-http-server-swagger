@@ -14,7 +14,6 @@ pub fn generate_init_line(result: &mut String, input_fields: &InputFields, src: 
         if input_field.src.is_query() {
             result.push_str("let ");
             result.push_str(input_field.struct_field_name());
-            result.push_str("_query");
             result.push_str(" = ");
 
             if input_field.required() {

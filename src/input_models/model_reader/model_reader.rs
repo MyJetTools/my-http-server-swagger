@@ -27,9 +27,6 @@ pub fn generate(name: &str, input_fields: &InputFields) -> String {
         match &input_field.src {
             InputFieldSource::Query => {
                 result.push_str(input_field.struct_field_name());
-                result.push(':');
-                result.push_str(input_field.struct_field_name());
-                result.push_str("_query");
                 result.push(',');
             }
             InputFieldSource::Path => {

@@ -4,12 +4,13 @@ const HTTP_FAIL_RESULT: &str = "my_http_server::HttpFailResult";
 
 pub fn generate(name: &str, enum_cases: &[EnumJson]) -> String {
     format!(
-        r###"pub fn {fn_parse_str}(src: &str) -> Result<Self, {http_fail_result}> {{
-                {content}
+        r###"impl std::str::FromStr for {name} {{
+               type Err = {http_fail_result};
+
+               pub fn from_str(src: &str) -> Result<Self, Self::Err> {{{content}}}
             }}"###,
         content = generate_content(name, enum_cases),
         http_fail_result = HTTP_FAIL_RESULT,
-        fn_parse_str = crate::consts::FN_PARSE_STR
     )
 }
 
