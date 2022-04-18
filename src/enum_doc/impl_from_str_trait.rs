@@ -6,7 +6,6 @@ pub fn generate(name: &str, enum_cases: &[EnumJson]) -> String {
     format!(
         r###"impl std::str::FromStr for {name} {{
                type Err = {http_fail_result};
-
                fn from_str(src: &str) -> Result<Self, Self::Err> {{{content}}}
             }}"###,
         content = generate_content(name, enum_cases),

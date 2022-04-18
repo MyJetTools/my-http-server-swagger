@@ -87,9 +87,9 @@ pub fn read_struct_parameter_with_default_value(
     format!(
         r###"
              if let Some(value) = {src}.get_optional_string_parameter("{http_name}"){{
-                {type_name}::parse_str(value)?
+               value.parse::<{type_name}>()?
             }}else{{
-                {type_name}::parse_str("{default}")?
+               "{default}".parse::<{type_name}>()?
             }}
         "###,
         type_name = input_field.property.ty.as_str(),
