@@ -28,13 +28,13 @@ pub fn generate(result: &mut String, results: &[HttpResult]) {
                 }
                 super::attributes::ResultType::SimpleType(type_name) => {
                     result.push_str(
-                        format!("{HTTP_DATA_TYPE}::SimpleType({HTTP_SIMPLE_TYPE}::{type_name})",)
+                        format!("data_type: {HTTP_DATA_TYPE}::SimpleType({HTTP_SIMPLE_TYPE}::{type_name})",)
                             .as_str(),
                     );
                 }
             }
         } else {
-            result.push_str(format!("{HTTP_DATA_TYPE}::None",).as_str());
+            result.push_str(format!("data_type: {HTTP_DATA_TYPE}::None",).as_str());
         }
 
         result.push_str("},");
