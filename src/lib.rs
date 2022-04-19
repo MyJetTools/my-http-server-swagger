@@ -3,6 +3,7 @@ use proc_macro::TokenStream;
 
 use syn;
 
+mod action_builder;
 mod consts;
 mod enum_doc;
 mod http_object_structure;
@@ -42,4 +43,9 @@ pub fn my_http_string_enum_derive(input: TokenStream) -> TokenStream {
 pub fn my_http_integer_enum_derive(input: TokenStream) -> TokenStream {
     let ast = syn::parse(input).unwrap();
     crate::enum_doc::attr::impl_enum_doc(&ast, false)
+}
+
+#[proc_macro_attribute]
+pub fn http_route(attr: TokenStream, item: TokenStream) -> TokenStream {
+    crate::action_builder::build_action(attr, item)
 }

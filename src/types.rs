@@ -62,17 +62,15 @@ fn compile_data_type(pt: &PropertyType, type_is_wrapped_to: TypeIsWrappedTo) -> 
 
     if let Some(simple_type) = get_simple_type(pt) {
         match type_is_wrapped_to {
-            TypeIsWrappedTo::None => {
-                return format!("{NAME_SPACE}::{HTTP_DATA_TYPE}::SimpleType({simple_type})",)
-            }
+            TypeIsWrappedTo::None => return format!("{HTTP_DATA_TYPE}::SimpleType({simple_type})",),
 
             TypeIsWrappedTo::Option => {
-                return format!("{NAME_SPACE}::{HTTP_DATA_TYPE}::SimpleType({simple_type})",)
+                return format!("{HTTP_DATA_TYPE}::SimpleType({simple_type})",)
             }
             TypeIsWrappedTo::Vec => {
                 let result = format!(
-                        "{NAME_SPACE}::{HTTP_DATA_TYPE}::ArrayOf({NAME_SPACE}::{HTTP_ARRAY_ELEMENT}::SimpleType({simple_type}))",
-                    );
+                    "{HTTP_DATA_TYPE}::ArrayOf({HTTP_ARRAY_ELEMENT}::SimpleType({simple_type}))",
+                );
                 return result;
             }
         };
@@ -105,19 +103,19 @@ fn compile_data_type(pt: &PropertyType, type_is_wrapped_to: TypeIsWrappedTo) -> 
 
 fn get_simple_type(pt: &PropertyType) -> Option<String> {
     match pt {
-        PropertyType::String => format!("{NAME_SPACE}::{HTTP_SIMPLE_TYPE}::String").into(),
-        PropertyType::Str => format!("{NAME_SPACE}::{HTTP_SIMPLE_TYPE}::String").into(),
-        PropertyType::U8 => format!("{NAME_SPACE}::{HTTP_SIMPLE_TYPE}::Integer").into(),
-        PropertyType::I8 => format!("{NAME_SPACE}::{HTTP_SIMPLE_TYPE}::Integer").into(),
-        PropertyType::U16 => format!("{NAME_SPACE}::{HTTP_SIMPLE_TYPE}::Integer").into(),
-        PropertyType::I16 => format!("{NAME_SPACE}::{HTTP_SIMPLE_TYPE}::Integer").into(),
-        PropertyType::U32 => format!("{NAME_SPACE}::{HTTP_SIMPLE_TYPE}::Integer").into(),
-        PropertyType::I32 => format!("{NAME_SPACE}::{HTTP_SIMPLE_TYPE}::Integer").into(),
-        PropertyType::U64 => format!("{NAME_SPACE}::{HTTP_SIMPLE_TYPE}::Long").into(),
-        PropertyType::I64 => format!("{NAME_SPACE}::{HTTP_SIMPLE_TYPE}::Long").into(),
-        PropertyType::USize => format!("{NAME_SPACE}::{HTTP_SIMPLE_TYPE}::Long").into(),
-        PropertyType::ISize => format!("{NAME_SPACE}::{HTTP_SIMPLE_TYPE}::Long").into(),
-        PropertyType::Bool => format!("{NAME_SPACE}::{HTTP_SIMPLE_TYPE}::Boolean").into(),
+        PropertyType::String => format!("{HTTP_SIMPLE_TYPE}::String").into(),
+        PropertyType::Str => format!("{HTTP_SIMPLE_TYPE}::String").into(),
+        PropertyType::U8 => format!("{HTTP_SIMPLE_TYPE}::Integer").into(),
+        PropertyType::I8 => format!("{HTTP_SIMPLE_TYPE}::Integer").into(),
+        PropertyType::U16 => format!("{HTTP_SIMPLE_TYPE}::Integer").into(),
+        PropertyType::I16 => format!("{HTTP_SIMPLE_TYPE}::Integer").into(),
+        PropertyType::U32 => format!("{HTTP_SIMPLE_TYPE}::Integer").into(),
+        PropertyType::I32 => format!("{HTTP_SIMPLE_TYPE}::Integer").into(),
+        PropertyType::U64 => format!("{HTTP_SIMPLE_TYPE}::Long").into(),
+        PropertyType::I64 => format!("{HTTP_SIMPLE_TYPE}::Long").into(),
+        PropertyType::USize => format!("{HTTP_SIMPLE_TYPE}::Long").into(),
+        PropertyType::ISize => format!("{HTTP_SIMPLE_TYPE}::Long").into(),
+        PropertyType::Bool => format!("{HTTP_SIMPLE_TYPE}::Boolean").into(),
         _ => None,
     }
 }
