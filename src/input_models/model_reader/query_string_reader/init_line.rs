@@ -7,7 +7,7 @@ use super::{consts::DATA_SOURCE, SourceToRead};
 
 pub fn generate_as_reading(result: &mut String, input_fields: &InputFields, src: SourceToRead) {
     result.push_str("let ");
-    generate_init_fields(result, input_fields);
+    generate_init_fields(result, input_fields, &src);
 
     result.push_str("={\n");
 
@@ -44,19 +44,24 @@ pub fn generate_as_reading(result: &mut String, input_fields: &InputFields, src:
         }
     }
 
-    generate_init_fields(result, input_fields);
+    generate_init_fields(result, input_fields, &src);
     result.push_str("};\n");
 }
 
-fn generate_init_fields(result: &mut String, input_fields: &InputFields) {
+fn generate_init_fields(result: &mut String, input_fields: &InputFields, src: &SourceToRead) {
     result.push('(');
     let mut no = 0;
-    for field in &input_fields.fields {
-        if field.src.is_query() {
+    for input_field in &input_fields.fields {
+        let my_field = match &src {
+            SourceToRead::FormData => input_field.src.is_form_data(),
+            SourceToRead::QueryString => input_field.src.is_query(),
+        };
+
+        if my_field {
             if no > 0 {
                 result.push(',');
             }
-            result.push_str(field.property.name.as_str());
+            result.push_str(input_field.property.name.as_str());
             no += 1;
         }
     }
