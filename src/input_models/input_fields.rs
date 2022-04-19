@@ -26,6 +26,13 @@ impl InputFieldSource {
             _ => false,
         }
     }
+
+    pub fn is_form_data(&self) -> bool {
+        match self {
+            InputFieldSource::Form => true,
+            _ => false,
+        }
+    }
 }
 
 pub struct InputField {

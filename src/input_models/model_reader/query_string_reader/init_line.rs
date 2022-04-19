@@ -24,7 +24,12 @@ pub fn generate_as_reading(result: &mut String, input_fields: &InputFields, src:
     }
 
     for input_field in &input_fields.fields {
-        if input_field.src.is_query() {
+        let my_field = match &src {
+            SourceToRead::FormData => input_field.src.is_form_data(),
+            SourceToRead::QueryString => input_field.src.is_query(),
+        };
+
+        if my_field {
             result.push_str("let ");
             result.push_str(input_field.struct_field_name());
             result.push_str(" = ");
