@@ -16,7 +16,7 @@ pub fn generate_as_reading(result: &mut String, input_fields: &InputFields, src:
 
     match &src {
         SourceToRead::FormData => {
-            result.push_str(" = ctx.request.get_body()?.get_form_data()?;\n");
+            result.push_str(" = ctx.request.get_body().await?.get_form_data()?;\n");
         }
         SourceToRead::QueryString => {
             result.push_str(" = ctx.request.get_query_string()?;\n");
@@ -52,7 +52,7 @@ fn generate_init_fields(result: &mut String, input_fields: &InputFields, src: &S
     result.push('(');
     let mut no = 0;
     for input_field in &input_fields.fields {
-        let my_field = match &src {
+        let my_field = match src {
             SourceToRead::FormData => input_field.src.is_form_data(),
             SourceToRead::QueryString => input_field.src.is_query(),
         };
