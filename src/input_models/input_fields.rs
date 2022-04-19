@@ -20,13 +20,6 @@ impl InputFieldSource {
         }
     }
 
-    pub fn is_body(&self) -> bool {
-        match self {
-            InputFieldSource::Body => true,
-            _ => false,
-        }
-    }
-
     pub fn is_query(&self) -> bool {
         match self {
             InputFieldSource::Query => true,
@@ -139,15 +132,6 @@ impl InputFields {
         return false;
     }
 
-    pub fn has_body_data(&self) -> bool {
-        for field in &self.fields {
-            if let InputFieldSource::Body = &field.src {
-                return true;
-            }
-        }
-        return false;
-    }
-
     pub fn get_from_header_elements(&self) -> Vec<&InputField> {
         let mut result = Vec::new();
         for field in &self.fields {
@@ -156,15 +140,5 @@ impl InputFields {
             }
         }
         return result;
-    }
-
-    pub fn get_body_field<'s>(&'s self) -> Option<&'s InputField> {
-        for field in &self.fields {
-            if field.src.is_body() {
-                return Some(field);
-            }
-        }
-
-        None
     }
 }

@@ -8,10 +8,18 @@ pub fn generate(name: &str, input_fields: &InputFields) -> String {
     add_init_lines(&mut result, input_fields);
 
     if input_fields.has_query() {
-        super::query_string_reader::generate_init_line(
+        super::query_string_reader::generate_as_reading(
             &mut result,
             input_fields,
             SourceToRead::QueryString,
+        );
+    }
+
+    if input_fields.has_form_data() {
+        super::query_string_reader::generate_as_reading(
+            &mut result,
+            input_fields,
+            SourceToRead::FormData,
         );
     }
 

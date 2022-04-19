@@ -153,14 +153,6 @@ impl PropertyType {
         false
     }
 
-    pub fn is_str(&self) -> bool {
-        if let PropertyType::Str = self {
-            return true;
-        }
-
-        false
-    }
-
     pub fn is_u8(&self) -> bool {
         if let PropertyType::U8 = self {
             return true;
