@@ -29,14 +29,14 @@ pub fn build_action(attr: TokenStream, input: TokenStream) -> TokenStream {
     result.push_str(
         format!("fn get_description(&self) -> Option<{HTTP_ACTION_DESCRIPTION}>{{").as_str(),
     );
-    super::generate_http_action_description_fn(&mut result, attrs.api_data.as_ref());
+    super::generate_http_action_description_fn(&mut result, &attrs);
     result.push_str("}");
 
     result.push_str(
         format!("async fn handle_request(&self, ctx: &mut {HTTP_CONTEXT}) -> Result<{HTTP_OK_RESULT}, {HTTP_FAIL_RESULT}> {{")
             .as_str(),
     );
-    super::generate_handle_request_fn(&mut result, &attrs);
+    super::generate_handle_request_fn(&mut result, &attrs.input_data);
     result.push_str("}\n");
 
     result.push_str("}");

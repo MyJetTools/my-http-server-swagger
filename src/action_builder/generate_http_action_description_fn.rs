@@ -1,14 +1,14 @@
 use crate::consts::*;
 
-use super::attributes::ApiData;
+use super::attributes::AttributeModel;
 
-pub fn generate_http_action_description_fn(result: &mut String, api_data: Option<&ApiData>) {
-    if api_data.is_none() {
+pub fn generate_http_action_description_fn(result: &mut String, attrs: &AttributeModel) {
+    if attrs.api_data.is_none() {
         result.push_str("None");
         return;
     }
 
-    let api_data = api_data.unwrap();
+    let api_data = attrs.api_data.as_ref().unwrap();
 
     result.push_str(HTTP_ACTION_DESCRIPTION);
     result.push_str("{");
@@ -24,7 +24,7 @@ pub fn generate_http_action_description_fn(result: &mut String, api_data: Option
     result.push(',');
 
     result.push_str("input_params: ");
-    generate_get_input_params(result, api_data);
+    generate_get_input_params(result, &attrs.input_data);
     result.push(',');
 
     result.push_str("results: ");
@@ -32,8 +32,8 @@ pub fn generate_http_action_description_fn(result: &mut String, api_data: Option
     result.push_str("}.into()");
 }
 
-fn generate_get_input_params(result: &mut String, api_data: &ApiData) {
-    if let Some(input_data) = api_data.input_data.as_ref() {
+fn generate_get_input_params(result: &mut String, input_data: &Option<String>) {
+    if let Some(input_data) = input_data {
         result.push_str(input_data);
         result.push_str("::get_input_params().into()");
     } else {

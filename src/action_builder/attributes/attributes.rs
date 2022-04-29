@@ -5,7 +5,7 @@ use super::{http_method::HttpMethod, HttpResult};
 pub struct ApiData {
     pub controller: String,
     pub description: String,
-    pub input_data: Option<String>,
+
     pub result: Vec<HttpResult>,
 }
 
@@ -13,7 +13,6 @@ impl ApiData {
     pub fn new(
         controller: Option<String>,
         description: Option<String>,
-        input_data: Option<String>,
         result: Vec<HttpResult>,
     ) -> Option<Self> {
         if controller.is_none() {
@@ -27,7 +26,6 @@ impl ApiData {
         Self {
             controller: controller.unwrap(),
             description: description.unwrap(),
-            input_data,
             result,
         }
         .into()
@@ -37,6 +35,7 @@ impl ApiData {
 pub struct AttributeModel {
     pub method: HttpMethod,
     pub route: String,
+    pub input_data: Option<String>,
     pub api_data: Option<ApiData>,
 }
 
@@ -146,7 +145,8 @@ impl AttributeModel {
         Self {
             method: HttpMethod::parse(method.as_ref().unwrap()),
             route: route.unwrap(),
-            api_data: ApiData::new(controller, description, input_data, HttpResult::new(result)),
+            input_data,
+            api_data: ApiData::new(controller, description, HttpResult::new(result)),
         }
     }
 }
