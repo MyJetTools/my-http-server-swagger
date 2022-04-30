@@ -30,8 +30,17 @@ pub fn read_system_parameter_with_default_value(
     input_field: &InputField,
     default: &str,
 ) -> String {
-    let optional_string = generate_read_optional_parameter(source_to_read, input_field);
-    option_to_system_default(optional_string.as_str(), default)
+    format!(
+        r###"
+        if let Some(value) = {expr}{{
+            value
+        }}else{{
+            {default}
+        }}
+    "###,
+        expr = generate_read_optional_parameter(source_to_read, input_field),
+        default = default
+    )
 }
 
 pub fn read_boolean_with_default_value(
@@ -119,20 +128,6 @@ fn option_of_str_to_default(expr: &str, default: &str) -> String {
             value.to_string()
         }}else{{
             "{default}".to_string()
-        }}
-    "###,
-        expr = expr,
-        default = default
-    )
-}
-
-fn option_to_system_default(expr: &str, default: &str) -> String {
-    format!(
-        r###"
-        if let Some(value) = {expr}{{
-            value
-        }}else{{
-            {default}
         }}
     "###,
         expr = expr,
