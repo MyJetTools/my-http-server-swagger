@@ -122,6 +122,8 @@ impl PropertyType {
             PropertyType::I32 => true,
             PropertyType::U64 => true,
             PropertyType::I64 => true,
+            PropertyType::USize => true,
+            PropertyType::ISize => true,
             PropertyType::String => true,
             PropertyType::Str => false,
             PropertyType::Bool => true,
