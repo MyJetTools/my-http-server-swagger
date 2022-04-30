@@ -43,7 +43,7 @@ pub fn as_simple_type(
 ) {
     generate_read_optional_from_query_string_first_line(result, input_field);
     super::extensions::parse_as_type(result, generic_type);
-    result.push_str(")}else{");
+    result.push_str("}else{");
     result.push_str(default);
     result.push_str("}");
 }
