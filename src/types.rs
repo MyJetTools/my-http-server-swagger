@@ -1,6 +1,4 @@
-use crate::consts::{
-    HTTP_ARRAY_ELEMENT, HTTP_DATA_TYPE, HTTP_FIELD_TYPE, HTTP_SIMPLE_TYPE, NAME_SPACE,
-};
+use crate::consts::{HTTP_ARRAY_ELEMENT, HTTP_DATA_TYPE, HTTP_FIELD_TYPE, NAME_SPACE};
 use crate::reflection::PropertyType;
 
 pub fn compile_http_field(
@@ -60,7 +58,7 @@ fn compile_data_type(pt: &PropertyType, type_is_wrapped_to: TypeIsWrappedTo) -> 
         return compile_data_type(generic_type.as_ref(), TypeIsWrappedTo::Vec);
     }
 
-    if let Some(simple_type) = get_simple_type(pt) {
+    if let Some(simple_type) = pt.get_swagger_simple_type() {
         match type_is_wrapped_to {
             TypeIsWrappedTo::None => return format!("{HTTP_DATA_TYPE}::SimpleType({simple_type})",),
 
@@ -98,24 +96,5 @@ fn compile_data_type(pt: &PropertyType, type_is_wrapped_to: TypeIsWrappedTo) -> 
                 func_name = crate::consts::FN_GET_HTTP_DATA_STRUCTURE
             );
         }
-    }
-}
-
-fn get_simple_type(pt: &PropertyType) -> Option<String> {
-    match pt {
-        PropertyType::String => format!("{HTTP_SIMPLE_TYPE}::String").into(),
-        PropertyType::Str => format!("{HTTP_SIMPLE_TYPE}::String").into(),
-        PropertyType::U8 => format!("{HTTP_SIMPLE_TYPE}::Integer").into(),
-        PropertyType::I8 => format!("{HTTP_SIMPLE_TYPE}::Integer").into(),
-        PropertyType::U16 => format!("{HTTP_SIMPLE_TYPE}::Integer").into(),
-        PropertyType::I16 => format!("{HTTP_SIMPLE_TYPE}::Integer").into(),
-        PropertyType::U32 => format!("{HTTP_SIMPLE_TYPE}::Integer").into(),
-        PropertyType::I32 => format!("{HTTP_SIMPLE_TYPE}::Integer").into(),
-        PropertyType::U64 => format!("{HTTP_SIMPLE_TYPE}::Long").into(),
-        PropertyType::I64 => format!("{HTTP_SIMPLE_TYPE}::Long").into(),
-        PropertyType::USize => format!("{HTTP_SIMPLE_TYPE}::Long").into(),
-        PropertyType::ISize => format!("{HTTP_SIMPLE_TYPE}::Long").into(),
-        PropertyType::Bool => format!("{HTTP_SIMPLE_TYPE}::Boolean").into(),
-        _ => None,
     }
 }

@@ -141,6 +141,29 @@ impl PropertyType {
         }
     }
 
+    pub fn get_swagger_simple_type(&self) -> Option<String> {
+        use crate::consts::HTTP_SIMPLE_TYPE;
+
+        match self {
+            PropertyType::String => format!("{HTTP_SIMPLE_TYPE}::String").into(),
+            PropertyType::Str => format!("{HTTP_SIMPLE_TYPE}::String").into(),
+            PropertyType::U8 => format!("{HTTP_SIMPLE_TYPE}::Integer").into(),
+            PropertyType::I8 => format!("{HTTP_SIMPLE_TYPE}::Integer").into(),
+            PropertyType::U16 => format!("{HTTP_SIMPLE_TYPE}::Integer").into(),
+            PropertyType::I16 => format!("{HTTP_SIMPLE_TYPE}::Integer").into(),
+            PropertyType::U32 => format!("{HTTP_SIMPLE_TYPE}::Integer").into(),
+            PropertyType::I32 => format!("{HTTP_SIMPLE_TYPE}::Integer").into(),
+            PropertyType::U64 => format!("{HTTP_SIMPLE_TYPE}::Long").into(),
+            PropertyType::I64 => format!("{HTTP_SIMPLE_TYPE}::Long").into(),
+            PropertyType::F32 => format!("{HTTP_SIMPLE_TYPE}::Float").into(),
+            PropertyType::F64 => format!("{HTTP_SIMPLE_TYPE}::Float").into(),
+            PropertyType::USize => format!("{HTTP_SIMPLE_TYPE}::Long").into(),
+            PropertyType::ISize => format!("{HTTP_SIMPLE_TYPE}::Long").into(),
+            PropertyType::Bool => format!("{HTTP_SIMPLE_TYPE}::Boolean").into(),
+            _ => None,
+        }
+    }
+
     pub fn is_string(&self) -> bool {
         if let PropertyType::String = self {
             return true;
