@@ -99,6 +99,10 @@ impl InputField {
         );
     }
 
+    pub fn validator(&self) -> Option<&str> {
+        self.my_attr.get_value("validator")
+    }
+
     pub fn struct_field_name(&self) -> &str {
         self.property.name.as_str()
     }
