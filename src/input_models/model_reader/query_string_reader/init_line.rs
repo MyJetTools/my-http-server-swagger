@@ -6,7 +6,7 @@ use crate::{
 use super::{consts::DATA_SOURCE, SourceToRead};
 
 pub fn generate_as_reading(result: &mut String, input_fields: &InputFields, src: SourceToRead) {
-    let mut validation = String::new();
+    //   let mut validation = String::new();
 
     result.push_str("let ");
     generate_init_fields(result, input_fields, &src);
@@ -45,17 +45,17 @@ pub fn generate_as_reading(result: &mut String, input_fields: &InputFields, src:
             }
 
             if let Some(validator) = input_field.validator() {
-                validation.push_str(validator);
-                validation.push_str("(ctx, &");
-                validation.push_str(input_field.struct_field_name());
-                validation.push_str(")?;\n");
+                result.push_str(validator);
+                result.push_str("(ctx, &");
+                result.push_str(input_field.struct_field_name());
+                result.push_str(")?;\n");
             }
         }
     }
 
-    if validation.len() > 0 {
-        result.push_str(validation.as_str());
-    }
+    //   if validation.len() > 0 {
+    //       result.push_str(validation.as_str());
+    //   }
 
     generate_init_fields(result, input_fields, &src);
     result.push_str("};\n");
