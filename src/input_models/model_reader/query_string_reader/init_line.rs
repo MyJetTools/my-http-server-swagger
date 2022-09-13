@@ -44,7 +44,7 @@ pub fn generate_as_reading(result: &mut String, input_fields: &InputFields, src:
 
             if let Some(validator) = input_field.validator() {
                 result.push_str(validator);
-                result.push_str("(&");
+                result.push_str("(ctx, &");
                 result.push_str(input_field.struct_field_name());
                 result.push_str(")?;\n");
             }
