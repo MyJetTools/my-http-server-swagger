@@ -24,7 +24,7 @@ pub fn build_action(attr: TokenStream, input: TokenStream) -> TokenStream {
     result.push_str(attrs.route.as_str());
     result.push_str("\"}}\n");
 
-    result.push_str("impl my_http_server_controllers::controllers::actions::GetDescription for GetClientIdAction ");
+    result.push_str("impl my_http_server_controllers::controllers::actions::GetDescription for ");
 
     result.push_str(struct_name.as_str());
 
