@@ -35,17 +35,17 @@ pub fn generate(name: &str, input_fields: &InputFields) -> String {
             }
             InputFieldSource::Path => {
                 let line_to_add = if input_field.required() {
-                    format!(
-                        "{}: ctx.request.get_value_from_path(\"{}\")?.to_string(),",
-                        input_field.struct_field_name(),
-                        input_field.name()
-                    )
+                    if input_field.property.ty.is_string() {
+                        format!(
+                            "{}: http_route.get_value(&ctx.request.http_path, \"{}\")?.as_str().to_string(),",
+                            input_field.struct_field_name(),
+                            input_field.name()
+                        )
+                    } else {
+                        panic!("Path parameters must be strings");
+                    }
                 } else {
-                    format!(
-                        "{}: ctx.request.get_value_from_path_optional_as_string(\"{}\")?,",
-                        input_field.struct_field_name(),
-                        input_field.name()
-                    )
+                    panic!("Path parameters are always required");
                 };
 
                 result.push_str(line_to_add.as_str());
@@ -72,32 +72,3 @@ pub fn generate(name: &str, input_fields: &InputFields) -> String {
 fn add_init_lines(result: &mut String, input_fields: &InputFields) {
     super::header_reader::init_header_variables(result, input_fields)
 }
-
-/*
-fn read_with_default(
-    source_to_read: &SourceToRead,
-    input_field: &InputField,
-    default: &str,
-) -> String {
-    if input_field.property.ty.is_string() {
-        return super::query_string_value_reader::read_string_parameter_with_default_value(
-            source_to_read,
-            input_field,
-            default,
-        );
-    }
-    if input_field.property.ty.is_simple_type() {
-        return super::query_string_value_reader::read_system_parameter_with_default_value(
-            source_to_read,
-            input_field,
-            default,
-        );
-    }
-
-    return super::query_string_value_reader::read_struct_parameter_with_default_value(
-        source_to_read,
-        input_field,
-        default,
-    );
-}
- */
