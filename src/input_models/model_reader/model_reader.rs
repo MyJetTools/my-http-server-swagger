@@ -43,7 +43,7 @@ pub fn generate(name: &str, input_fields: &InputFields) -> String {
                         )
                     } else {
                         format!(
-                            "{}: if let Some(value) = http_route.get_value(&ctx.request.http_path, \"{name}\")?.get_value(){{value}}else{{return Err(my_http_server::HttpFailResult::invalid_value_to_parse(\"Can not parse route value '{name}'\".to_string(),));) }},",
+                            "{}: if let Some(value) = http_route.get_value(&ctx.request.http_path, \"{name}\")?.get_value(){{value}}else{{return Err(my_http_server::HttpFailResult::invalid_value_to_parse(\"Can not parse route value '{name}'\".to_string(),)); }},",
                             input_field.struct_field_name(),
                             name = input_field.name()
                         )
