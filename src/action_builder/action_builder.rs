@@ -12,8 +12,6 @@ pub fn build_action(attr: TokenStream, input: TokenStream) -> TokenStream {
 
     let struct_name = ast.ident.to_string();
 
-    result.push_str("#[async_trait::async_trait]");
-
     result.push_str(
         format!(
             "impl {action_name} for {struct_name}{{",
@@ -30,10 +28,16 @@ pub fn build_action(attr: TokenStream, input: TokenStream) -> TokenStream {
         format!("fn get_description(&self) -> Option<{HTTP_ACTION_DESCRIPTION}>{{").as_str(),
     );
     super::generate_http_action_description_fn(&mut result, &attrs);
-    result.push_str("}");
+    result.push_str("}}");
+
+    result.push_str("#[async_trait::async_trait]");
+
+    result.push_str(format!("impl my_http_server_controllers::controllers::actions::HandleHttpRequest for {struct_name} ", ).as_str());
+
+    result.push('{');
 
     result.push_str(
-        format!("async fn handle_request(&self, ctx: &mut {HTTP_CONTEXT}) -> Result<{HTTP_OK_RESULT}, {HTTP_FAIL_RESULT}> {{")
+        format!("async fn handle_request(&self, http_route: &my_http_server_controllers::controllers::HttpRoute, ctx: &mut {HTTP_CONTEXT}) -> Result<{HTTP_OK_RESULT}, {HTTP_FAIL_RESULT}> {{")
             .as_str(),
     );
     super::generate_handle_request_fn(&mut result, &attrs.input_data);
