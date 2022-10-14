@@ -22,8 +22,13 @@ pub fn build_action(attr: TokenStream, input: TokenStream) -> TokenStream {
 
     result.push_str("fn get_route(&self) -> &str {\"");
     result.push_str(attrs.route.as_str());
-    result.push_str("\"}\n");
+    result.push_str("\"}}\n");
 
+    result.push_str("impl my_http_server_controllers::controllers::actions::GetDescription for GetClientIdAction ");
+
+    result.push_str(struct_name.as_str());
+
+    result.push('{');
     result.push_str(
         format!("fn get_description(&self) -> Option<{HTTP_ACTION_DESCRIPTION}>{{").as_str(),
     );
@@ -32,7 +37,10 @@ pub fn build_action(attr: TokenStream, input: TokenStream) -> TokenStream {
 
     result.push_str("#[async_trait::async_trait]");
 
-    result.push_str(format!("impl my_http_server_controllers::controllers::actions::HandleHttpRequest for {struct_name} ", ).as_str());
+    result
+        .push_str("impl my_http_server_controllers::controllers::actions::HandleHttpRequest for ");
+
+    result.push_str(struct_name.as_str());
 
     result.push('{');
 

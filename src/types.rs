@@ -79,21 +79,21 @@ fn compile_data_type(pt: &PropertyType, type_is_wrapped_to: TypeIsWrappedTo) -> 
             return format!(
                 "{}::{}().into_http_data_type_object()",
                 pt.as_str(),
-                func_name = crate::consts::FN_GET_HTTP_DATA_STRUCTURE
+                crate::consts::FN_GET_HTTP_DATA_STRUCTURE
             );
         }
         TypeIsWrappedTo::Option => {
             return format!(
                 "{}::{}().into_http_data_type_object()",
                 pt.as_str(),
-                func_name = crate::consts::FN_GET_HTTP_DATA_STRUCTURE
+                crate::consts::FN_GET_HTTP_DATA_STRUCTURE
             );
         }
         TypeIsWrappedTo::Vec => {
             return format!(
                 "{}::{}().into_http_data_type_array()",
                 pt.as_str(),
-                func_name = crate::consts::FN_GET_HTTP_DATA_STRUCTURE
+                crate::consts::FN_GET_HTTP_DATA_STRUCTURE
             );
         }
     }
