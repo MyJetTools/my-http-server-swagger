@@ -122,13 +122,13 @@ fn generate_reading_required_value(result: &mut String, input_field: &InputField
     if let PropertyType::VecOf(sub_ty) = &input_field.property.ty {
         if sub_ty.is_string() {
             result.push_str(DATA_SOURCE);
-            result.push_str(".get_vec_of_string_required(\"");
+            result.push_str(".get_vec_of_string(\"");
             result.push_str(input_field.name());
             result.push_str("\")?");
             return;
         }
         result.push_str(DATA_SOURCE);
-        result.push_str(".get_vec_required(\"");
+        result.push_str(".get_vec(\"");
         result.push_str(input_field.name());
         result.push_str("\")?");
         return;
