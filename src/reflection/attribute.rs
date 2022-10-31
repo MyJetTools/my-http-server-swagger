@@ -18,7 +18,7 @@ impl MyAttribute {
                 let attr_data = if attr_data == "" {
                     None
                 } else {
-                    println!("Attr: {}", attr_data);
+                    println!("AttrID: {}, Attr: {}", attr_id, attr_data);
                     Some(attr_data.into_bytes())
                 };
 
