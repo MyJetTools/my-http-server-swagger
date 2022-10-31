@@ -1,9 +1,7 @@
-use std::collections::HashMap;
-
-use super::MyAttribute;
+use macros_utils::attributes::Attributes;
 
 pub struct EnumCase {
-    pub attrs: HashMap<String, MyAttribute>,
+    pub attrs: Attributes,
     pub name: String,
 }
 
@@ -15,7 +13,7 @@ impl EnumCase {
             for varian in variants {
                 result.push(EnumCase {
                     name: varian.ident.to_string(),
-                    attrs: MyAttribute::new(&varian.attrs),
+                    attrs: super::attributes::parse(&varian.attrs),
                 });
             }
         } else {

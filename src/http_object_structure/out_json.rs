@@ -25,8 +25,8 @@ impl JsonField {
     }
 
     pub fn name(&self) -> &str {
-        if let Some(attr) = self.property.attrs.get("serde") {
-            if let Some(value) = attr.get_value("rename") {
+        if let Some(attr) = self.property.attrs.try_get("serde") {
+            if let Some(value) = attr.get_as_string("rename") {
                 return value;
             } else {
                 return self.property.name.as_str();

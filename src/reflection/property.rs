@@ -1,11 +1,11 @@
-use std::collections::HashMap;
+use macros_utils::attributes::Attributes;
 
-use super::{MyAttribute, PropertyType};
+use super::PropertyType;
 
 pub struct StructProperty {
     pub name: String,
     pub ty: PropertyType,
-    pub attrs: HashMap<String, MyAttribute>,
+    pub attrs: Attributes,
 }
 
 impl StructProperty {
@@ -23,7 +23,7 @@ impl StructProperty {
         };
 
         for field in &fields.named {
-            let attrs = MyAttribute::new(&field.attrs);
+            let attrs = super::attributes::parse(&field.attrs);
 
             result.push(Self {
                 name: field.ident.as_ref().unwrap().to_string(),

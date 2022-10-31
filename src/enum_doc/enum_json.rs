@@ -1,4 +1,4 @@
-use crate::reflection::{EnumCase, MyAttribute};
+use crate::reflection::EnumCase;
 
 pub struct EnumJson {
     src: EnumCase,
@@ -8,23 +8,19 @@ pub const HTTP_ENUM_ATTR_NAME: &str = "http_enum_case";
 
 impl EnumJson {
     pub fn new(src: EnumCase) -> Option<Self> {
-        if !src.attrs.contains_key(HTTP_ENUM_ATTR_NAME) {
+        if !src.attrs.has_attr(HTTP_ENUM_ATTR_NAME) {
             return None;
         }
 
         Self { src }.into()
     }
 
-    fn get_the_attr(&self) -> &MyAttribute {
-        self.src.attrs.get(HTTP_ENUM_ATTR_NAME).unwrap()
-    }
-
     pub fn has_default_attr(&self) -> bool {
-        self.get_the_attr().get_value("default").is_some()
+        self.src.attrs.get(HTTP_ENUM_ATTR_NAME).has_attr("default")
     }
 
     pub fn id(&self) -> &str {
-        if let Some(value) = self.get_the_attr().get_value("id") {
+        if let Some(value) = self.src.attrs.get(HTTP_ENUM_ATTR_NAME).get_as_string("id") {
             return value;
         }
 
@@ -36,14 +32,24 @@ impl EnumJson {
     }
 
     pub fn get_value(&self) -> &str {
-        match self.get_the_attr().get_value("value") {
+        match self
+            .src
+            .attrs
+            .get(HTTP_ENUM_ATTR_NAME)
+            .get_as_string("value")
+        {
             Some(value) => value,
             None => self.src.name.as_str(),
         }
     }
 
     pub fn description(&self) -> &str {
-        if let Some(value) = self.get_the_attr().get_value("description") {
+        if let Some(value) = self
+            .src
+            .attrs
+            .get(HTTP_ENUM_ATTR_NAME)
+            .get_as_string("description")
+        {
             return value;
         };
 

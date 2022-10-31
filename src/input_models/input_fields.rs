@@ -1,4 +1,6 @@
-use crate::reflection::{MyAttribute, StructProperty};
+use macros_utils::attributes::AttributeFields;
+
+use crate::reflection::StructProperty;
 
 pub enum InputFieldSource {
     Query,
@@ -9,7 +11,7 @@ pub enum InputFieldSource {
 }
 
 impl InputFieldSource {
-    pub fn parse(src: &str) -> Option<Self> {
+    pub fn from_str(src: &str) -> Option<Self> {
         match src {
             "http_query" => Some(Self::Query),
             "http_header" => Some(Self::Header),
@@ -38,15 +40,15 @@ impl InputFieldSource {
 pub struct InputField {
     pub property: StructProperty,
     pub src: InputFieldSource,
-    pub my_attr: MyAttribute,
+    pub my_attr: AttributeFields,
 }
 
-fn get_attr(property: &StructProperty) -> Option<(MyAttribute, InputFieldSource)> {
-    for attr in property.attrs.values() {
-        let src = InputFieldSource::parse(attr.name.as_str());
+fn get_attr(property: &StructProperty) -> Option<(AttributeFields, InputFieldSource)> {
+    for (name, fields) in &property.attrs.data {
+        let src = InputFieldSource::from_str(name.as_str());
 
         if let Some(src) = src {
-            return Some((attr.clone(), src));
+            return Some((fields.clone(), src));
         }
     }
     None
@@ -65,7 +67,7 @@ impl InputField {
     }
 
     pub fn name(&self) -> &str {
-        if let Some(value) = self.my_attr.get_value("name") {
+        if let Some(value) = self.my_attr.get_as_string("name") {
             value
         } else {
             self.property.name.as_str()
@@ -77,7 +79,7 @@ impl InputField {
     }
 
     pub fn default(&self) -> Option<&str> {
-        self.my_attr.get_value("default")
+        self.my_attr.get_as_string("default")
     }
 
     pub fn is_body(&self) -> bool {
@@ -89,7 +91,7 @@ impl InputField {
     }
 
     pub fn description(&self) -> &str {
-        if let Some(value) = self.my_attr.get_value("description") {
+        if let Some(value) = self.my_attr.get_as_string("description") {
             return value;
         }
 
@@ -100,7 +102,7 @@ impl InputField {
     }
 
     pub fn validator(&self) -> Option<&str> {
-        self.my_attr.get_value("validator")
+        self.my_attr.get_as_string("validator")
     }
 
     pub fn struct_field_name(&self) -> &str {
