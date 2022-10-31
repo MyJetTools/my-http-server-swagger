@@ -19,6 +19,10 @@ impl EnumJson {
         self.src.attrs.get(HTTP_ENUM_ATTR_NAME).unwrap()
     }
 
+    pub fn has_default_attr(&self) -> bool {
+        self.get_the_attr().get_value("default").is_some()
+    }
+
     pub fn id(&self) -> &str {
         if let Some(value) = self.get_the_attr().get_value("id") {
             return value;
