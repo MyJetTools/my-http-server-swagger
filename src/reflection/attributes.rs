@@ -9,7 +9,6 @@ pub fn parse(src: &[syn::Attribute]) -> Attributes {
             let attr_data = if attr_data == "" {
                 None
             } else {
-                println!("AttrID: {}, Attr: {}", attr_id, attr_data);
                 Some(attr_data.into_bytes())
             };
 
