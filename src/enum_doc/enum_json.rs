@@ -27,6 +27,10 @@ impl EnumJson {
         panic!("[id] is not found for the field {}", self.src.name);
     }
 
+    pub fn get_enum_case_value(&self) -> &str {
+        self.src.name.as_str()
+    }
+
     pub fn get_value(&self) -> &str {
         match self.get_the_attr().get_value("value") {
             Some(value) => value,
