@@ -161,6 +161,10 @@ fn generate_reading_optional_value(result: &mut String, input_field: &InputField
         super::read_optional_value::parase_as_type(result, input_field, generic_type);
         result.push_str(";\n");
         return;
+    } else if let PropertyType::VecOf(generic_type) = &input_field.property.ty {
+        result.push_str("Some()");
+
+        return;
     } else {
         panic!("Somehow we got here");
     }
