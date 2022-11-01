@@ -10,6 +10,7 @@ pub fn generate(enum_cases: &[EnumJson]) -> String {
     for enum_case in enum_cases {
         if enum_case.has_default_attr() {
             default = Some(enum_case.get_enum_case_value());
+            continue;
         }
         result.push_str(enum_case.get_id().to_string().as_str());
         result.push_str(" => Self::");
