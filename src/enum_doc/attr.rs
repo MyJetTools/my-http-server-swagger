@@ -29,17 +29,24 @@ pub fn impl_enum_doc(ast: &syn::DeriveInput, is_string: bool) -> TokenStream {
 
     let fn_parse_str = super::impl_from_str_trait::generate(name.as_str(), fields.as_slice());
 
+    let from_i32 = super::impl_from_i32::generate(fields.as_slice());
+
     let code = format!(
         r###" impl {name}{{
             pub fn {fn_name}()->{NAME_SPACE}::{HTTP_ENUM_STRUCTURE}{{
                 {doc}
+            }}
+
+            pub fn from_i32(src: i32)->Self{{
+                {from_i32}
             }}
         }}
         {fn_parse_str}
         "###,
         name = name,
         doc = doc,
-        fn_name = crate::consts::FN_GET_HTTP_DATA_STRUCTURE
+        fn_name = crate::consts::FN_GET_HTTP_DATA_STRUCTURE,
+        from_i32 = from_i32,
     );
 
     code.parse().unwrap()

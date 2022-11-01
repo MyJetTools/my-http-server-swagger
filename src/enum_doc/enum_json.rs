@@ -19,7 +19,7 @@ impl EnumJson {
         self.src.attrs.get(HTTP_ENUM_ATTR_NAME).has_attr("default")
     }
 
-    pub fn id(&self) -> usize {
+    pub fn get_id(&self) -> usize {
         if let Some(value) = self
             .src
             .attrs

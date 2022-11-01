@@ -1,10 +1,3 @@
-/*
-pub struct PropertyType {
-    pub type_name: String,
-    pub tp: syn::TypePath,
-}
- */
-
 use syn::TypePath;
 
 use super::AsStr;
