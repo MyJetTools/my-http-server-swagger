@@ -75,6 +75,10 @@ impl InputField {
     }
 
     pub fn required(&self) -> bool {
+        if self.property.ty.is_vec() {
+            return false;
+        }
+
         !self.property.ty.is_option()
     }
 
