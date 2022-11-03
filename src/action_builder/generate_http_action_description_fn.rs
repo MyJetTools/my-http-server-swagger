@@ -18,6 +18,11 @@ pub fn generate_http_action_description_fn(result: &mut String, attrs: &Attribut
     result.push('"');
     result.push(',');
 
+    result.push_str("summary: \"");
+    result.push_str(api_data.summary.as_str());
+    result.push('"');
+    result.push(',');
+
     result.push_str("description: \"");
     result.push_str(api_data.description.as_str());
     result.push('"');

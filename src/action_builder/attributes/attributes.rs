@@ -5,7 +5,7 @@ use super::{http_method::HttpMethod, HttpResult};
 pub struct ApiData {
     pub controller: String,
     pub description: String,
-
+    pub summary: String,
     pub result: Vec<HttpResult>,
 }
 
@@ -13,6 +13,7 @@ impl ApiData {
     pub fn new(
         controller: Option<String>,
         description: Option<String>,
+        summary: Option<String>,
         result: Vec<HttpResult>,
     ) -> Option<Self> {
         if controller.is_none() {
@@ -20,12 +21,17 @@ impl ApiData {
         }
 
         if description.is_none() {
-            panic!("description is not found");
+            panic!("Description is not found");
+        }
+
+        if summary.is_none() {
+            panic!("Summary is not found");
         }
 
         Self {
             controller: controller.unwrap(),
             description: description.unwrap(),
+            summary: summary.unwrap(),
             result,
         }
         .into()
@@ -50,6 +56,8 @@ impl AttributeModel {
 
         let mut controller: Option<String> = None;
         let mut description: Option<String> = None;
+
+        let mut summary: Option<String> = None;
         let mut input_data: Option<String> = None;
         let mut result: Option<String> = None;
 
@@ -111,6 +119,9 @@ impl AttributeModel {
                 "description" => {
                     description = Some(value.to_string());
                 }
+                "summary" => {
+                    summary = Some(value.to_string());
+                }
                 "input_data" => {
                     input_data = Some(value.to_string());
                 }
@@ -146,7 +157,7 @@ impl AttributeModel {
             method: HttpMethod::parse(method.as_ref().unwrap()),
             route: route.unwrap(),
             input_data,
-            api_data: ApiData::new(controller, description, HttpResult::new(result)),
+            api_data: ApiData::new(controller, description, summary, HttpResult::new(result)),
         }
     }
 }
