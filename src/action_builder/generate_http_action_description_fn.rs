@@ -28,6 +28,16 @@ pub fn generate_http_action_description_fn(result: &mut String, attrs: &Attribut
     result.push('"');
     result.push(',');
 
+    result.push_str("should_be_authorized: ");
+
+    match api_data.should_be_authorized {
+        Some(true) => result.push_str("Some(true)"),
+        Some(false) => result.push_str("Some(false)"),
+        None => result.push_str("None"),
+    }
+
+    result.push(',');
+
     result.push_str("input_params: ");
     generate_get_input_params(result, &attrs.input_data);
     result.push(',');

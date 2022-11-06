@@ -6,6 +6,7 @@ pub struct ApiData {
     pub controller: String,
     pub description: String,
     pub summary: String,
+    pub should_be_authorized: Option<bool>,
     pub result: Vec<HttpResult>,
 }
 
@@ -14,6 +15,7 @@ impl ApiData {
         controller: Option<String>,
         description: Option<String>,
         summary: Option<String>,
+        should_be_authorized: Option<bool>,
         result: Vec<HttpResult>,
     ) -> Option<Self> {
         if controller.is_none() {
@@ -33,6 +35,7 @@ impl ApiData {
             description: description.unwrap(),
             summary: summary.unwrap(),
             result,
+            should_be_authorized,
         }
         .into()
     }
@@ -60,6 +63,7 @@ impl AttributeModel {
         let mut summary: Option<String> = None;
         let mut input_data: Option<String> = None;
         let mut result: Option<String> = None;
+        let mut should_be_authorized: Option<bool> = None;
 
         loop {
             let separator_pos = find(bytes, ':' as u8);
@@ -130,6 +134,10 @@ impl AttributeModel {
                     result = Some(value.to_string());
                 }
 
+                "authorized" => {
+                    should_be_authorized = Some(value == "true");
+                }
+
                 _ => {}
             }
 
@@ -157,7 +165,13 @@ impl AttributeModel {
             method: HttpMethod::parse(method.as_ref().unwrap()),
             route: route.unwrap(),
             input_data,
-            api_data: ApiData::new(controller, description, summary, HttpResult::new(result)),
+            api_data: ApiData::new(
+                controller,
+                description,
+                summary,
+                should_be_authorized,
+                HttpResult::new(result),
+            ),
         }
     }
 }
