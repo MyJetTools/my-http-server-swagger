@@ -45,7 +45,7 @@ pub fn build_action(attr: TokenStream, input: TokenStream) -> TokenStream {
     result.push('{');
 
     result.push_str(
-        format!("async fn handle_request(&self, http_route: &my_http_server_controllers::controllers::HttpRoute, ctx: &mut {HTTP_CONTEXT_WITH_SELF}) -> Result<{HTTP_OK_RESULT}, {HTTP_FAIL_RESULT}> {{ type TRequestCredentials=SessionToken")
+        format!("async fn handle_request(&self, http_route: &my_http_server_controllers::controllers::HttpRoute, ctx: &mut {HTTP_CONTEXT_WITH_SELF}) -> Result<{HTTP_OK_RESULT}, {HTTP_FAIL_RESULT}> {{ type TRequestCredentials=SessionToken;")
             .as_str(),
     );
     super::generate_handle_request_fn(&mut result, &attrs.input_data);
