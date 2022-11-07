@@ -6,7 +6,7 @@ pub struct ApiData {
     pub controller: String,
     pub description: String,
     pub summary: String,
-    pub should_be_authorized: Option<bool>,
+    pub should_be_authorized: &'static str,
     pub result: Vec<HttpResult>,
 }
 
@@ -15,7 +15,7 @@ impl ApiData {
         controller: Option<String>,
         description: Option<String>,
         summary: Option<String>,
-        should_be_authorized: Option<bool>,
+        should_be_authorized: &'static str,
         result: Vec<HttpResult>,
     ) -> Option<Self> {
         if controller.is_none() {
@@ -63,7 +63,7 @@ impl AttributeModel {
         let mut summary: Option<String> = None;
         let mut input_data: Option<String> = None;
         let mut result: Option<String> = None;
-        let mut should_be_authorized: Option<bool> = None;
+        let mut should_be_authorized: Option<&'static str> = None;
 
         loop {
             let separator_pos = find(bytes, ':' as u8);
@@ -134,9 +134,26 @@ impl AttributeModel {
                     result = Some(value.to_string());
                 }
 
-                "authorized" => {
-                    should_be_authorized = Some(value == "true");
-                }
+                "authorized" => match value {
+                    "[]" => {
+                        should_be_authorized =
+                            Some("crate::controllers::documentation::ShouldBeAuthorized::Yes");
+                    }
+
+                    "global" => {
+                        should_be_authorized = Some(
+                            "crate::controllers::documentation::ShouldBeAuthorized::UseGlobal",
+                        );
+                    }
+                    "no" => {
+                        should_be_authorized =
+                            Some("crate::controllers::documentation::ShouldBeAuthorized::No");
+                    }
+                    _ => {
+                        should_be_authorized =
+                        Some("crate::controllers::documentation::ShouldBeAuthorized::YesWithClaims(vec![])");
+                    }
+                },
 
                 _ => {}
             }
@@ -161,6 +178,11 @@ impl AttributeModel {
             panic!("[route] is not found");
         }
 
+        if should_be_authorized.is_none() {
+            should_be_authorized =
+                Some("crate::controllers::documentation::ShouldBeAuthorized::UseGlobal");
+        }
+
         Self {
             method: HttpMethod::parse(method.as_ref().unwrap()),
             route: route.unwrap(),
@@ -169,7 +191,7 @@ impl AttributeModel {
                 controller,
                 description,
                 summary,
-                should_be_authorized,
+                should_be_authorized.unwrap(),
                 HttpResult::new(result),
             ),
         }
