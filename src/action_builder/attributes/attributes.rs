@@ -46,6 +46,7 @@ pub struct AttributeModel {
     pub route: String,
     pub input_data: Option<String>,
     pub api_data: Option<ApiData>,
+    pub credentials_type_name: String,
 }
 
 impl AttributeModel {
@@ -64,6 +65,7 @@ impl AttributeModel {
         let mut input_data: Option<String> = None;
         let mut result: Option<String> = None;
         let mut should_be_authorized: Option<&'static str> = None;
+        let mut credentials_type_name: Option<String> = None;
 
         loop {
             let separator_pos = find(bytes, ':' as u8);
@@ -134,6 +136,10 @@ impl AttributeModel {
                     result = Some(value.to_string());
                 }
 
+                "credentials_type_name" => {
+                    credentials_type_name = Some(value.to_string());
+                }
+
                 "authorized" => match value {
                     "[]" => {
                         should_be_authorized =
@@ -183,10 +189,15 @@ impl AttributeModel {
                 Some("my_http_server_controllers::controllers::documentation::ShouldBeAuthorized::UseGlobal");
         }
 
+        if credentials_type_name.is_none() {
+            panic!("[credentials_type_name] is not found");
+        }
+
         Self {
             method: HttpMethod::parse(method.as_ref().unwrap()),
             route: route.unwrap(),
             input_data,
+            credentials_type_name: credentials_type_name.unwrap(),
             api_data: ApiData::new(
                 controller,
                 description,
