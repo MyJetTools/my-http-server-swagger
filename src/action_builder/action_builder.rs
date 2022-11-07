@@ -44,13 +44,8 @@ pub fn build_action(attr: TokenStream, input: TokenStream) -> TokenStream {
 
     result.push('{');
 
-    result.push_str("type TRequestCredentials=");
-    result.push_str(attrs.credentials_type_name.as_str());
-
-    result.push(';');
-
     result.push_str(
-        format!("async fn handle_request(&self, http_route: &my_http_server_controllers::controllers::HttpRoute, ctx: &mut {HTTP_CONTEXT_WITH_SELF}) -> Result<{HTTP_OK_RESULT}, {HTTP_FAIL_RESULT}> {{ ")
+        format!("async fn handle_request(&self, http_route: &my_http_server_controllers::controllers::HttpRoute, ctx: &mut {HTTP_CONTEXT}) -> Result<{HTTP_OK_RESULT}, {HTTP_FAIL_RESULT}> {{ ")
             .as_str(),
     );
     super::generate_handle_request_fn(&mut result, &attrs.input_data);

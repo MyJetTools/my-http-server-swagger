@@ -14,8 +14,7 @@ pub const HTTP_ENUM_STRUCTURE: &str = "data_types::HttpEnumStructure";
 pub const ENUM_TYPE: &str = "data_types::EnumType";
 pub const HTTP_ENUM_CASE: &str = "data_types::HttpEnumCase";
 
-pub const HTTP_CONTEXT: &str = "my_http_server::HttpContext<TRequestCredentials>";
-pub const HTTP_CONTEXT_WITH_SELF: &str = "my_http_server::HttpContext<Self::TRequestCredentials>";
+pub const HTTP_CONTEXT: &str = "my_http_server::HttpContext";
 
 pub const HTTP_FAIL_RESULT: &str = "my_http_server::HttpFailResult";
 
