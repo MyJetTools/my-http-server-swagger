@@ -137,21 +137,21 @@ impl AttributeModel {
                 "authorized" => match value {
                     "[]" => {
                         should_be_authorized =
-                            Some("crate::controllers::documentation::ShouldBeAuthorized::Yes");
+                            Some("my_http_server_controllers::controllers::documentation::ShouldBeAuthorized::Yes");
                     }
 
                     "global" => {
                         should_be_authorized = Some(
-                            "crate::controllers::documentation::ShouldBeAuthorized::UseGlobal",
+                            "my_http_server_controllers::controllers::documentation::ShouldBeAuthorized::UseGlobal",
                         );
                     }
                     "no" => {
                         should_be_authorized =
-                            Some("crate::controllers::documentation::ShouldBeAuthorized::No");
+                            Some("my_http_server_controllers::controllers::documentation::ShouldBeAuthorized::No");
                     }
                     _ => {
                         should_be_authorized =
-                        Some("crate::controllers::documentation::ShouldBeAuthorized::YesWithClaims(vec![])");
+                        Some("my_http_server_controllers::controllers::documentation::ShouldBeAuthorized::YesWithClaims(vec![])");
                     }
                 },
 
@@ -180,7 +180,7 @@ impl AttributeModel {
 
         if should_be_authorized.is_none() {
             should_be_authorized =
-                Some("crate::controllers::documentation::ShouldBeAuthorized::UseGlobal");
+                Some("my_http_server_controllers::controllers::documentation::ShouldBeAuthorized::UseGlobal");
         }
 
         Self {
