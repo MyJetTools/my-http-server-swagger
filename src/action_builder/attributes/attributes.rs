@@ -6,7 +6,7 @@ pub struct ApiData {
     pub controller: String,
     pub description: String,
     pub summary: String,
-    pub should_be_authorized: &'static str,
+    pub should_be_authorized: String,
     pub result: Vec<HttpResult>,
 }
 
@@ -15,7 +15,7 @@ impl ApiData {
         controller: Option<String>,
         description: Option<String>,
         summary: Option<String>,
-        should_be_authorized: &'static str,
+        should_be_authorized: String,
         result: Vec<HttpResult>,
     ) -> Option<Self> {
         if controller.is_none() {
@@ -63,7 +63,7 @@ impl AttributeModel {
         let mut summary: Option<String> = None;
         let mut input_data: Option<String> = None;
         let mut result: Option<String> = None;
-        let mut should_be_authorized: Option<&'static str> = None;
+        let mut should_be_authorized: Option<String> = None;
 
         loop {
             let separator_pos = find(bytes, ':' as u8);
@@ -137,21 +137,22 @@ impl AttributeModel {
                 "authorized" => match value {
                     "[]" => {
                         should_be_authorized =
-                            Some("my_http_server_controllers::controllers::documentation::ShouldBeAuthorized::Yes");
+                            Some("my_http_server_controllers::controllers::documentation::ShouldBeAuthorized::Yes".to_string());
                     }
 
                     "global" => {
                         should_be_authorized = Some(
-                            "my_http_server_controllers::controllers::documentation::ShouldBeAuthorized::UseGlobal",
+                            "my_http_server_controllers::controllers::documentation::ShouldBeAuthorized::UseGlobal".to_string(),
                         );
                     }
                     "no" => {
                         should_be_authorized =
-                            Some("my_http_server_controllers::controllers::documentation::ShouldBeAuthorized::No");
+                            Some("my_http_server_controllers::controllers::documentation::ShouldBeAuthorized::No".to_string());
                     }
                     _ => {
+                        println!("Authorized value is not valid: [{}]", value);
                         should_be_authorized =
-                        Some("my_http_server_controllers::controllers::documentation::ShouldBeAuthorized::YesWithClaims(my_http_server_controllers::controllers::RequiredClaims::from_vec(vec![]))");
+                        Some(format!("my_http_server_controllers::controllers::documentation::ShouldBeAuthorized::YesWithClaims(my_http_server_controllers::controllers::RequiredClaims::from_vec({}))", value));
                     }
                 },
 
@@ -180,7 +181,7 @@ impl AttributeModel {
 
         if should_be_authorized.is_none() {
             should_be_authorized =
-                Some("my_http_server_controllers::controllers::documentation::ShouldBeAuthorized::UseGlobal");
+                Some("my_http_server_controllers::controllers::documentation::ShouldBeAuthorized::UseGlobal".to_string());
         }
 
         Self {

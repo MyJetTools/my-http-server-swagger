@@ -29,7 +29,7 @@ pub fn generate_http_action_description_fn(result: &mut String, attrs: &Attribut
     result.push(',');
 
     result.push_str("should_be_authorized: ");
-    result.push_str(api_data.should_be_authorized);
+    result.push_str(api_data.should_be_authorized.as_str());
     result.push(',');
 
     result.push_str("input_params: ");
