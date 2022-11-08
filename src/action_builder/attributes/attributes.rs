@@ -151,7 +151,7 @@ impl AttributeModel {
                     }
                     _ => {
                         should_be_authorized =
-                        Some(format!("my_http_server_controllers::controllers::documentation::ShouldBeAuthorized::YesWithClaims(my_http_server_controllers::controllers::RequiredClaims::from_vec(vec![{}]))", value));
+                        Some(format!("my_http_server_controllers::controllers::documentation::ShouldBeAuthorized::YesWithClaims(my_http_server_controllers::controllers::RequiredClaims::from_slice_of_str(&[{}]))", value));
                     }
                 },
 
