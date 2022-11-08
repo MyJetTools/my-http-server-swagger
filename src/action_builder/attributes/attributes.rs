@@ -152,7 +152,7 @@ impl AttributeModel {
                     _ => {
                         println!("Authorized value is not valid: [{}]", value);
                         should_be_authorized =
-                        Some(format!("my_http_server_controllers::controllers::documentation::ShouldBeAuthorized::YesWithClaims(my_http_server_controllers::controllers::RequiredClaims::from_vec({}))", value));
+                        Some(format!("my_http_server_controllers::controllers::documentation::ShouldBeAuthorized::YesWithClaims(my_http_server_controllers::controllers::RequiredClaims::from_vec(vec!{}))", value));
                     }
                 },
 
