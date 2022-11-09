@@ -17,6 +17,11 @@ pub fn as_bool(result: &mut String, input_field: &InputField) {
     super::extensions::as_bool(result);
 }
 
+pub fn as_date_time(result: &mut String, input_field: &InputField) {
+    generate_read_required_from_query_string(result, input_field);
+    super::extensions::as_date_time(result);
+}
+
 fn generate_read_required_from_query_string(result: &mut String, input_field: &InputField) {
     result.push_str(DATA_SOURCE);
     result.push_str(".get_required(\"");
