@@ -100,6 +100,11 @@ fn generate_reading_required_value(result: &mut String, input_field: &InputField
             return;
         }
 
+        if input_field.property.ty.is_date_time() {
+            super::read_required_with_default::as_date_time(result, input_field, default_value);
+            return;
+        }
+
         if input_field.property.ty.is_simple_type() {
             super::read_required_with_default::as_simple_type(
                 result,

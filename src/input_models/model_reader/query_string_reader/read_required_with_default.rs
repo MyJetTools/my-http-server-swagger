@@ -35,6 +35,14 @@ pub fn as_bool(result: &mut String, input_field: &InputField, default: &str) {
     result.push_str("}");
 }
 
+pub fn as_date_time(result: &mut String, input_field: &InputField, default: &str) {
+    generate_read_optional_from_query_string_first_line(result, input_field);
+    super::extensions::as_date_time(result);
+    result.push_str("}else{");
+    result.push_str(default);
+    result.push_str("}");
+}
+
 pub fn as_simple_type(
     result: &mut String,
     input_field: &InputField,
