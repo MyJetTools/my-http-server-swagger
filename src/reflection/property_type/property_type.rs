@@ -17,6 +17,7 @@ pub const I_SIZE: &str = "isize";
 pub const BOOL: &str = "bool";
 pub const STRING: &str = "String";
 pub const DATE_TIME: &str = "DateTimeAsMicroseconds";
+pub const FILE_CONTENT: &str = "FileContent";
 pub const STR: &str = "&str";
 
 pub enum PropertyType {
@@ -36,6 +37,7 @@ pub enum PropertyType {
     Str,
     Bool,
     DateTime,
+    FileContent,
     OptionOf(Box<PropertyType>),
     VecOf(Box<PropertyType>),
     Struct(String),
@@ -107,6 +109,7 @@ impl PropertyType {
             PropertyType::Str => AsStr::create_as_str(STR),
             PropertyType::Bool => AsStr::create_as_str(BOOL),
             PropertyType::DateTime => AsStr::create_as_str(DATE_TIME),
+            PropertyType::FileContent => AsStr::create_as_str(FILE_CONTENT),
             PropertyType::OptionOf(generic_type) => {
                 AsStr::create_as_string(format!("Option<{}>", generic_type.as_str()))
             }
@@ -135,6 +138,7 @@ impl PropertyType {
             PropertyType::DateTime => true,
             PropertyType::Str => false,
             PropertyType::Bool => true,
+            PropertyType::FileContent => true,
             _ => false,
         }
     }
@@ -159,6 +163,7 @@ impl PropertyType {
             PropertyType::ISize => format!("{HTTP_SIMPLE_TYPE}::Long").into(),
             PropertyType::Bool => format!("{HTTP_SIMPLE_TYPE}::Boolean").into(),
             PropertyType::DateTime => format!("{HTTP_SIMPLE_TYPE}::DateTime").into(),
+            PropertyType::FileContent => format!("{HTTP_SIMPLE_TYPE}::Binary").into(),
             _ => None,
         }
     }
