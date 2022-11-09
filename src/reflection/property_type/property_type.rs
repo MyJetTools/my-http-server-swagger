@@ -16,6 +16,7 @@ pub const U_SIZE: &str = "usize";
 pub const I_SIZE: &str = "isize";
 pub const BOOL: &str = "bool";
 pub const STRING: &str = "String";
+pub const DATE_TIME: &str = "DateTimeAsMicroseconds";
 pub const STR: &str = "&str";
 
 pub enum PropertyType {
@@ -34,6 +35,7 @@ pub enum PropertyType {
     String,
     Str,
     Bool,
+    DateTime,
     OptionOf(Box<PropertyType>),
     VecOf(Box<PropertyType>),
     Struct(String),
@@ -80,6 +82,7 @@ impl PropertyType {
             I_SIZE => PropertyType::ISize,
             BOOL => PropertyType::Bool,
             STRING => PropertyType::String,
+            DATE_TIME => PropertyType::DateTime,
             "Option" => PropertyType::OptionOf(Box::new(super::utils::get_generic(type_path))),
             "Vec" => PropertyType::VecOf(Box::new(super::utils::get_generic(type_path))),
             _ => PropertyType::Struct(src.to_string()),
@@ -103,6 +106,7 @@ impl PropertyType {
             PropertyType::String => AsStr::create_as_str(STRING),
             PropertyType::Str => AsStr::create_as_str(STR),
             PropertyType::Bool => AsStr::create_as_str(BOOL),
+            PropertyType::DateTime => AsStr::create_as_str(DATE_TIME),
             PropertyType::OptionOf(generic_type) => {
                 AsStr::create_as_string(format!("Option<{}>", generic_type.as_str()))
             }
@@ -128,6 +132,7 @@ impl PropertyType {
             PropertyType::USize => true,
             PropertyType::ISize => true,
             PropertyType::String => true,
+            PropertyType::DateTime => true,
             PropertyType::Str => false,
             PropertyType::Bool => true,
             _ => false,
@@ -153,6 +158,7 @@ impl PropertyType {
             PropertyType::USize => format!("{HTTP_SIMPLE_TYPE}::Long").into(),
             PropertyType::ISize => format!("{HTTP_SIMPLE_TYPE}::Long").into(),
             PropertyType::Bool => format!("{HTTP_SIMPLE_TYPE}::Boolean").into(),
+            PropertyType::DateTime => format!("{HTTP_SIMPLE_TYPE}::DateTime").into(),
             _ => None,
         }
     }
