@@ -85,6 +85,7 @@ impl PropertyType {
             BOOL => PropertyType::Bool,
             STRING => PropertyType::String,
             DATE_TIME => PropertyType::DateTime,
+            FILE_CONTENT => PropertyType::FileContent,
             "Option" => PropertyType::OptionOf(Box::new(super::utils::get_generic(type_path))),
             "Vec" => PropertyType::VecOf(Box::new(super::utils::get_generic(type_path))),
             _ => PropertyType::Struct(src.to_string()),
