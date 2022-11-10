@@ -65,6 +65,12 @@ pub fn generate(name: &str, input_fields: &InputFields) -> String {
                 result.push_str(input_field.property.name.as_str());
                 result.push(',');
             }
+
+            InputFieldSource::BodyFile => {
+                result.push_str(input_field.property.name.as_str());
+
+                result.push_str(":  FileContent::read_from_body(&ctx.request),");
+            }
         }
     }
 

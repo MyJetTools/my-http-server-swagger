@@ -19,7 +19,8 @@ mod types;
         http_body,
         http_form,
         http_path,
-        http_body_type
+        http_body_type,
+        http_body_file,
     )
 )]
 pub fn my_http_input_doc_derive(input: TokenStream) -> TokenStream {
