@@ -58,7 +58,7 @@ fn get_input_src(field: &InputField) -> String {
         InputFieldSource::Header => "Header",
         InputFieldSource::Body => "Body",
         InputFieldSource::Form => "FormData",
-        InputFieldSource::BodyFile => "BodyFile",
+        InputFieldSource::BodyFile => "Body",
     };
 
     return format!("{NAME_SPACE}::{HTTP_PARAMETER_INPUT_SRC}::{field}",);
