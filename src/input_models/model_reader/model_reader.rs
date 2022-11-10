@@ -69,7 +69,7 @@ pub fn generate(name: &str, input_fields: &InputFields) -> String {
             InputFieldSource::BodyFile => {
                 result.push_str(input_field.property.name.as_str());
 
-                result.push_str(":  FileContent::read_from_body(&mut ctx.request),");
+                result.push_str(":  FileContent::read_from_body(&mut ctx.request).await?,");
             }
         }
     }
