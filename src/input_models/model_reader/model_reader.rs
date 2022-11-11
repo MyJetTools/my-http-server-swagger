@@ -1,12 +1,18 @@
 use crate::input_models::input_fields::{InputFieldSource, InputFields};
 
 pub fn generate(result: &mut String, name: &str, input_fields: &InputFields) {
+    input_fields.check_types_of_field();
+
     if input_fields.has_query() {
         super::not_body_reading::generate(result, input_fields);
     }
 
     if input_fields.has_body_reading_data() {
-        result.push_str("let __body = ctx.request.receive_body().await?;");
+        if input_fields.has_body_file() || input_fields.has_body_to_vec() {
+            result.push_str("let __body = ctx.request.receive_body().await?;");
+        } else {
+            result.push_str("let __body = ctx.request.get_body().await?;");
+        }
     }
 
     result.push_str("Ok(");
@@ -28,8 +34,13 @@ pub fn generate(result: &mut String, name: &str, input_fields: &InputFields) {
                 result.push(',');
             }
             InputFieldSource::Body => {
-                result.push_str(input_field.struct_field_name());
-                result.push_str(": __body.get_body(),");
+                if input_field.is_body_to_vec() {
+                    result.push_str(input_field.struct_field_name());
+                    result.push_str(": __body.get_body(),");
+                } else {
+                    result.push_str(input_field.struct_field_name());
+                    result.push_str(": __body.get_body(),");
+                }
             }
             InputFieldSource::Form => { /*  Skipping on first go*/ }
             InputFieldSource::BodyFile => {

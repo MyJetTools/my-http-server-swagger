@@ -81,6 +81,10 @@ impl InputField {
         self.my_attr.get_as_string("default")
     }
 
+    pub fn is_body_to_vec(&self) -> bool {
+        self.property.ty.is_vec() && self.src_is_body()
+    }
+
     pub fn is_reading_from_body(&self) -> bool {
         match self.src {
             InputFieldSource::Query => false,
@@ -92,8 +96,16 @@ impl InputField {
         }
     }
 
-    pub fn is_body(&self) -> bool {
+    pub fn src_is_body(&self) -> bool {
         if let InputFieldSource::Body = self.src {
+            return true;
+        }
+
+        return false;
+    }
+
+    pub fn is_body_file(&self) -> bool {
+        if let InputFieldSource::BodyFile = self.src {
             return true;
         }
 
@@ -137,6 +149,35 @@ impl InputFields {
         Self { fields }
     }
 
+    pub fn check_types_of_field(&self) {
+        let mut has_body_file = 0;
+        let mut has_body = 0;
+        let mut has_form = 0;
+
+        for field in &self.fields {
+            match field.src {
+                InputFieldSource::Query => {}
+                InputFieldSource::Path => {}
+                InputFieldSource::Header => {}
+                InputFieldSource::Body => has_body += 1,
+                InputFieldSource::Form => has_form += 1,
+                InputFieldSource::BodyFile => has_body_file += 1,
+            }
+        }
+
+        if has_body_file > 1 {
+            panic!("Only one field can be attributed as body_file");
+        }
+
+        if has_body_file > 0 && has_body > 0 {
+            panic!("Model can not have both body_file attribute and body attribute");
+        }
+
+        if has_body_file > 0 && has_form > 0 {
+            panic!("Model can not have both body_file attribute and from attribute");
+        }
+    }
+
     pub fn has_query(&self) -> bool {
         for field in &self.fields {
             if let InputFieldSource::Query = &field.src {
@@ -149,6 +190,24 @@ impl InputFields {
     pub fn has_body_reading_data(&self) -> bool {
         for field in &self.fields {
             if field.is_reading_from_body() {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    pub fn has_body_file(&self) -> bool {
+        for field in &self.fields {
+            if field.is_body_file() {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    pub fn has_body_to_vec(&self) -> bool {
+        for field in &self.fields {
+            if field.is_body_to_vec() {
                 return true;
             }
         }
