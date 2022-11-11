@@ -146,9 +146,9 @@ impl InputFields {
         return false;
     }
 
-    pub fn has_form_data(&self) -> bool {
+    pub fn has_body_reading_data(&self) -> bool {
         for field in &self.fields {
-            if let InputFieldSource::Form = &field.src {
+            if field.is_reading_from_body() {
                 return true;
             }
         }

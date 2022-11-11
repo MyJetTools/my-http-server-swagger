@@ -5,6 +5,10 @@ pub fn generate(result: &mut String, name: &str, input_fields: &InputFields) {
         super::not_body_reading::generate(result, input_fields);
     }
 
+    if input_fields.has_body_reading_data() {
+        result.push_str("let __body = ctx.request.receive_body().await?;");
+    }
+
     result.push_str("Ok(");
     result.push_str(name);
     result.push('{');
@@ -23,9 +27,15 @@ pub fn generate(result: &mut String, name: &str, input_fields: &InputFields) {
                 result.push_str(input_field.struct_field_name());
                 result.push(',');
             }
-            InputFieldSource::Body => { /*  Skipping on first go*/ }
+            InputFieldSource::Body => {
+                result.push_str(input_field.struct_field_name());
+                result.push_str("__body.get_body(),");
+            }
             InputFieldSource::Form => { /*  Skipping on first go*/ }
-            InputFieldSource::BodyFile => { /*  Skipping on first go*/ }
+            InputFieldSource::BodyFile => {
+                result.push_str(input_field.struct_field_name());
+                result.push_str("__body.get_body(),");
+            }
         }
     }
 
