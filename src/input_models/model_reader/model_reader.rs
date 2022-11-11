@@ -1,10 +1,10 @@
 use crate::input_models::input_fields::{InputFieldSource, InputFields};
 
 pub fn generate(result: &mut String, name: &str, input_fields: &InputFields) {
-    add_init_lines(&mut result, input_fields);
+    add_init_lines(result, input_fields);
 
     if input_fields.has_query() {
-        super::query_string_reader::generate_reading_from_query_string(&mut result, input_fields);
+        super::query_string_reader::generate_reading_from_query_string(result, input_fields);
     }
     /*
        if input_fields.has_form_data() {
@@ -51,7 +51,7 @@ pub fn generate(result: &mut String, name: &str, input_fields: &InputFields) {
                 result.push(',');
             }
             InputFieldSource::Body => {
-                super::read_body::generate_read_body(&mut result, input_field);
+                super::read_body::generate_read_body(result, input_field);
             }
             InputFieldSource::Form => {
                 result.push_str(input_field.property.name.as_str());
