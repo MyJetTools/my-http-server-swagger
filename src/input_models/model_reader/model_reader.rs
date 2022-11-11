@@ -6,15 +6,7 @@ pub fn generate(result: &mut String, name: &str, input_fields: &InputFields) {
     if input_fields.has_query() {
         super::query_string_reader::generate_reading_from_query_string(result, input_fields);
     }
-    /*
-       if input_fields.has_form_data() {
-           super::query_string_reader::generate_as_reading(
-               &mut result,
-               input_fields,
-               SourceToRead::FormData,
-           );
-       }
-    */
+
     result.push_str("Ok(");
     result.push_str(name);
     result.push('{');
@@ -26,7 +18,8 @@ pub fn generate(result: &mut String, name: &str, input_fields: &InputFields) {
                 result.push(',');
             }
             InputFieldSource::Path => {
-                result.push_str("http_route.get_value(\"");
+                result.push_str(input_field.struct_field_name());
+                result.push_str(": http_route.get_value(&ctx.request.http_path, \"");
                 result.push_str(input_field.name());
                 result.push_str("\")?.try_into()?,");
             }
