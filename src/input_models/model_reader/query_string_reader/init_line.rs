@@ -63,16 +63,14 @@ pub fn generate_reading_from_query_string(result: &mut String, input_fields: &In
         result.push_str(validation.as_str());
     }
 
-    result.push_str("todo!()");
-
     result.push_str("};\n");
 }
 
 fn generate_reading_simple_field(result: &mut String, input_field: &InputField) {
     result.push_str("DATA_SOURCE");
-    result.push_str(".get_optional(");
+    result.push_str(".get_optional(\"");
     result.push_str(input_field.name());
-    result.push_str(")?.into()?");
+    result.push_str("\")?.into()?;");
 }
 
 fn generate_init_fields(result: &mut String, input_fields: &InputFields) {
