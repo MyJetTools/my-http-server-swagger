@@ -63,6 +63,8 @@ pub fn generate_reading_from_query_string(result: &mut String, input_fields: &In
         result.push_str(validation.as_str());
     }
 
+    result.push_str("todo!()");
+
     result.push_str("};\n");
 }
 
