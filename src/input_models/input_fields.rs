@@ -8,6 +8,7 @@ pub enum InputFieldSource {
     Header,
     Body,
     Form,
+    BodyFile,
 }
 
 impl InputFieldSource {
@@ -18,6 +19,7 @@ impl InputFieldSource {
             "http_path" => Some(Self::Path),
             "http_form" => Some(Self::Form),
             "http_body" => Some(Self::Body),
+            "http_body_file" => Some(Self::BodyFile),
             _ => None,
         }
     }
@@ -92,6 +94,17 @@ impl InputField {
         }
 
         return false;
+    }
+
+    pub fn is_reading_from_body(&self) -> bool {
+        match self.src {
+            InputFieldSource::Query => false,
+            InputFieldSource::Path => false,
+            InputFieldSource::Header => false,
+            InputFieldSource::Body => true,
+            InputFieldSource::Form => true,
+            InputFieldSource::BodyFile => true,
+        }
     }
 
     pub fn is_body(&self) -> bool {

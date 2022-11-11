@@ -1,10 +1,8 @@
 use crate::input_models::input_fields::{InputFieldSource, InputFields};
 
 pub fn generate(result: &mut String, name: &str, input_fields: &InputFields) {
-    add_init_lines(result, input_fields);
-
     if input_fields.has_query() {
-        super::query_string_reader::generate_reading_from_query_string(result, input_fields);
+        super::not_body_reading::generate(result, input_fields);
     }
 
     result.push_str("Ok(");
@@ -19,16 +17,15 @@ pub fn generate(result: &mut String, name: &str, input_fields: &InputFields) {
             }
             InputFieldSource::Path => {
                 result.push_str(input_field.struct_field_name());
-                result.push_str(": http_route.get_value(&ctx.request.http_path, \"");
-                result.push_str(input_field.name());
-                result.push_str("\")?.try_into()?,");
+                result.push(',');
             }
             InputFieldSource::Header => {
                 result.push_str(input_field.struct_field_name());
                 result.push(',');
             }
-            InputFieldSource::Body => {}
-            InputFieldSource::Form => {}
+            InputFieldSource::Body => { /*  Skipping on first go*/ }
+            InputFieldSource::Form => { /*  Skipping on first go*/ }
+            InputFieldSource::BodyFile => { /*  Skipping on first go*/ }
         }
     }
 

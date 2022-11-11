@@ -16,9 +16,9 @@ mod types;
     attributes(
         http_query,
         http_header,
-        http_body,
         http_path,
-        http_form,
+        http_form_multi_part,
+        http_body,
         http_body_type,
         http_body_file,
     )
