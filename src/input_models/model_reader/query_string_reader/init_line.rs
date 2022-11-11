@@ -25,7 +25,7 @@ pub fn generate_reading_from_query_string(result: &mut String, input_fields: &In
 
         result.push_str("let ");
         result.push_str(input_field.struct_field_name());
-        result.push_str(": my_http_server::ValueAsString = ");
+        result.push_str(" = ");
 
         match &input_field.property.ty {
             PropertyType::FileContent => {
