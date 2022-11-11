@@ -19,7 +19,7 @@ pub fn generate(result: &mut String, input_fields: &InputFields) {
     result.push_str(" = ctx.request.get_query_string()?;\n");
 
     for input_field in &input_fields.fields {
-        if !input_field.is_reading_from_body() {
+        if input_field.is_reading_from_body() {
             continue;
         }
 
