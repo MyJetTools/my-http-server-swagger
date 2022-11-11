@@ -48,6 +48,8 @@ pub fn generate_reading_from_query_string(result: &mut String, input_fields: &In
 
                 result.push_str("let ");
                 result.push_str(input_field.struct_field_name());
+                result.push_str(": ");
+                result.push_str(input_field.property.ty.as_str().as_str());
                 result.push_str(" = dt_from.try_into()?;");
             }
         }
