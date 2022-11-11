@@ -106,7 +106,7 @@ fn generate_init_fields(result: &mut String, input_fields: &InputFields) {
         .filter(|f| !f.is_reading_from_body())
         .count();
 
-    if amount > 0 {
+    if amount > 1 {
         result.push('(');
     }
 
@@ -121,7 +121,7 @@ fn generate_init_fields(result: &mut String, input_fields: &InputFields) {
         }
     }
 
-    if amount > 0 {
+    if amount > 1 {
         result.push(')');
     }
 }

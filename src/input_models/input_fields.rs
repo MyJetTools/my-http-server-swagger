@@ -23,20 +23,6 @@ impl InputFieldSource {
             _ => None,
         }
     }
-
-    pub fn is_query(&self) -> bool {
-        match self {
-            InputFieldSource::Query => true,
-            _ => false,
-        }
-    }
-
-    pub fn is_form_data(&self) -> bool {
-        match self {
-            InputFieldSource::Form => true,
-            _ => false,
-        }
-    }
 }
 
 pub struct InputField {
@@ -86,14 +72,6 @@ impl InputField {
 
     pub fn get_default_value(&self) -> Option<&str> {
         self.my_attr.get_as_string("default")
-    }
-
-    pub fn is_query_string(&self) -> bool {
-        if let InputFieldSource::Query = self.src {
-            return true;
-        }
-
-        return false;
     }
 
     pub fn is_reading_from_body(&self) -> bool {
