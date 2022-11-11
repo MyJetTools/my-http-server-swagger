@@ -15,7 +15,7 @@ pub fn generate_read_body(result: &mut String, input_fields: &InputFields) {
     result.push_str("let ");
     result.push_str(DATA_SRC);
 
-    result.push_str(" = ctx.request.get_query_string()?;\n");
+    result.push_str(" = __body.get_body_data_reader()?;\n");
 
     for input_field in &input_fields.fields {
         if !input_field.src.is_body() {
