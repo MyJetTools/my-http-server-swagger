@@ -26,37 +26,16 @@ pub fn generate(result: &mut String, name: &str, input_fields: &InputFields) {
                 result.push(',');
             }
             InputFieldSource::Path => {
-                let line_to_add = if input_field.required() {
-                    if input_field.property.ty.is_string() {
-                        format!(
-                            "{}: http_route.get_value(&ctx.request.http_path, \"{}\")?.as_str().to_string(),",
-                            input_field.struct_field_name(),
-                            input_field.name()
-                        )
-                    } else {
-                        format!(
-                            "{}: if let Some(value) = http_route.get_value(&ctx.request.http_path, \"{name}\")?.get_value(){{value}}else{{return Err(my_http_server::HttpFailResult::invalid_value_to_parse(\"Can not parse route value '{name}'\".to_string(),)); }},",
-                            input_field.struct_field_name(),
-                            name = input_field.name()
-                        )
-                    }
-                } else {
-                    panic!("Path parameters are always required");
-                };
-
-                result.push_str(line_to_add.as_str());
+                result.push_str("http_route.get_value(\"");
+                result.push_str(input_field.name());
+                result.push_str("\")?.try_into()?,");
             }
             InputFieldSource::Header => {
                 result.push_str(input_field.struct_field_name());
                 result.push(',');
             }
-            InputFieldSource::Body => {
-                super::read_body::generate_read_body(result, input_field);
-            }
-            InputFieldSource::Form => {
-                result.push_str(input_field.property.name.as_str());
-                result.push(',');
-            }
+            InputFieldSource::Body => {}
+            InputFieldSource::Form => {}
         }
     }
 

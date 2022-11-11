@@ -1,7 +1,4 @@
-use crate::{
-    input_models::input_fields::{InputField, InputFields},
-    reflection::PropertyType,
-};
+use crate::{input_models::input_fields::InputFields, reflection::PropertyType};
 
 use super::consts::QUERY_STRING;
 
@@ -28,9 +25,7 @@ pub fn generate_reading_from_query_string(result: &mut String, input_fields: &In
         result.push_str(" = ");
 
         match &input_field.property.ty {
-            PropertyType::FileContent => {
-                todo!("Not implemented yet");
-            }
+            PropertyType::FileContent => {}
             PropertyType::OptionOf(_) => {
                 result.push_str("if let Some(value) = ");
                 result.push_str(QUERY_STRING);
@@ -41,12 +36,8 @@ pub fn generate_reading_from_query_string(result: &mut String, input_fields: &In
                     "let value = my_http_server::ValueAsString::from(value);Some(value.try_into()?)}else{None};",
                 );
             }
-            PropertyType::VecOf(_) => {
-                todo!("Not implemented yet");
-            }
-            PropertyType::Struct(_) => {
-                todo!("Not implemented yet");
-            }
+            PropertyType::VecOf(_) => {}
+            PropertyType::Struct(_) => {}
             _ => {
                 result.push_str("my_http_server::ValueAsString::from(");
                 result.push_str(QUERY_STRING);
