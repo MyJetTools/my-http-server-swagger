@@ -2,15 +2,14 @@ use crate::consts::{HTTP_INPUT_PARAMETER_TYPE, HTTP_PARAMETER_INPUT_SRC, NAME_SP
 
 use super::input_fields::{InputField, InputFieldSource, InputFields};
 
-pub fn generate_http_input(fields: &InputFields) -> String {
-    let mut result = String::new();
-
+pub fn generate_http_input(result: &mut String, fields: &InputFields) {
+    result.push_str("vec![");
     for input_field in &fields.fields {
         let itm = generate_http_input_parameter(input_field);
         result.push_str(itm.as_str());
     }
 
-    format!("vec![{}]", result)
+    result.push(']');
 }
 
 fn generate_http_input_parameter(input_field: &InputField) -> String {
@@ -20,14 +19,14 @@ fn generate_http_input_parameter(input_field: &InputField) -> String {
                 input_field.name(),
                 body_type,
                 input_field.required(),
-                input_field.default(),
+                input_field.get_default_value(),
             )
         } else {
             crate::types::compile_http_field(
                 input_field.name(),
                 &input_field.property.ty,
                 input_field.required(),
-                input_field.default(),
+                input_field.get_default_value(),
             )
         }
     } else {
@@ -35,7 +34,7 @@ fn generate_http_input_parameter(input_field: &InputField) -> String {
             input_field.name(),
             &input_field.property.ty,
             input_field.required(),
-            input_field.default(),
+            input_field.get_default_value(),
         )
     };
 
@@ -58,7 +57,6 @@ fn get_input_src(field: &InputField) -> String {
         InputFieldSource::Header => "Header",
         InputFieldSource::Body => "Body",
         InputFieldSource::Form => "FormData",
-        InputFieldSource::BodyFile => "Body",
     };
 
     return format!("{NAME_SPACE}::{HTTP_PARAMETER_INPUT_SRC}::{field}",);

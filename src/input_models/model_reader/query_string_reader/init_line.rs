@@ -3,59 +3,59 @@ use crate::{
     reflection::PropertyType,
 };
 
-use super::{consts::DATA_SOURCE, SourceToRead};
+use super::consts::QUERY_STRING;
 
-pub fn generate_as_reading(result: &mut String, input_fields: &InputFields, src: SourceToRead) {
+pub fn generate_reading_from_query_string(result: &mut String, input_fields: &InputFields) {
     let mut validation: Option<String> = None;
 
     result.push_str("let ");
-    generate_init_fields(result, input_fields, &src);
+    generate_init_fields(result, input_fields);
 
     result.push_str("={\n");
 
     result.push_str("let ");
-    result.push_str(DATA_SOURCE);
+    result.push_str(QUERY_STRING);
 
-    match &src {
-        SourceToRead::FormData => {
-            result.push_str(" = ctx.request.get_body().await?.get_form_data()?;\n");
-        }
-        SourceToRead::QueryString => {
-            result.push_str(" = ctx.request.get_query_string()?;\n");
-        }
-    }
+    result.push_str(" = ctx.request.get_query_string()?;\n");
 
     for input_field in &input_fields.fields {
-        let my_field = match &src {
-            SourceToRead::FormData => input_field.src.is_form_data(),
-            SourceToRead::QueryString => input_field.src.is_query(),
-        };
+        if !input_field.is_query_string() {
+            continue;
+        }
 
-        if my_field {
-            result.push_str("let ");
-            result.push_str(input_field.struct_field_name());
-            result.push_str(" = ");
+        result.push_str("let ");
+        result.push_str(input_field.struct_field_name());
+        result.push_str(" = ");
 
-            if input_field.required() {
-                generate_reading_required_value(result, input_field);
-                result.push_str(";\n");
-            } else {
-                generate_reading_optional_value(result, input_field);
-                result.push_str(";\n");
+        match &input_field.property.ty {
+            PropertyType::FileContent => {
+                todo!("Not implemented yet");
             }
-
-            if let Some(validator) = input_field.validator() {
-                if validation.is_none() {
-                    validation = Some(String::new());
-                }
-                validation.as_mut().unwrap().push_str(validator);
-                validation.as_mut().unwrap().push_str("(ctx, &");
-                validation
-                    .as_mut()
-                    .unwrap()
-                    .push_str(input_field.struct_field_name());
-                validation.as_mut().unwrap().push_str(")?;\n");
+            PropertyType::OptionOf(sub_type) => {
+                todo!("Not implemented yet");
             }
+            PropertyType::VecOf(_) => {
+                todo!("Not implemented yet");
+            }
+            PropertyType::Struct(_) => {
+                todo!("Not implemented yet");
+            }
+            _ => {
+                generate_reading_simple_field(result, input_field);
+            }
+        }
+
+        if let Some(validator) = input_field.validator() {
+            if validation.is_none() {
+                validation = Some(String::new());
+            }
+            validation.as_mut().unwrap().push_str(validator);
+            validation.as_mut().unwrap().push_str("(ctx, &");
+            validation
+                .as_mut()
+                .unwrap()
+                .push_str(input_field.struct_field_name());
+            validation.as_mut().unwrap().push_str(")?;\n");
         }
     }
 
@@ -63,20 +63,21 @@ pub fn generate_as_reading(result: &mut String, input_fields: &InputFields, src:
         result.push_str(validation.as_str());
     }
 
-    generate_init_fields(result, input_fields, &src);
     result.push_str("};\n");
 }
 
-fn generate_init_fields(result: &mut String, input_fields: &InputFields, src: &SourceToRead) {
+fn generate_reading_simple_field(result: &mut String, input_field: &InputField) {
+    result.push_str("DATA_SOURCE");
+    result.push_str(".get_optional(");
+    result.push_str(input_field.name());
+    result.push_str(")?.into()?");
+}
+
+fn generate_init_fields(result: &mut String, input_fields: &InputFields) {
     result.push('(');
     let mut no = 0;
     for input_field in &input_fields.fields {
-        let my_field = match src {
-            SourceToRead::FormData => input_field.src.is_form_data(),
-            SourceToRead::QueryString => input_field.src.is_query(),
-        };
-
-        if my_field {
+        if input_field.is_query_string() {
             if no > 0 {
                 result.push(',');
             }
@@ -87,7 +88,7 @@ fn generate_init_fields(result: &mut String, input_fields: &InputFields, src: &S
 
     result.push(')');
 }
-
+/*
 fn generate_reading_required_value(result: &mut String, input_field: &InputField) {
     if let Some(default_value) = input_field.default() {
         if input_field.property.ty.is_string() {
@@ -181,3 +182,4 @@ fn generate_reading_optional_value(result: &mut String, input_field: &InputField
         panic!("Somehow we got here");
     }
 }
+ */

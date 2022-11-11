@@ -1,1 +1,1 @@
-pub const DATA_SOURCE: &str = "__data_source";
+pub const QUERY_STRING: &str = "__query_string";

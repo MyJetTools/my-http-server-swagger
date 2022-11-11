@@ -8,7 +8,6 @@ pub enum InputFieldSource {
     Header,
     Body,
     Form,
-    BodyFile,
 }
 
 impl InputFieldSource {
@@ -19,7 +18,6 @@ impl InputFieldSource {
             "http_path" => Some(Self::Path),
             "http_form" => Some(Self::Form),
             "http_body" => Some(Self::Body),
-            "http_body_file" => Some(Self::BodyFile),
             _ => None,
         }
     }
@@ -84,8 +82,16 @@ impl InputField {
         !self.property.ty.is_option()
     }
 
-    pub fn default(&self) -> Option<&str> {
+    pub fn get_default_value(&self) -> Option<&str> {
         self.my_attr.get_as_string("default")
+    }
+
+    pub fn is_query_string(&self) -> bool {
+        if let InputFieldSource::Query = self.src {
+            return true;
+        }
+
+        return false;
     }
 
     pub fn is_body(&self) -> bool {

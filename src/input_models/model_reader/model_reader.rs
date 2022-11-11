@@ -1,28 +1,21 @@
 use crate::input_models::input_fields::{InputFieldSource, InputFields};
 
-use super::query_string_reader::SourceToRead;
-
-pub fn generate(name: &str, input_fields: &InputFields) -> String {
+pub fn generate(result: &mut String, name: &str, input_fields: &InputFields) -> String {
     let mut result = String::new();
-
     add_init_lines(&mut result, input_fields);
 
     if input_fields.has_query() {
-        super::query_string_reader::generate_as_reading(
-            &mut result,
-            input_fields,
-            SourceToRead::QueryString,
-        );
+        super::query_string_reader::generate_reading_from_query_string(&mut result, input_fields);
     }
-
-    if input_fields.has_form_data() {
-        super::query_string_reader::generate_as_reading(
-            &mut result,
-            input_fields,
-            SourceToRead::FormData,
-        );
-    }
-
+    /*
+       if input_fields.has_form_data() {
+           super::query_string_reader::generate_as_reading(
+               &mut result,
+               input_fields,
+               SourceToRead::FormData,
+           );
+       }
+    */
     result.push_str("Ok(");
     result.push_str(name);
     result.push('{');
@@ -64,12 +57,6 @@ pub fn generate(name: &str, input_fields: &InputFields) -> String {
             InputFieldSource::Form => {
                 result.push_str(input_field.property.name.as_str());
                 result.push(',');
-            }
-
-            InputFieldSource::BodyFile => {
-                result.push_str(input_field.property.name.as_str());
-
-                result.push_str(": my_http_server_controllers::controllers::FileContent::read_from_body(&mut ctx.request).await?,");
             }
         }
     }
