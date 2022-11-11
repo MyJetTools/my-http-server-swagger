@@ -29,12 +29,12 @@ pub fn generate(result: &mut String, name: &str, input_fields: &InputFields) {
             }
             InputFieldSource::Body => {
                 result.push_str(input_field.struct_field_name());
-                result.push_str("__body.get_body(),");
+                result.push_str(": __body.get_body(),");
             }
             InputFieldSource::Form => { /*  Skipping on first go*/ }
             InputFieldSource::BodyFile => {
                 result.push_str(input_field.struct_field_name());
-                result.push_str("__body.get_body(),");
+                result.push_str(": __body.get_body(),");
             }
         }
     }
