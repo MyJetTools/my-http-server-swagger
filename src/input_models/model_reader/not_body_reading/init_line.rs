@@ -80,12 +80,12 @@ fn generate_reading_required(result: &mut String, input_field: &InputField) {
         InputFieldSource::Path => {
             result.push_str("http_route.get_value(&ctx.request.http_path, \"");
             result.push_str(input_field.name());
-            result.push_str("\")?.try_into()?,");
+            result.push_str("\")?.try_into()?;");
         }
         InputFieldSource::Header => {
             result.push_str("ctx.request.get_required_header(\"");
             result.push_str(input_field.name());
-            result.push_str("\")?.try_into()?,");
+            result.push_str("\")?.try_into()?;");
         }
         InputFieldSource::Body => {
             panic!("Bug. Should not read Body at generate_reading_required");
