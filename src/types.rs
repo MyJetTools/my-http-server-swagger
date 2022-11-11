@@ -1,4 +1,6 @@
-use crate::consts::{HTTP_ARRAY_ELEMENT, HTTP_DATA_TYPE, HTTP_FIELD_TYPE, NAME_SPACE};
+use crate::consts::{
+    HTTP_ARRAY_ELEMENT, HTTP_DATA_TYPE, HTTP_FIELD_TYPE, HTTP_SIMPLE_TYPE, NAME_SPACE,
+};
 use crate::input_models::input_fields::InputFieldSource;
 use crate::reflection::PropertyType;
 
@@ -17,7 +19,7 @@ pub fn compile_http_field(
 
     let data_type = if let Some(src) = src {
         if src.is_body_file() {
-            format!("{HTTP_DATA_TYPE}::SimpleType(Binary)",)
+            format!("{HTTP_DATA_TYPE}::SimpleType({HTTP_SIMPLE_TYPE}::Binary)",)
         } else {
             compile_data_type(pt, TypeIsWrappedTo::None)
         }
