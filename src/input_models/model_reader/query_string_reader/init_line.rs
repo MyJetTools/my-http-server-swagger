@@ -41,16 +41,11 @@ pub fn generate_reading_from_query_string(result: &mut String, input_fields: &In
                 todo!("Not implemented yet");
             }
             _ => {
+                result.push_str("my_http_server::ValueAsString::from(");
                 result.push_str(QUERY_STRING);
                 result.push_str(".get_required(\"");
                 result.push_str(input_field.name());
-                result.push_str("\")?.into();");
-
-                result.push_str("let ");
-                result.push_str(input_field.struct_field_name());
-                result.push_str(": ");
-                result.push_str(input_field.property.ty.as_str().as_str());
-                result.push_str(" = dt_from.try_into()?;");
+                result.push_str("\")?).try_into()?;");
             }
         }
 
