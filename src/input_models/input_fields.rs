@@ -30,6 +30,13 @@ impl InputFieldSource {
             _ => false,
         }
     }
+
+    pub fn is_body(&self) -> bool {
+        match self {
+            InputFieldSource::Body => true,
+            _ => false,
+        }
+    }
 }
 
 pub struct InputField {
@@ -190,6 +197,15 @@ impl InputFields {
     pub fn has_body_reading_data(&self) -> bool {
         for field in &self.fields {
             if field.is_reading_from_body() {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    pub fn has_body_data_to_read(&self) -> bool {
+        for field in &self.fields {
+            if field.is_reading_from_body() && !field.property.ty.is_vec() {
                 return true;
             }
         }

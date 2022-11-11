@@ -4,7 +4,7 @@ pub fn generate(result: &mut String, name: &str, input_fields: &InputFields) {
     input_fields.check_types_of_field();
 
     if input_fields.has_query() {
-        super::not_body_reading::generate(result, input_fields);
+        super::generate_read_not_body(result, input_fields);
     }
 
     if input_fields.has_body_reading_data() {
@@ -13,6 +13,10 @@ pub fn generate(result: &mut String, name: &str, input_fields: &InputFields) {
         } else {
             result.push_str("let __body = ctx.request.get_body().await?;");
         }
+    }
+
+    if input_fields.has_body_data_to_read() {
+        super::generate_read_body(result, input_fields);
     }
 
     result.push_str("Ok(");

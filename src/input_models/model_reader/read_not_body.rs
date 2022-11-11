@@ -3,9 +3,9 @@ use crate::{
     reflection::PropertyType,
 };
 
-use super::consts::QUERY_STRING;
+const DATA_SRC: &str = "__query_string";
 
-pub fn generate(result: &mut String, input_fields: &InputFields) {
+pub fn generate_read_not_body(result: &mut String, input_fields: &InputFields) {
     let mut validation: Option<String> = None;
 
     result.push_str("let ");
@@ -14,7 +14,7 @@ pub fn generate(result: &mut String, input_fields: &InputFields) {
     result.push_str("={\n");
 
     result.push_str("let ");
-    result.push_str(QUERY_STRING);
+    result.push_str(DATA_SRC);
 
     result.push_str(" = ctx.request.get_query_string()?;\n");
 
@@ -31,7 +31,7 @@ pub fn generate(result: &mut String, input_fields: &InputFields) {
             PropertyType::FileContent => {}
             PropertyType::OptionOf(_) => {
                 result.push_str("if let Some(value) = ");
-                result.push_str(QUERY_STRING);
+                result.push_str(DATA_SRC);
                 result.push_str(".get_optional(\"");
                 result.push_str(input_field.name());
                 result.push_str("\"){");
@@ -72,7 +72,7 @@ fn generate_reading_required(result: &mut String, input_field: &InputField) {
     match input_field.src {
         InputFieldSource::Query => {
             result.push_str("my_http_server::ValueAsString::from(");
-            result.push_str(QUERY_STRING);
+            result.push_str(DATA_SRC);
             result.push_str(".get_required(\"");
             result.push_str(input_field.name());
             result.push_str("\")?).try_into()?;");
