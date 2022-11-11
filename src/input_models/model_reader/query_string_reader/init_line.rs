@@ -32,7 +32,11 @@ pub fn generate_reading_from_query_string(result: &mut String, input_fields: &In
                 todo!("Not implemented yet");
             }
             PropertyType::OptionOf(sub_type) => {
-                todo!("Not implemented yet");
+                result.push_str("my_http_server::ValueAsString::from(");
+                result.push_str(QUERY_STRING);
+                result.push_str(".get_required(\"");
+                result.push_str(input_field.name());
+                result.push_str("\")?).try_into()?;");
             }
             PropertyType::VecOf(_) => {
                 todo!("Not implemented yet");
