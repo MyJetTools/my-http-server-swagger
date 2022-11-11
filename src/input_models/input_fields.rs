@@ -23,6 +23,13 @@ impl InputFieldSource {
             _ => None,
         }
     }
+
+    pub fn is_body_file(&self) -> bool {
+        match self {
+            InputFieldSource::BodyFile => true,
+            _ => false,
+        }
+    }
 }
 
 pub struct InputField {

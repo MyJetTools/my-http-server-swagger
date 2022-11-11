@@ -27,6 +27,7 @@ fn generate_http_input_parameter(input_field: &InputField) -> String {
                 &input_field.property.ty,
                 input_field.required(),
                 input_field.get_default_value(),
+                Some(&input_field.src),
             )
         }
     } else {
@@ -35,6 +36,7 @@ fn generate_http_input_parameter(input_field: &InputField) -> String {
             &input_field.property.ty,
             input_field.required(),
             input_field.get_default_value(),
+            Some(&input_field.src),
         )
     };
 

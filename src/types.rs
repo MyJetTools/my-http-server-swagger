@@ -1,4 +1,5 @@
 use crate::consts::{HTTP_ARRAY_ELEMENT, HTTP_DATA_TYPE, HTTP_FIELD_TYPE, NAME_SPACE};
+use crate::input_models::input_fields::InputFieldSource;
 use crate::reflection::PropertyType;
 
 pub fn compile_http_field(
@@ -6,6 +7,7 @@ pub fn compile_http_field(
     pt: &PropertyType,
     required: bool,
     default: Option<&str>,
+    src: Option<&InputFieldSource>,
 ) -> String {
     let default = if let Some(default) = default {
         format!("Some(\"{}\".to_string())", default)
@@ -13,10 +15,20 @@ pub fn compile_http_field(
         "None".to_string()
     };
 
+    let data_type = if let Some(src) = src {
+        if src.is_body_file() {
+            format!("{HTTP_DATA_TYPE}::SimpleType(Binary)",)
+        } else {
+            compile_data_type(pt, TypeIsWrappedTo::None)
+        }
+    } else {
+        compile_data_type(pt, TypeIsWrappedTo::None)
+    };
+
     format!(
         "{NAME_SPACE}::{HTTP_FIELD_TYPE}::new(\"{name}\", {data_type}, {required}, {default})",
         name = name,
-        data_type = compile_data_type(pt, TypeIsWrappedTo::None),
+        data_type = data_type,
         required = required,
         default = default
     )

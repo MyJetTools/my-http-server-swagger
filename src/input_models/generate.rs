@@ -3,7 +3,7 @@ use proc_macro::TokenStream;
 
 use super::input_fields::InputFields;
 
-pub fn impl_input_types(ast: &syn::DeriveInput) -> TokenStream {
+pub fn generate(ast: &syn::DeriveInput) -> TokenStream {
     let name = &ast.ident;
 
     let fields = crate::reflection::StructProperty::read(ast);
