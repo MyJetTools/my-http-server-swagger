@@ -70,6 +70,7 @@ pub fn generate_reading_from_query_string(result: &mut String, input_fields: &In
         result.push_str(validation.as_str());
     }
 
+    generate_init_fields(result, input_fields);
     result.push_str("};\n");
 }
 
