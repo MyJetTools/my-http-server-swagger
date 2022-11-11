@@ -103,7 +103,7 @@ fn generate_init_fields(result: &mut String, input_fields: &InputFields) {
     let amount = input_fields
         .fields
         .iter()
-        .filter(|f| f.is_reading_from_body())
+        .filter(|f| !f.is_reading_from_body())
         .count();
 
     if amount > 0 {
