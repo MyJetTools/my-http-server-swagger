@@ -44,7 +44,7 @@ pub fn generate_reading_from_query_string(result: &mut String, input_fields: &In
                 result.push_str(QUERY_STRING);
                 result.push_str(".get_required(\"");
                 result.push_str(input_field.name());
-                result.push_str("\")?.into()?;");
+                result.push_str("\")?.into();");
 
                 result.push_str("let ");
                 result.push_str(input_field.struct_field_name());
