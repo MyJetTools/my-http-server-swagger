@@ -1,7 +1,6 @@
 use crate::input_models::input_fields::{InputFieldSource, InputFields};
 
-pub fn generate(result: &mut String, name: &str, input_fields: &InputFields) -> String {
-    let mut result = String::new();
+pub fn generate(result: &mut String, name: &str, input_fields: &InputFields) {
     add_init_lines(&mut result, input_fields);
 
     if input_fields.has_query() {
@@ -62,8 +61,6 @@ pub fn generate(result: &mut String, name: &str, input_fields: &InputFields) -> 
     }
 
     result.push_str("})");
-
-    result
 }
 
 fn add_init_lines(result: &mut String, input_fields: &InputFields) {
