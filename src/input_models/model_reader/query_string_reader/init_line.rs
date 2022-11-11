@@ -25,7 +25,7 @@ pub fn generate_reading_from_query_string(result: &mut String, input_fields: &In
 
         result.push_str("let ");
         result.push_str(input_field.struct_field_name());
-        result.push_str(" = ");
+        result.push_str(": my_http_server::ValueAsString = ");
 
         match &input_field.property.ty {
             PropertyType::FileContent => {
@@ -41,7 +41,14 @@ pub fn generate_reading_from_query_string(result: &mut String, input_fields: &In
                 todo!("Not implemented yet");
             }
             _ => {
-                generate_reading_simple_field(result, input_field);
+                result.push_str(QUERY_STRING);
+                result.push_str(".get_required(\"");
+                result.push_str(input_field.name());
+                result.push_str("\")?.into()?;");
+
+                result.push_str("let ");
+                result.push_str(input_field.struct_field_name());
+                result.push_str(" = dt_from.try_into()?;");
             }
         }
 
@@ -64,13 +71,6 @@ pub fn generate_reading_from_query_string(result: &mut String, input_fields: &In
     }
 
     result.push_str("};\n");
-}
-
-fn generate_reading_simple_field(result: &mut String, input_field: &InputField) {
-    result.push_str(QUERY_STRING);
-    result.push_str(".get_optional(\"");
-    result.push_str(input_field.name());
-    result.push_str("\")?.into()?;");
 }
 
 fn generate_init_fields(result: &mut String, input_fields: &InputFields) {
