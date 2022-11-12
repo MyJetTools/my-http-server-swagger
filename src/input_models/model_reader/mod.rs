@@ -1,4 +1,3 @@
-mod header_reader;
 mod model_reader;
 mod read_body;
 mod read_not_body;

@@ -121,29 +121,6 @@ impl PropertyType {
         }
     }
 
-    pub fn is_simple_type(&self) -> bool {
-        match self {
-            PropertyType::U8 => true,
-            PropertyType::I8 => true,
-            PropertyType::U16 => true,
-            PropertyType::I16 => true,
-            PropertyType::U32 => true,
-            PropertyType::I32 => true,
-            PropertyType::U64 => true,
-            PropertyType::I64 => true,
-            PropertyType::F64 => true,
-            PropertyType::F32 => true,
-            PropertyType::USize => true,
-            PropertyType::ISize => true,
-            PropertyType::String => true,
-            PropertyType::DateTime => true,
-            PropertyType::Str => false,
-            PropertyType::Bool => true,
-            PropertyType::FileContent => true,
-            _ => false,
-        }
-    }
-
     pub fn get_swagger_simple_type(&self) -> Option<String> {
         use crate::consts::HTTP_SIMPLE_TYPE;
 
@@ -169,30 +146,6 @@ impl PropertyType {
         }
     }
 
-    pub fn is_string(&self) -> bool {
-        if let PropertyType::String = self {
-            return true;
-        }
-
-        false
-    }
-
-    pub fn is_boolean(&self) -> bool {
-        if let PropertyType::Bool = self {
-            return true;
-        }
-
-        false
-    }
-
-    pub fn is_date_time(&self) -> bool {
-        if let PropertyType::DateTime = self {
-            return true;
-        }
-
-        false
-    }
-
     pub fn is_option(&self) -> bool {
         if let PropertyType::OptionOf(_) = self {
             return true;
@@ -203,14 +156,6 @@ impl PropertyType {
 
     pub fn is_vec(&self) -> bool {
         if let PropertyType::VecOf(_) = self {
-            return true;
-        }
-
-        false
-    }
-
-    pub fn is_u8(&self) -> bool {
-        if let PropertyType::U8 = self {
             return true;
         }
 

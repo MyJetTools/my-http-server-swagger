@@ -56,7 +56,3 @@ pub fn generate(result: &mut String, name: &str, input_fields: &InputFields) {
 
     result.push_str("})");
 }
-
-fn add_init_lines(result: &mut String, input_fields: &InputFields) {
-    super::header_reader::init_header_variables(result, input_fields)
-}

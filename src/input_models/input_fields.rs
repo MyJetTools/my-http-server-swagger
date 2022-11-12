@@ -229,14 +229,4 @@ impl InputFields {
         }
         return false;
     }
-
-    pub fn get_from_header_elements(&self) -> Vec<&InputField> {
-        let mut result = Vec::new();
-        for field in &self.fields {
-            if let InputFieldSource::Header = &field.src {
-                result.push(field);
-            }
-        }
-        return result;
-    }
 }
