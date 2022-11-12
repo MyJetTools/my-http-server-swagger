@@ -10,6 +10,7 @@ pub fn generate(result: &mut String, name: &str, input_fields: &InputFields) {
     if let Some(body_data_reader_type) = input_fields.has_body_data_to_read() {
         match body_data_reader_type {
             BodyDataToReader::FormData => {
+                result.push_str("//Reading from data");
                 result.push_str("let __body = ctx.request.get_body().await?;");
                 super::generate_read_body(result, input_fields, "__from_data_reader", |f| {
                     f.src_is_form_data()
