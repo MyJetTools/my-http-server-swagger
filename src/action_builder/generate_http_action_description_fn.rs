@@ -8,6 +8,8 @@ pub fn generate_http_action_description_fn(result: &mut String, attrs: &Attribut
         return;
     }
 
+    result.push_str(USE_DOCUMENTATION);
+
     let api_data = attrs.api_data.as_ref().unwrap();
 
     result.push_str(HTTP_ACTION_DESCRIPTION_WITH_NS);
