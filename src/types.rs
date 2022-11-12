@@ -1,60 +1,72 @@
-use crate::consts::{
-    HTTP_ARRAY_ELEMENT, HTTP_DATA_TYPE, HTTP_FIELD_TYPE, HTTP_SIMPLE_TYPE, NAME_SPACE,
-};
+use crate::consts::{HTTP_ARRAY_ELEMENT, HTTP_DATA_TYPE, HTTP_FIELD_TYPE, HTTP_SIMPLE_TYPE};
 use crate::input_models::input_fields::InputFieldSource;
 use crate::reflection::PropertyType;
 
 pub fn compile_http_field(
+    result: &mut String,
     name: &str,
     pt: &PropertyType,
     required: bool,
     default: Option<&str>,
     src: Option<&InputFieldSource>,
-) -> String {
-    let default = if let Some(default) = default {
-        format!("Some(\"{}\".to_string())", default)
-    } else {
-        "None".to_string()
-    };
+) {
+    result.push_str(HTTP_FIELD_TYPE);
+    result.push_str("::new(\"");
+    result.push_str(name);
 
-    let data_type = if let Some(src) = src {
+    result.push_str("\", ");
+
+    if let Some(src) = src {
         if src.is_body_file() {
-            format!("{HTTP_DATA_TYPE}::SimpleType({HTTP_SIMPLE_TYPE}::Binary)",)
+            result.push_str(HTTP_DATA_TYPE);
+            result.push_str("::SimpleType(");
+
+            result.push_str(HTTP_SIMPLE_TYPE);
+            result.push_str("::Binary)");
         } else {
-            compile_data_type(pt, TypeIsWrappedTo::None)
+            compile_data_type(result, pt, TypeIsWrappedTo::None);
         }
     } else {
-        compile_data_type(pt, TypeIsWrappedTo::None)
-    };
+        compile_data_type(result, pt, TypeIsWrappedTo::None);
+    }
 
-    format!(
-        "{HTTP_FIELD_TYPE}::new(\"{name}\", {data_type}, {required}, {default})",
-        name = name,
-        data_type = data_type,
-        required = required,
-        default = default
-    )
+    result.push_str(", ");
+
+    write_bool_value(result, required);
+
+    result.push_str(", ");
+
+    write_optional_value(result, default);
+
+    result.push(')');
 }
 
 pub fn compile_http_field_with_object(
+    result: &mut String,
     name: &str,
     body_type: &str,
     required: bool,
     default: Option<&str>,
-) -> String {
-    let default = if let Some(default) = default {
-        format!("Some(\"{}\".to_string())", default)
-    } else {
-        "None".to_string()
-    };
+) {
+    result.push_str(HTTP_FIELD_TYPE);
 
-    format!(
-        "{HTTP_FIELD_TYPE}::new(\"{name}\", {data_type}, {required}, {default})",
-        data_type = format!(
-            "{body_type}::{fn_name}().into_http_data_type_object()",
-            fn_name = crate::consts::FN_GET_HTTP_DATA_STRUCTURE
-        ),
-    )
+    result.push_str("::new(\"");
+    result.push_str(name);
+
+    result.push_str("\", ");
+
+    result.push_str(body_type);
+    result.push_str("::");
+    result.push_str(crate::consts::FN_GET_HTTP_DATA_STRUCTURE);
+    result.push_str("().into_http_data_type_object(), ");
+
+    write_bool_value(result, required);
+
+    result.push_str(", ");
+
+    write_optional_value(result, default);
+
+    result.push_str(")");
 }
 
 enum TypeIsWrappedTo {
@@ -63,52 +75,85 @@ enum TypeIsWrappedTo {
     Vec,
 }
 
-fn compile_data_type(pt: &PropertyType, type_is_wrapped_to: TypeIsWrappedTo) -> String {
+fn compile_data_type(result: &mut String, pt: &PropertyType, type_is_wrapped_to: TypeIsWrappedTo) {
     if let PropertyType::OptionOf(generic_type) = pt {
-        return compile_data_type(generic_type.as_ref(), TypeIsWrappedTo::Option);
+        compile_data_type(result, generic_type.as_ref(), TypeIsWrappedTo::Option);
+        return;
     }
 
     if let PropertyType::VecOf(generic_type) = pt {
-        return compile_data_type(generic_type.as_ref(), TypeIsWrappedTo::Vec);
+        compile_data_type(result, generic_type.as_ref(), TypeIsWrappedTo::Vec);
+        return;
     }
 
     if let Some(simple_type) = pt.get_swagger_simple_type() {
         match type_is_wrapped_to {
-            TypeIsWrappedTo::None => return format!("{HTTP_DATA_TYPE}::SimpleType({simple_type})",),
+            TypeIsWrappedTo::None => {
+                result.push_str(HTTP_DATA_TYPE);
+                result.push_str("::SimpleType(");
+                result.push_str(simple_type.as_str());
+                result.push_str(")");
+                return;
+            }
 
             TypeIsWrappedTo::Option => {
-                return format!("{HTTP_DATA_TYPE}::SimpleType({simple_type})",)
+                result.push_str(HTTP_DATA_TYPE);
+                result.push_str("::SimpleType(");
+                result.push_str(simple_type.as_str());
+                result.push_str(")");
+                return;
             }
             TypeIsWrappedTo::Vec => {
-                let result = format!(
-                    "{HTTP_DATA_TYPE}::ArrayOf({HTTP_ARRAY_ELEMENT}::SimpleType({simple_type}))",
-                );
-                return result;
+                result.push_str(HTTP_DATA_TYPE);
+                result.push_str("::ArrayOf(");
+                result.push_str(HTTP_ARRAY_ELEMENT);
+                result.push_str("::SimpleType(");
+                result.push_str(simple_type.as_str());
+                result.push_str("))");
+                return;
             }
         };
     }
 
     match type_is_wrapped_to {
         TypeIsWrappedTo::None => {
-            return format!(
-                "{}::{}().into_http_data_type_object()",
-                pt.as_str(),
-                crate::consts::FN_GET_HTTP_DATA_STRUCTURE
-            );
+            result.push_str(pt.as_str().as_str());
+            result.push_str("::");
+            result.push_str(crate::consts::FN_GET_HTTP_DATA_STRUCTURE);
+            result.push_str("().into_http_data_type_object()");
+            return;
         }
         TypeIsWrappedTo::Option => {
-            return format!(
-                "{}::{}().into_http_data_type_object()",
-                pt.as_str(),
-                crate::consts::FN_GET_HTTP_DATA_STRUCTURE
-            );
+            result.push_str(pt.as_str().as_str());
+            result.push_str("::");
+            result.push_str(crate::consts::FN_GET_HTTP_DATA_STRUCTURE);
+            result.push_str("().into_http_data_type_object()");
+            return;
         }
         TypeIsWrappedTo::Vec => {
-            return format!(
-                "{}::{}().into_http_data_type_array()",
-                pt.as_str(),
-                crate::consts::FN_GET_HTTP_DATA_STRUCTURE
-            );
+            result.push_str(pt.as_str().as_str());
+            result.push_str("::");
+            result.push_str(crate::consts::FN_GET_HTTP_DATA_STRUCTURE);
+            result.push_str("().into_http_data_type_array()");
+            return;
         }
     }
+}
+
+fn write_optional_value(result: &mut String, value: Option<&str>) {
+    if let Some(value) = value {
+        result.push_str("Some(\"");
+        result.push_str(value);
+        result.push_str("\".to_string()");
+    } else {
+        result.push_str("None");
+    };
+}
+
+fn write_bool_value(result: &mut String, value: bool) {
+    if value {
+        result.push_str("true");
+    } else {
+        result.push_str("false");
+    };
 }

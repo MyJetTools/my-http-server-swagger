@@ -7,62 +7,65 @@ pub fn generate_http_input(result: &mut String, fields: &InputFields) {
 
     result.push_str("vec![");
     for input_field in &fields.fields {
-        let itm = generate_http_input_parameter(input_field);
-        result.push_str(itm.as_str());
+        generate_http_input_parameter(result, input_field);
     }
 
     result.push(']');
 }
 
-fn generate_http_input_parameter(input_field: &InputField) -> String {
-    let http_field = if input_field.src_is_body() {
+fn generate_http_input_parameter(result: &mut String, input_field: &InputField) {
+    result.push_str(HTTP_INPUT_PARAMETER_TYPE);
+
+    result.push_str("{ field: ");
+
+    if input_field.src_is_body() {
         if let Some(body_type) = input_field.my_attr.get_as_string("body_type") {
             crate::types::compile_http_field_with_object(
+                result,
                 input_field.name(),
                 body_type,
                 input_field.required(),
                 input_field.get_default_value(),
-            )
+            );
         } else {
             crate::types::compile_http_field(
+                result,
                 input_field.name(),
                 &input_field.property.ty,
                 input_field.required(),
                 input_field.get_default_value(),
                 Some(&input_field.src),
-            )
+            );
         }
     } else {
         crate::types::compile_http_field(
+            result,
             input_field.name(),
             &input_field.property.ty,
             input_field.required(),
             input_field.get_default_value(),
             Some(&input_field.src),
-        )
+        );
     };
 
-    format!(
-        r###"{HTTP_INPUT_PARAMETER_TYPE}{{
-                    field: {http_field},
-                    description: "{description}".to_string(),
-                    source: {source},
-                }},"###,
-        http_field = http_field,
-        description = input_field.description(),
-        source = get_input_src(input_field)
-    )
+    result.push_str(", description: ");
+    result.push_str(input_field.description());
+
+    result.push_str(", source: ");
+    get_input_src(result, input_field);
 }
 
-fn get_input_src(field: &InputField) -> String {
+fn get_input_src(result: &mut String, field: &InputField) {
+    result.push_str(HTTP_PARAMETER_INPUT_SRC);
+
     let field = match field.src {
-        InputFieldSource::Query => "Query",
-        InputFieldSource::Path => "Path",
-        InputFieldSource::Header => "Header",
-        InputFieldSource::Body => "Body",
-        InputFieldSource::FormData => "FormData",
-        InputFieldSource::BodyFile => "Body",
+        InputFieldSource::Query => "::Query",
+        InputFieldSource::Path => "::Path",
+        InputFieldSource::Header => "::Header",
+        InputFieldSource::Body => "::Body",
+        InputFieldSource::FormData => "::FormData",
+        InputFieldSource::BodyFile => "::Body",
     };
 
-    return format!("{HTTP_PARAMETER_INPUT_SRC}::{field}",);
+    result.push_str(field);
 }

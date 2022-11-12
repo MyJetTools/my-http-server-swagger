@@ -16,10 +16,15 @@ pub fn generate(name: &str, fields: Vec<StructProperty>) -> String {
     result.push_str("fields: vec![");
 
     for field in json.fields {
-        result.push_str(
-            crate::types::compile_http_field(field.name(), &field.property.ty, true, None, None)
-                .as_str(),
+        crate::types::compile_http_field(
+            &mut result,
+            field.name(),
+            &field.property.ty,
+            true,
+            None,
+            None,
         );
+
         result.push(',');
     }
     result.push_str("],}");
