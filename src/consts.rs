@@ -36,3 +36,6 @@ pub const HTTP_ARRAY_ELEMENT: &str = "ArrayElement";
 pub const HTTP_DATA_TYPE: &str = "HttpDataType";
 
 pub const HTTP_ACTION_DESCRIPTION: &str = "HttpActionDescription";
+
+pub const HTTP_ACTION_DESCRIPTION_WITH_NS: &str =
+    "my_http_server_controllers::crate::controllers::documentation::HttpActionDescription";
