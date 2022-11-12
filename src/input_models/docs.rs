@@ -18,7 +18,7 @@ fn generate_http_input_parameter(result: &mut String, input_field: &InputField) 
 
     result.push_str("{ field: ");
 
-    if input_field.src_is_body() {
+    if input_field.src_is_body() || input_field.src_is_from_data() {
         if let Some(body_type) = input_field.my_attr.get_as_string("body_type") {
             crate::types::compile_http_field_with_object(
                 result,

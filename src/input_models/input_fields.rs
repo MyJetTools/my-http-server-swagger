@@ -111,6 +111,14 @@ impl InputField {
         return false;
     }
 
+    pub fn src_is_from_data(&self) -> bool {
+        if let InputFieldSource::FormData = self.src {
+            return true;
+        }
+
+        return false;
+    }
+
     pub fn is_body_file(&self) -> bool {
         if let InputFieldSource::BodyFile = self.src {
             return true;
