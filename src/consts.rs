@@ -10,9 +10,9 @@ pub const HTTP_INPUT_PARAMETER_TYPE: &str = "in_parameters::HttpInputParameter";
 pub const HTTP_INPUT_PARAMETER_TYPE_WITH_NS: &str =
     "my_http_server_controllers::controllers::documentation::in_parameters::HttpInputParameter";
 
-pub const HTTP_FIELD_TYPE: &str = "HttpField";
+pub const HTTP_FIELD_TYPE: &str = "data_types::HttpField";
 
-pub const HTTP_PARAMETER_INPUT_SRC: &str = "HttpParameterInputSource";
+pub const HTTP_PARAMETER_INPUT_SRC: &str = "in_parameters::HttpParameterInputSource";
 
 pub const HTTP_OBJECT_STRUCTURE: &str = "data_types::HttpObjectStructure";
 
@@ -26,11 +26,11 @@ pub const HTTP_FAIL_RESULT: &str = "my_http_server::HttpFailResult";
 
 pub const HTTP_OK_RESULT: &str = "my_http_server::HttpOkResult";
 
-pub const HTTP_SIMPLE_TYPE: &str = "HttpSimpleType";
+pub const HTTP_SIMPLE_TYPE: &str = "data_types::HttpSimpleType";
 
 pub const HTTP_ARRAY_ELEMENT: &str = "ArrayElement";
 
-pub const HTTP_DATA_TYPE: &str = "HttpDataType";
+pub const HTTP_DATA_TYPE: &str = "data_types::HttpDataType";
 
 pub const HTTP_ACTION_DESCRIPTION: &str = "HttpActionDescription";
 
