@@ -7,7 +7,7 @@ pub enum InputFieldSource {
     Path,
     Header,
     Body,
-    Form,
+    FormData,
     BodyFile,
 }
 
@@ -17,7 +17,7 @@ impl InputFieldSource {
             "http_query" => Some(Self::Query),
             "http_header" => Some(Self::Header),
             "http_path" => Some(Self::Path),
-            "http_form" => Some(Self::Form),
+            "http_form" => Some(Self::FormData),
             "http_body" => Some(Self::Body),
             "http_body_file" => Some(Self::BodyFile),
             _ => None,
@@ -98,7 +98,7 @@ impl InputField {
             InputFieldSource::Path => false,
             InputFieldSource::Header => false,
             InputFieldSource::Body => true,
-            InputFieldSource::Form => true,
+            InputFieldSource::FormData => true,
             InputFieldSource::BodyFile => true,
         }
     }
@@ -167,7 +167,7 @@ impl InputFields {
                 InputFieldSource::Path => {}
                 InputFieldSource::Header => {}
                 InputFieldSource::Body => has_body += 1,
-                InputFieldSource::Form => has_form += 1,
+                InputFieldSource::FormData => has_form += 1,
                 InputFieldSource::BodyFile => has_body_file += 1,
             }
         }

@@ -46,7 +46,7 @@ pub fn generate(result: &mut String, name: &str, input_fields: &InputFields) {
                     result.push_str(",");
                 }
             }
-            InputFieldSource::Form => { /*  Skipping on first go*/ }
+            InputFieldSource::FormData => { /*  Skipping on first go*/ }
             InputFieldSource::BodyFile => {
                 result.push_str(input_field.struct_field_name());
                 result.push_str(": __body.get_body(),");

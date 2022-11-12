@@ -17,7 +17,7 @@ mod types;
         http_query,
         http_header,
         http_path,
-        http_form_multi_part,
+        http_form_data,
         http_body,
         http_body_type,
         http_body_file,

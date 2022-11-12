@@ -28,7 +28,7 @@ pub fn compile_http_field(
     };
 
     format!(
-        "{NAME_SPACE}::{HTTP_FIELD_TYPE}::new(\"{name}\", {data_type}, {required}, {default})",
+        "{HTTP_FIELD_TYPE}::new(\"{name}\", {data_type}, {required}, {default})",
         name = name,
         data_type = data_type,
         required = required,
@@ -49,7 +49,7 @@ pub fn compile_http_field_with_object(
     };
 
     format!(
-        "{NAME_SPACE}::{HTTP_FIELD_TYPE}::new(\"{name}\", {data_type}, {required}, {default})",
+        "{HTTP_FIELD_TYPE}::new(\"{name}\", {data_type}, {required}, {default})",
         data_type = format!(
             "{body_type}::{fn_name}().into_http_data_type_object()",
             fn_name = crate::consts::FN_GET_HTTP_DATA_STRUCTURE

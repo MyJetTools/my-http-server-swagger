@@ -1,8 +1,13 @@
-use crate::consts::{HTTP_INPUT_PARAMETER_TYPE, HTTP_PARAMETER_INPUT_SRC, NAME_SPACE};
+use crate::consts::{
+    HTTP_INPUT_PARAMETER_TYPE, HTTP_PARAMETER_INPUT_SRC, NAME_SPACE, USE_DATA_TYPES, USE_IN_PARAMS,
+};
 
 use super::input_fields::{InputField, InputFieldSource, InputFields};
 
 pub fn generate_http_input(result: &mut String, fields: &InputFields) {
+    result.push_str(USE_DATA_TYPES);
+    result.push_str(USE_IN_PARAMS);
+
     result.push_str("vec![");
     for input_field in &fields.fields {
         let itm = generate_http_input_parameter(input_field);
@@ -58,7 +63,7 @@ fn get_input_src(field: &InputField) -> String {
         InputFieldSource::Path => "Path",
         InputFieldSource::Header => "Header",
         InputFieldSource::Body => "Body",
-        InputFieldSource::Form => "FormData",
+        InputFieldSource::FormData => "FormData",
         InputFieldSource::BodyFile => "Body",
     };
 

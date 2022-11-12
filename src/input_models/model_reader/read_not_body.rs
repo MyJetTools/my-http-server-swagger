@@ -90,7 +90,7 @@ fn generate_reading_required(result: &mut String, input_field: &InputField) {
         InputFieldSource::Body => {
             panic!("Bug. Should not read Body at generate_reading_required");
         }
-        InputFieldSource::Form => {
+        InputFieldSource::FormData => {
             panic!("Bug. Should not read Form at generate_reading_required");
         }
         InputFieldSource::BodyFile => {
