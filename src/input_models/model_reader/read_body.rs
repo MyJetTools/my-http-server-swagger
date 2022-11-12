@@ -88,7 +88,10 @@ fn generate_reading_required(result: &mut String, input_field: &InputField, src_
             result.push_str("\")?.try_into()?;");
         }
         InputFieldSource::FormData => {
-            panic!("Bug. Should not read Form at read body model");
+            result.push_str(src_reader);
+            result.push_str(".get_required(\"");
+            result.push_str(input_field.name());
+            result.push_str("\")?.try_into()?;");
         }
         InputFieldSource::BodyFile => {
             panic!("Bug. Should not read BodyFile at read body model");
