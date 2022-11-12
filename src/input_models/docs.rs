@@ -48,11 +48,12 @@ fn generate_http_input_parameter(result: &mut String, input_field: &InputField) 
         );
     };
 
-    result.push_str(", description: ");
+    result.push_str(", description: \"");
     result.push_str(input_field.description());
 
-    result.push_str(", source: ");
+    result.push_str("\".to_string(), source: ");
     get_input_src(result, input_field);
+    result.push_str("},");
 }
 
 fn get_input_src(result: &mut String, field: &InputField) {
