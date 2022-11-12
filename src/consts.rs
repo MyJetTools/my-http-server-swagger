@@ -6,7 +6,8 @@ pub const USE_DATA_TYPES: &str =
 pub const USE_IN_PARAMS: &str =
     "use my_http_server_controllers::controllers::documentation::in_parameters::*;";
 
-pub const USE_DOCUMENTATION: &str = "use my_http_server_controllers::controllers::documentation::*";
+pub const USE_DOCUMENTATION: &str =
+    "use my_http_server_controllers::controllers::documentation::*;";
 
 pub const NAME_SPACE: &str = "my_http_server_controllers::controllers::documentation";
 
