@@ -32,7 +32,9 @@ pub fn generate_read_body<TInputFiler: Fn(&InputField) -> bool>(
         result.push_str(" = ");
 
         match &input_field.property.ty {
-            PropertyType::FileContent => {}
+            PropertyType::FileContent => {
+                result.push_str("FileContent{file_name: \"\".to_string(), content: vec::new()}");
+            }
             PropertyType::OptionOf(_) => {
                 result.push_str("if let Some(value) = ");
                 result.push_str(src_reader);
