@@ -76,8 +76,6 @@ impl AttributeModel {
 
             let key = std::str::from_utf8(&bytes[..separator_pos]).unwrap().trim();
 
-            //println!("Key: [{}]", key);
-
             bytes = &bytes[separator_pos..];
 
             let start_value_pos = find_one_of_these(bytes, &['[' as u8, '"' as u8]);
@@ -107,8 +105,6 @@ impl AttributeModel {
             let end_value_pos = end_value_pos.unwrap();
 
             let value = std::str::from_utf8(&bytes[..end_value_pos]).unwrap();
-
-            //println!("Value: [{}]", value);
 
             match key {
                 "method" => {
