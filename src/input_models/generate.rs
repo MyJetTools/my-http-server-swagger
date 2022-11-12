@@ -18,9 +18,7 @@ pub fn generate(ast: &syn::DeriveInput) -> TokenStream {
     result.push_str("{");
 
     result.push_str("pub fn get_input_params()->Vec<");
-    result.push_str(NAME_SPACE);
-    result.push_str("::");
-    result.push_str(HTTP_INPUT_PARAMETER_TYPE);
+    result.push_str(HTTP_INPUT_PARAMETER_TYPE_WITH_NS);
     result.push_str(">{");
 
     super::docs::generate_http_input(&mut result, &fields);

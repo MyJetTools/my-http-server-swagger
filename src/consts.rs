@@ -10,6 +10,9 @@ pub const NAME_SPACE: &str = "my_http_server_controllers::controllers::documenta
 
 pub const HTTP_INPUT_PARAMETER_TYPE: &str = "HttpInputParameter";
 
+pub const HTTP_INPUT_PARAMETER_TYPE_WITH_NS: &str =
+    "my_http_server_controllers::controllers::documentation::in_parameters::HttpInputParameter";
+
 pub const HTTP_FIELD_TYPE: &str = "HttpField";
 
 pub const HTTP_PARAMETER_INPUT_SRC: &str = "HttpParameterInputSource";

@@ -46,7 +46,7 @@ fn generate_http_input_parameter(input_field: &InputField) -> String {
     };
 
     format!(
-        r###"{NAME_SPACE}::{HTTP_INPUT_PARAMETER_TYPE}{{
+        r###"{HTTP_INPUT_PARAMETER_TYPE}{{
                     field: {http_field},
                     description: "{description}".to_string(),
                     source: {source},
