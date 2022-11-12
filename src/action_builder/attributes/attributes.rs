@@ -136,22 +136,18 @@ impl AttributeModel {
 
                 "authorized" => match value {
                     "[]" => {
-                        should_be_authorized =
-                            Some("my_http_server_controllers::controllers::documentation::ShouldBeAuthorized::Yes".to_string());
+                        should_be_authorized = Some("ShouldBeAuthorized::Yes".to_string());
                     }
 
                     "global" => {
-                        should_be_authorized = Some(
-                            "my_http_server_controllers::controllers::documentation::ShouldBeAuthorized::UseGlobal".to_string(),
-                        );
+                        should_be_authorized = Some("ShouldBeAuthorized::UseGlobal".to_string());
                     }
                     "no" => {
-                        should_be_authorized =
-                            Some("my_http_server_controllers::controllers::documentation::ShouldBeAuthorized::No".to_string());
+                        should_be_authorized = Some("ShouldBeAuthorized::No".to_string());
                     }
                     _ => {
                         should_be_authorized =
-                        Some(format!("my_http_server_controllers::controllers::documentation::ShouldBeAuthorized::YesWithClaims(my_http_server_controllers::controllers::RequiredClaims::from_slice_of_str(&[{}]))", value));
+                        Some(format!("ShouldBeAuthorized::YesWithClaims(my_http_server_controllers::controllers::RequiredClaims::from_slice_of_str(&[{}]))", value));
                     }
                 },
 
@@ -179,8 +175,7 @@ impl AttributeModel {
         }
 
         if should_be_authorized.is_none() {
-            should_be_authorized =
-                Some("my_http_server_controllers::controllers::documentation::ShouldBeAuthorized::UseGlobal".to_string());
+            should_be_authorized = Some("ShouldBeAuthorized::UseGlobal".to_string());
         }
 
         Self {
