@@ -2,6 +2,13 @@ use macros_utils::attributes::AttributeFields;
 
 use crate::reflection::StructProperty;
 
+pub enum BodyDataToReader {
+    FormData,
+    BodyFile,
+    RawBodyToVec,
+    BodyModel,
+}
+
 pub enum InputFieldSource {
     Query,
     Path,
@@ -27,13 +34,6 @@ impl InputFieldSource {
     pub fn is_body_file(&self) -> bool {
         match self {
             InputFieldSource::BodyFile => true,
-            _ => false,
-        }
-    }
-
-    pub fn is_body(&self) -> bool {
-        match self {
-            InputFieldSource::Body => true,
             _ => false,
         }
     }
@@ -111,16 +111,8 @@ impl InputField {
         return false;
     }
 
-    pub fn src_is_from_data(&self) -> bool {
+    pub fn src_is_form_data(&self) -> bool {
         if let InputFieldSource::FormData = self.src {
-            return true;
-        }
-
-        return false;
-    }
-
-    pub fn is_body_file(&self) -> bool {
-        if let InputFieldSource::BodyFile = self.src {
             return true;
         }
 
@@ -193,48 +185,41 @@ impl InputFields {
         }
     }
 
-    pub fn has_query(&self) -> bool {
+    pub fn has_no_body_data_to_read(&self) -> bool {
         for field in &self.fields {
-            if let InputFieldSource::Query = &field.src {
-                return true;
+            match &field.src {
+                InputFieldSource::Query => return true,
+                InputFieldSource::Path => return true,
+                InputFieldSource::Header => return true,
+                InputFieldSource::Body => {}
+                InputFieldSource::FormData => {}
+                InputFieldSource::BodyFile => {}
             }
         }
         return false;
     }
 
-    pub fn has_body_reading_data(&self) -> bool {
+    pub fn has_body_data_to_read(&self) -> Option<BodyDataToReader> {
         for field in &self.fields {
-            if field.is_reading_from_body() {
-                return true;
-            }
-        }
-        return false;
-    }
+            match &field.src {
+                InputFieldSource::Query => {}
+                InputFieldSource::Path => {}
+                InputFieldSource::Header => {}
+                InputFieldSource::Body => {
+                    if field.property.ty.is_vec_of_u8() {
+                        return Some(BodyDataToReader::RawBodyToVec);
+                    }
 
-    pub fn has_body_data_to_read(&self) -> bool {
-        for field in &self.fields {
-            if field.is_reading_from_body() && !field.property.ty.is_vec() {
-                return true;
+                    return Some(BodyDataToReader::BodyModel);
+                }
+                InputFieldSource::FormData => {
+                    return Some(BodyDataToReader::FormData);
+                }
+                InputFieldSource::BodyFile => {
+                    return Some(BodyDataToReader::BodyFile);
+                }
             }
         }
-        return false;
-    }
-
-    pub fn has_body_file(&self) -> bool {
-        for field in &self.fields {
-            if field.is_body_file() {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    pub fn has_body_to_vec(&self) -> bool {
-        for field in &self.fields {
-            if field.is_body_to_vec() {
-                return true;
-            }
-        }
-        return false;
+        return None;
     }
 }

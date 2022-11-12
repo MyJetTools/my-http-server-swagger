@@ -3,22 +3,27 @@ use crate::{
     reflection::PropertyType,
 };
 
-const DATA_SRC: &str = "__body_reader";
-pub fn generate_read_body(result: &mut String, input_fields: &InputFields) {
+//const DATA_SRC: &str = "__body_reader";
+pub fn generate_read_body<TInputFiler: Fn(&InputField) -> bool>(
+    result: &mut String,
+    input_fields: &InputFields,
+    src_reader: &str,
+    filter: TInputFiler,
+) {
     let mut validation: Option<String> = None;
 
     result.push_str("let ");
-    generate_init_fields(result, input_fields);
+    generate_init_fields(result, input_fields, &filter);
 
     result.push_str("={\n");
 
     result.push_str("let ");
-    result.push_str(DATA_SRC);
+    result.push_str(src_reader);
 
     result.push_str(" = __body.get_body_data_reader()?;\n");
 
     for input_field in &input_fields.fields {
-        if !input_field.src.is_body() {
+        if !filter(input_field) {
             continue;
         }
 
@@ -30,7 +35,7 @@ pub fn generate_read_body(result: &mut String, input_fields: &InputFields) {
             PropertyType::FileContent => {}
             PropertyType::OptionOf(_) => {
                 result.push_str("if let Some(value) = ");
-                result.push_str(DATA_SRC);
+                result.push_str(src_reader);
                 result.push_str(".get_optional(\"");
                 result.push_str(input_field.name());
                 result.push_str("\"){");
@@ -39,7 +44,7 @@ pub fn generate_read_body(result: &mut String, input_fields: &InputFields) {
             PropertyType::VecOf(_) => {}
             PropertyType::Struct(_) => {}
             _ => {
-                generate_reading_required(result, input_field);
+                generate_reading_required(result, input_field, src_reader);
             }
         }
 
@@ -61,11 +66,11 @@ pub fn generate_read_body(result: &mut String, input_fields: &InputFields) {
         result.push_str(validation.as_str());
     }
 
-    generate_init_fields(result, input_fields);
+    generate_init_fields(result, input_fields, &filter);
     result.push_str("};\n");
 }
 
-fn generate_reading_required(result: &mut String, input_field: &InputField) {
+fn generate_reading_required(result: &mut String, input_field: &InputField, src_reader: &str) {
     match input_field.src {
         InputFieldSource::Query => {
             panic!("Bug. Query is not supported for read body model");
@@ -77,7 +82,7 @@ fn generate_reading_required(result: &mut String, input_field: &InputField) {
             panic!("Bug. Path is not supported for read body model");
         }
         InputFieldSource::Body => {
-            result.push_str(DATA_SRC);
+            result.push_str(src_reader);
             result.push_str(".get_required(\"");
             result.push_str(input_field.name());
             result.push_str("\")?.try_into()?;");
@@ -91,12 +96,12 @@ fn generate_reading_required(result: &mut String, input_field: &InputField) {
     }
 }
 
-fn generate_init_fields(result: &mut String, input_fields: &InputFields) {
-    let amount = input_fields
-        .fields
-        .iter()
-        .filter(|f| f.src.is_body())
-        .count();
+fn generate_init_fields<TInputFiler: Fn(&InputField) -> bool>(
+    result: &mut String,
+    input_fields: &InputFields,
+    filter: &TInputFiler,
+) {
+    let amount = input_fields.fields.iter().filter(|f| filter(f)).count();
 
     if amount > 1 {
         result.push('(');
@@ -104,7 +109,7 @@ fn generate_init_fields(result: &mut String, input_fields: &InputFields) {
 
     let mut no = 0;
     for input_field in &input_fields.fields {
-        if input_field.src.is_body() {
+        if filter(input_field) {
             if no > 0 {
                 result.push(',');
             }

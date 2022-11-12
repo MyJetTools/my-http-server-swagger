@@ -1,22 +1,33 @@
-use crate::input_models::input_fields::{InputFieldSource, InputFields};
+use crate::input_models::input_fields::{BodyDataToReader, InputFieldSource, InputFields};
 
 pub fn generate(result: &mut String, name: &str, input_fields: &InputFields) {
     input_fields.check_types_of_field();
 
-    if input_fields.has_query() {
+    if input_fields.has_no_body_data_to_read() {
         super::generate_read_not_body(result, input_fields);
     }
 
-    if input_fields.has_body_reading_data() {
-        if input_fields.has_body_file() || input_fields.has_body_to_vec() {
-            result.push_str("let __body = ctx.request.receive_body().await?;");
-        } else {
-            result.push_str("let __body = ctx.request.get_body().await?;");
+    if let Some(body_data_reader_type) = input_fields.has_body_data_to_read() {
+        match body_data_reader_type {
+            BodyDataToReader::FormData => {
+                result.push_str("let __body = ctx.request.get_body().await?;");
+                super::generate_read_body(result, input_fields, "__from_data_reader", |f| {
+                    f.src_is_form_data()
+                });
+            }
+            BodyDataToReader::BodyFile => {
+                result.push_str("let __body = ctx.request.receive_body().await?;");
+            }
+            BodyDataToReader::RawBodyToVec => {
+                result.push_str("let __body = ctx.request.receive_body().await?;");
+            }
+            BodyDataToReader::BodyModel => {
+                result.push_str("let __body = ctx.request.get_body().await?;");
+                super::generate_read_body(result, input_fields, "__body_mode_reader", |f| {
+                    f.src_is_body()
+                });
+            }
         }
-    }
-
-    if input_fields.has_body_data_to_read() {
-        super::generate_read_body(result, input_fields);
     }
 
     result.push_str("Ok(");
@@ -46,7 +57,10 @@ pub fn generate(result: &mut String, name: &str, input_fields: &InputFields) {
                     result.push_str(",");
                 }
             }
-            InputFieldSource::FormData => { /*  Skipping on first go*/ }
+            InputFieldSource::FormData => {
+                result.push_str(input_field.struct_field_name());
+                result.push(',');
+            }
             InputFieldSource::BodyFile => {
                 result.push_str(input_field.struct_field_name());
                 result.push_str(": __body.get_body(),");

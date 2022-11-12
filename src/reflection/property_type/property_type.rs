@@ -161,4 +161,15 @@ impl PropertyType {
 
         false
     }
+
+    pub fn is_vec_of_u8(&self) -> bool {
+        if let PropertyType::VecOf(sub_type) = self {
+            match sub_type.as_ref() {
+                PropertyType::U8 => return true,
+                _ => {}
+            }
+        }
+
+        false
+    }
 }
