@@ -1,11 +1,5 @@
 pub const FN_GET_HTTP_DATA_STRUCTURE: &str = "get_http_data_structure";
 
-pub const USE_DATA_TYPES: &str =
-    "use my_http_server_controllers::controllers::documentation::data_types::*;";
-
-pub const USE_IN_PARAMS: &str =
-    "use my_http_server_controllers::controllers::documentation::in_parameters::*;";
-
 pub const USE_DOCUMENTATION: &str =
     "use my_http_server_controllers::controllers::documentation::*;";
 

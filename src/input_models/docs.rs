@@ -1,12 +1,9 @@
-use crate::consts::{
-    HTTP_INPUT_PARAMETER_TYPE, HTTP_PARAMETER_INPUT_SRC, USE_DATA_TYPES, USE_IN_PARAMS,
-};
+use crate::consts::{HTTP_INPUT_PARAMETER_TYPE, HTTP_PARAMETER_INPUT_SRC, USE_DOCUMENTATION};
 
 use super::input_fields::{InputField, InputFieldSource, InputFields};
 
 pub fn generate_http_input(result: &mut String, fields: &InputFields) {
-    result.push_str(USE_DATA_TYPES);
-    result.push_str(USE_IN_PARAMS);
+    result.push_str(USE_DOCUMENTATION);
 
     result.push_str("vec![");
     for input_field in &fields.fields {

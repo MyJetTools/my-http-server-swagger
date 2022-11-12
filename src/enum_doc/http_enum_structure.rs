@@ -1,10 +1,12 @@
 use super::enum_json::EnumJson;
-use crate::consts::{ENUM_TYPE, HTTP_ENUM_CASE, HTTP_ENUM_STRUCTURE, NAME_SPACE, USE_DATA_TYPES};
+use crate::consts::{
+    ENUM_TYPE, HTTP_ENUM_CASE, HTTP_ENUM_STRUCTURE, NAME_SPACE, USE_DOCUMENTATION,
+};
 
 pub fn generate(name: &str, is_string: bool, enum_cases: &[EnumJson]) -> String {
     let mut result = String::new();
 
-    result.push_str(USE_DATA_TYPES);
+    result.push_str(USE_DOCUMENTATION);
 
     result.push_str(format!("{NAME_SPACE}::{HTTP_ENUM_STRUCTURE} {{").as_str());
     result.push_str(format!("struct_id: \"{}\".to_string(),", name).as_str());
