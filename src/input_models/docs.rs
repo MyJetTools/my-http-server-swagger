@@ -1,5 +1,5 @@
 use crate::consts::{
-    HTTP_INPUT_PARAMETER_TYPE, HTTP_PARAMETER_INPUT_SRC, NAME_SPACE, USE_DATA_TYPES, USE_IN_PARAMS,
+    HTTP_INPUT_PARAMETER_TYPE, HTTP_PARAMETER_INPUT_SRC, USE_DATA_TYPES, USE_IN_PARAMS,
 };
 
 use super::input_fields::{InputField, InputFieldSource, InputFields};
@@ -67,5 +67,5 @@ fn get_input_src(field: &InputField) -> String {
         InputFieldSource::BodyFile => "Body",
     };
 
-    return format!("{NAME_SPACE}::{HTTP_PARAMETER_INPUT_SRC}::{field}",);
+    return format!("{HTTP_PARAMETER_INPUT_SRC}::{field}",);
 }
