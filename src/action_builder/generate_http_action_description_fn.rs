@@ -10,7 +10,7 @@ pub fn generate_http_action_description_fn(result: &mut String, attrs: &Attribut
 
     let api_data = attrs.api_data.as_ref().unwrap();
 
-    result.push_str(HTTP_ACTION_DESCRIPTION);
+    result.push_str(HTTP_ACTION_DESCRIPTION_WITH_NS);
     result.push_str("{");
 
     result.push_str("controller_name: \"");
