@@ -54,5 +54,7 @@ pub fn build_action(attr: TokenStream, input: TokenStream) -> TokenStream {
 
     result.push_str("}");
 
+    println!("{}", result);
+
     result.parse().unwrap()
 }
