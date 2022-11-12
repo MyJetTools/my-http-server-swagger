@@ -5,7 +5,7 @@ pub const USE_DOCUMENTATION: &str =
 
 pub const NAME_SPACE: &str = "my_http_server_controllers::controllers::documentation";
 
-pub const HTTP_INPUT_PARAMETER_TYPE: &str = "HttpInputParameter";
+pub const HTTP_INPUT_PARAMETER_TYPE: &str = "in_parameters::HttpInputParameter";
 
 pub const HTTP_INPUT_PARAMETER_TYPE_WITH_NS: &str =
     "my_http_server_controllers::controllers::documentation::in_parameters::HttpInputParameter";
