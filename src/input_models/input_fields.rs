@@ -17,7 +17,7 @@ impl InputFieldSource {
             "http_query" => Some(Self::Query),
             "http_header" => Some(Self::Header),
             "http_path" => Some(Self::Path),
-            "http_form" => Some(Self::FormData),
+            "http_form_data" => Some(Self::FormData),
             "http_body" => Some(Self::Body),
             "http_body_file" => Some(Self::BodyFile),
             _ => None,
