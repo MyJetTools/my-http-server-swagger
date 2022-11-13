@@ -14,7 +14,7 @@ pub fn generate(result: &mut String, name: &str, input_fields: &InputFields) {
                 super::generate_read_body(
                     result,
                     input_fields,
-                    " = __body.get_body_form_data()?;",
+                    " = __body.get_body_data_reader()?;",
                     |f| f.src_is_form_data(),
                 );
             }
