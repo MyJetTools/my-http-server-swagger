@@ -48,6 +48,6 @@ fn generate_get_input_params(result: &mut String, input_data: &Option<String>) {
         result.push_str(input_data);
         result.push_str("::get_input_params().into()");
     } else {
-        result.push_str("None");
+        result.push_str("in_parameters::HttpParameters::new(None)");
     }
 }
