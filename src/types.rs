@@ -24,10 +24,10 @@ pub fn compile_http_field(
             result.push_str(HTTP_SIMPLE_TYPE);
             result.push_str("::Binary)");
         } else {
-            compile_data_type(result, pt, TypeIsWrappedTo::None);
+            compile_data_type(result, name, pt, TypeIsWrappedTo::None);
         }
     } else {
-        compile_data_type(result, pt, TypeIsWrappedTo::None);
+        compile_data_type(result, name, pt, TypeIsWrappedTo::None);
     }
 
     result.push_str(", ");
@@ -75,18 +75,35 @@ enum TypeIsWrappedTo {
     Vec,
 }
 
-fn compile_data_type(result: &mut String, pt: &PropertyType, type_is_wrapped_to: TypeIsWrappedTo) {
+fn compile_data_type(
+    result: &mut String,
+    prop_name: &str,
+    pt: &PropertyType,
+    type_is_wrapped_to: TypeIsWrappedTo,
+) {
     if let PropertyType::OptionOf(generic_type) = pt {
-        compile_data_type(result, generic_type.as_ref(), TypeIsWrappedTo::Option);
+        compile_data_type(
+            result,
+            prop_name,
+            generic_type.as_ref(),
+            TypeIsWrappedTo::Option,
+        );
         return;
     }
 
     if let PropertyType::VecOf(generic_type) = pt {
-        compile_data_type(result, generic_type.as_ref(), TypeIsWrappedTo::Vec);
+        compile_data_type(
+            result,
+            prop_name,
+            generic_type.as_ref(),
+            TypeIsWrappedTo::Vec,
+        );
         return;
     }
 
-    if let Some(simple_type) = pt.get_swagger_simple_type() {
+    if let Some(simple_type) =
+        pt.get_swagger_simple_type(prop_name.to_lowercase().contains("password"))
+    {
         match type_is_wrapped_to {
             TypeIsWrappedTo::None => {
                 result.push_str(HTTP_DATA_TYPE);

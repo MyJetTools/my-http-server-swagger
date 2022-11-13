@@ -121,12 +121,24 @@ impl PropertyType {
         }
     }
 
-    pub fn get_swagger_simple_type(&self) -> Option<String> {
+    pub fn get_swagger_simple_type(&self, is_password: bool) -> Option<String> {
         use crate::consts::HTTP_SIMPLE_TYPE;
 
         match self {
-            PropertyType::String => format!("{HTTP_SIMPLE_TYPE}::String").into(),
-            PropertyType::Str => format!("{HTTP_SIMPLE_TYPE}::String").into(),
+            PropertyType::String => {
+                if is_password {
+                    format!("{HTTP_SIMPLE_TYPE}::Password").into()
+                } else {
+                    format!("{HTTP_SIMPLE_TYPE}::String").into()
+                }
+            }
+            PropertyType::Str => {
+                if is_password {
+                    format!("{HTTP_SIMPLE_TYPE}::Password").into()
+                } else {
+                    format!("{HTTP_SIMPLE_TYPE}::String").into()
+                }
+            }
             PropertyType::U8 => format!("{HTTP_SIMPLE_TYPE}::Integer").into(),
             PropertyType::I8 => format!("{HTTP_SIMPLE_TYPE}::Integer").into(),
             PropertyType::U16 => format!("{HTTP_SIMPLE_TYPE}::Integer").into(),
