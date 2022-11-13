@@ -3,11 +3,11 @@ use crate::{
     reflection::PropertyType,
 };
 
-//const DATA_SRC: &str = "__body_reader";
+const DATA_SRC: &str = "__reader";
 pub fn generate_read_body<TInputFiler: Fn(&InputField) -> bool>(
     result: &mut String,
     input_fields: &InputFields,
-    src_reader: &str,
+    read_from_body_expression: &str,
     filter: TInputFiler,
 ) {
     let mut validation: Option<String> = None;
@@ -18,9 +18,9 @@ pub fn generate_read_body<TInputFiler: Fn(&InputField) -> bool>(
     result.push_str("={\n");
 
     result.push_str("let ");
-    result.push_str(src_reader);
 
-    result.push_str(" = __body.get_body_data_reader()?;\n");
+    result.push_str(DATA_SRC);
+    result.push_str(read_from_body_expression);
 
     for input_field in &input_fields.fields {
         if !filter(input_field) {
@@ -37,7 +37,7 @@ pub fn generate_read_body<TInputFiler: Fn(&InputField) -> bool>(
             }
             PropertyType::OptionOf(_) => {
                 result.push_str("if let Some(value) = ");
-                result.push_str(src_reader);
+                result.push_str(DATA_SRC);
                 result.push_str(".get_optional(\"");
                 result.push_str(input_field.name());
                 result.push_str("\"){");
@@ -46,7 +46,7 @@ pub fn generate_read_body<TInputFiler: Fn(&InputField) -> bool>(
             PropertyType::VecOf(_) => {}
             PropertyType::Struct(_) => {}
             _ => {
-                generate_reading_required(result, input_field, src_reader);
+                generate_reading_required(result, input_field);
             }
         }
 
@@ -72,7 +72,7 @@ pub fn generate_read_body<TInputFiler: Fn(&InputField) -> bool>(
     result.push_str("};\n");
 }
 
-fn generate_reading_required(result: &mut String, input_field: &InputField, src_reader: &str) {
+fn generate_reading_required(result: &mut String, input_field: &InputField) {
     match input_field.src {
         InputFieldSource::Query => {
             panic!("Bug. Query is not supported for read body model");
@@ -84,13 +84,13 @@ fn generate_reading_required(result: &mut String, input_field: &InputField, src_
             panic!("Bug. Path is not supported for read body model");
         }
         InputFieldSource::Body => {
-            result.push_str(src_reader);
+            result.push_str(DATA_SRC);
             result.push_str(".get_required(\"");
             result.push_str(input_field.name());
             result.push_str("\")?.try_into()?;");
         }
         InputFieldSource::FormData => {
-            result.push_str(src_reader);
+            result.push_str(DATA_SRC);
             result.push_str(".get_required(\"");
             result.push_str(input_field.name());
             result.push_str("\")?.try_into()?;");
