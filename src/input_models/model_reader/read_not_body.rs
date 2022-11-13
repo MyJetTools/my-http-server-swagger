@@ -36,7 +36,7 @@ pub fn generate_read_not_body(result: &mut String, input_fields: &InputFields) {
                 result.push_str(input_field.name());
                 result.push_str("\"){");
                 result.push_str(
-                    "let value = my_http_server::ValueAsString::from(value);Some(value.try_into()?)}else{None};",
+                    "let value = my_http_server::InputParamValue::from(value);Some(value.try_into()?)}else{None};",
                 );
             }
             PropertyType::VecOf(_) => {}
@@ -71,7 +71,7 @@ pub fn generate_read_not_body(result: &mut String, input_fields: &InputFields) {
 fn generate_reading_required(result: &mut String, input_field: &InputField) {
     match input_field.src {
         InputFieldSource::Query => {
-            result.push_str("my_http_server::ValueAsString::from(");
+            result.push_str("my_http_server::InputParamValue::from(");
             result.push_str(DATA_SRC);
             result.push_str(".get_required(\"");
             result.push_str(input_field.name());
