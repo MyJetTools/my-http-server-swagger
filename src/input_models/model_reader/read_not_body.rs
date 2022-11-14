@@ -44,12 +44,12 @@ pub fn generate_read_not_body(result: &mut String, input_fields: &InputFields) {
                     result.push_str(DATA_SRC);
                     result.push_str(".get_vec_of_string(\"");
                     result.push_str(input_field.name());
-                    result.push_str("\");");
+                    result.push_str("\")?;");
                 } else {
                     result.push_str(DATA_SRC);
                     result.push_str(".get_vec(\"");
                     result.push_str(input_field.name());
-                    result.push_str("\");");
+                    result.push_str("\")?;");
                 }
             }
             PropertyType::Struct(_) => {}
