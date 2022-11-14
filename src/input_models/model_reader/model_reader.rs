@@ -3,7 +3,7 @@ use crate::input_models::input_fields::{BodyDataToReader, InputFieldSource, Inpu
 pub fn generate(result: &mut String, name: &str, input_fields: &InputFields) {
     input_fields.check_types_of_field();
 
-    if input_fields.has_no_body_data_to_read() {
+    if input_fields.has_data_to_read_from_query_or_path_or_header() {
         super::generate_read_not_body(result, input_fields);
     }
 
@@ -32,6 +32,12 @@ pub fn generate(result: &mut String, name: &str, input_fields: &InputFields) {
                     " = __body.get_body_data_reader()?;",
                     |f| f.src_is_body(),
                 );
+            }
+            BodyDataToReader::DeserializeBody => {
+                result.push_str("let __body = ctx.request.get_body().await?;");
+                result.push_str("let ");
+                result.push_str(name);
+                result.push_str(" = serde_json::from_slice(__body.as_slice())?;");
             }
         }
     }

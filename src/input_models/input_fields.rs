@@ -6,6 +6,7 @@ pub enum BodyDataToReader {
     FormData,
     BodyFile,
     RawBodyToVec,
+    DeserializeBody,
     BodyModel,
 }
 
@@ -185,7 +186,7 @@ impl InputFields {
         }
     }
 
-    pub fn has_no_body_data_to_read(&self) -> bool {
+    pub fn has_data_to_read_from_query_or_path_or_header(&self) -> bool {
         for field in &self.fields {
             match &field.src {
                 InputFieldSource::Query => return true,
@@ -200,6 +201,38 @@ impl InputFields {
     }
 
     pub fn has_body_data_to_read(&self) -> Option<BodyDataToReader> {
+        {
+            let mut body_attrs_amount = 0;
+            let mut last_body_type = None;
+
+            for field in &self.fields {
+                match &field.src {
+                    InputFieldSource::Query => {}
+                    InputFieldSource::Path => {}
+                    InputFieldSource::Header => {}
+                    InputFieldSource::Body => {
+                        body_attrs_amount += 1;
+                        last_body_type = Some(&field.property.ty);
+                    }
+                    InputFieldSource::FormData => {
+                        body_attrs_amount += 1;
+                    }
+                    InputFieldSource::BodyFile => {
+                        body_attrs_amount += 1;
+                    }
+                }
+            }
+            if let Some(last_body_type) = last_body_type {
+                if body_attrs_amount == 1 {
+                    if last_body_type.is_vec_of_u8() {
+                        return Some(BodyDataToReader::RawBodyToVec);
+                    } else {
+                        return Some(BodyDataToReader::DeserializeBody);
+                    }
+                }
+            }
+        }
+
         for field in &self.fields {
             match &field.src {
                 InputFieldSource::Query => {}
