@@ -35,11 +35,8 @@ pub fn generate(result: &mut String, name: &str, input_fields: &InputFields) {
                     |f| f.src_is_body(),
                 );
             }
-            BodyDataToReader::DeserializeBody(field_name) => {
+            BodyDataToReader::DeserializeBody => {
                 result.push_str("let __body = ctx.request.get_body().await?;");
-                result.push_str("let ");
-                result.push_str(field_name.as_str());
-                result.push_str(" = match serde_json::from_slice(__body.as_slice()){Ok(result) => result, Err(err)=>{return HttpFailResult::invalid_value_to_parse(format!(\"Can not parse json value. Err: {:?}\",err)).into_err()} };");
                 has_reading_body_as_single_field = true;
             }
         }
@@ -66,7 +63,7 @@ pub fn generate(result: &mut String, name: &str, input_fields: &InputFields) {
             InputFieldSource::Body => {
                 if has_reading_body_as_single_field {
                     result.push_str(input_field.struct_field_name());
-                    result.push(',');
+                    result.push_str(": __body.get_body_as_json()?,");
                 } else {
                     if input_field.is_body_to_vec() {
                         result.push_str(input_field.struct_field_name());

@@ -6,7 +6,7 @@ pub enum BodyDataToReader {
     FormData,
     BodyFile,
     RawBodyToVec,
-    DeserializeBody(String),
+    DeserializeBody,
     BodyModel,
 }
 
@@ -227,9 +227,7 @@ impl InputFields {
                     if last_input_field.property.ty.is_vec_of_u8() {
                         return Some(BodyDataToReader::RawBodyToVec);
                     } else {
-                        return Some(BodyDataToReader::DeserializeBody(
-                            last_input_field.struct_field_name().to_string(),
-                        ));
+                        return Some(BodyDataToReader::DeserializeBody);
                     }
                 }
             }
