@@ -39,7 +39,7 @@ pub fn generate(result: &mut String, name: &str, input_fields: &InputFields) {
                 result.push_str("let __body = ctx.request.get_body().await?;");
                 result.push_str("let ");
                 result.push_str(field_name.as_str());
-                result.push_str(" = serde_json::from_slice(__body.as_slice())?;");
+                result.push_str(" = match serde_json::from_slice(__body.as_slice()){Ok(result) => result, Err(err)=>{return HttpFailResult::invalid_value_to_parse(format!(\"Can not parse json value. Err: {:?}\",err)).into_err()} };");
                 has_reading_body_as_single_field = true;
             }
         }
