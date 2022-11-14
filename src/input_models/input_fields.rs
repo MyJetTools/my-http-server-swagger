@@ -6,7 +6,7 @@ pub enum BodyDataToReader {
     FormData,
     BodyFile,
     RawBodyToVec,
-    DeserializeBody,
+    DeserializeBody(String),
     BodyModel,
 }
 
@@ -212,7 +212,7 @@ impl InputFields {
                     InputFieldSource::Header => {}
                     InputFieldSource::Body => {
                         body_attrs_amount += 1;
-                        last_body_type = Some(&field.property.ty);
+                        last_body_type = Some(field);
                     }
                     InputFieldSource::FormData => {
                         body_attrs_amount += 1;
@@ -222,12 +222,14 @@ impl InputFields {
                     }
                 }
             }
-            if let Some(last_body_type) = last_body_type {
+            if let Some(last_input_field) = last_body_type {
                 if body_attrs_amount == 1 {
-                    if last_body_type.is_vec_of_u8() {
+                    if last_input_field.property.ty.is_vec_of_u8() {
                         return Some(BodyDataToReader::RawBodyToVec);
                     } else {
-                        return Some(BodyDataToReader::DeserializeBody);
+                        return Some(BodyDataToReader::DeserializeBody(
+                            last_input_field.struct_field_name().to_string(),
+                        ));
                     }
                 }
             }

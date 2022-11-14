@@ -7,6 +7,8 @@ pub fn generate(result: &mut String, name: &str, input_fields: &InputFields) {
         super::generate_read_not_body(result, input_fields);
     }
 
+    let mut has_reading_body_as_single_field = false;
+
     if let Some(body_data_reader_type) = input_fields.has_body_data_to_read() {
         match body_data_reader_type {
             BodyDataToReader::FormData => {
@@ -33,11 +35,12 @@ pub fn generate(result: &mut String, name: &str, input_fields: &InputFields) {
                     |f| f.src_is_body(),
                 );
             }
-            BodyDataToReader::DeserializeBody => {
+            BodyDataToReader::DeserializeBody(field_name) => {
                 result.push_str("let __body = ctx.request.get_body().await?;");
                 result.push_str("let ");
-                result.push_str(name);
+                result.push_str(field_name.as_str());
                 result.push_str(" = serde_json::from_slice(__body.as_slice())?;");
+                has_reading_body_as_single_field = true;
             }
         }
     }
@@ -61,12 +64,17 @@ pub fn generate(result: &mut String, name: &str, input_fields: &InputFields) {
                 result.push(',');
             }
             InputFieldSource::Body => {
-                if input_field.is_body_to_vec() {
+                if has_reading_body_as_single_field {
                     result.push_str(input_field.struct_field_name());
-                    result.push_str(": __body.get_body(),");
+                    result.push(',');
                 } else {
-                    result.push_str(input_field.struct_field_name());
-                    result.push_str(",");
+                    if input_field.is_body_to_vec() {
+                        result.push_str(input_field.struct_field_name());
+                        result.push_str(": __body.get_body(),");
+                    } else {
+                        result.push_str(input_field.struct_field_name());
+                        result.push_str(",");
+                    }
                 }
             }
             InputFieldSource::FormData => {
