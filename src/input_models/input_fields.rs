@@ -218,13 +218,38 @@ impl InputFields {
                     }
                 }
             }
+
             if let Some(last_input_field) = last_body_type {
                 if body_attrs_amount == 1 {
-                    if last_input_field.property.ty.is_vec_of_u8() {
-                        return Some(BodyDataToReader::RawBodyToVec);
-                    } else {
-                        return Some(BodyDataToReader::DeserializeBody);
-                    }
+                    match &last_input_field.property.ty {
+                        crate::reflection::PropertyType::U8 => {}
+                        crate::reflection::PropertyType::I8 => {}
+                        crate::reflection::PropertyType::U16 => {}
+                        crate::reflection::PropertyType::I16 => {}
+                        crate::reflection::PropertyType::U32 => {}
+                        crate::reflection::PropertyType::I32 => {}
+                        crate::reflection::PropertyType::U64 => {}
+                        crate::reflection::PropertyType::I64 => {}
+                        crate::reflection::PropertyType::F32 => {}
+                        crate::reflection::PropertyType::F64 => {}
+                        crate::reflection::PropertyType::USize => {}
+                        crate::reflection::PropertyType::ISize => {}
+                        crate::reflection::PropertyType::String => {}
+                        crate::reflection::PropertyType::Str => {}
+                        crate::reflection::PropertyType::Bool => {}
+                        crate::reflection::PropertyType::DateTime => {}
+                        crate::reflection::PropertyType::FileContent => {}
+                        crate::reflection::PropertyType::OptionOf(_) => {}
+                        crate::reflection::PropertyType::VecOf(sub_type) => {
+                            if sub_type.is_u8() {
+                                return Some(BodyDataToReader::RawBodyToVec);
+                            }
+                            return Some(BodyDataToReader::DeserializeBody);
+                        }
+                        crate::reflection::PropertyType::Struct(_) => {
+                            return Some(BodyDataToReader::DeserializeBody)
+                        }
+                    };
                 }
             }
         }

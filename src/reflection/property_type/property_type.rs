@@ -191,4 +191,12 @@ impl PropertyType {
 
         false
     }
+
+    pub fn is_u8(&self) -> bool {
+        if let PropertyType::U8 = self {
+            return true;
+        }
+
+        false
+    }
 }
