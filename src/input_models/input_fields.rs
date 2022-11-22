@@ -89,10 +89,6 @@ impl InputField {
         self.my_attr.get_as_string("default")
     }
 
-    pub fn is_body_to_vec(&self) -> bool {
-        self.property.ty.is_vec() && self.src_is_body()
-    }
-
     pub fn is_reading_from_body(&self) -> bool {
         match self.src {
             InputFieldSource::Query => false,
