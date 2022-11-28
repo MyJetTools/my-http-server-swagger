@@ -31,9 +31,7 @@ pub fn generate(result: &mut String, name: &str, input_fields: &InputFields) {
                     |f| f.src_is_body(),
                 );
             }
-            BodyDataToReader::DeserializeBody => {
-                result.push_str("let __body = ctx.request.receive_body().await?;");
-            }
+            BodyDataToReader::DeserializeBody => {}
         }
     }
 
