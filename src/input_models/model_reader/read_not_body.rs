@@ -52,7 +52,12 @@ pub fn generate_read_not_body(result: &mut String, input_fields: &InputFields) {
                     result.push_str("\")?;");
                 }
             }
-            PropertyType::Struct(_) => {}
+            PropertyType::Struct(_) => {
+                result.push_str(DATA_SRC);
+                result.push_str(".get_vec_of_string(\"");
+                result.push_str(input_field.name());
+                result.push_str("\")?;");
+            }
             _ => {
                 generate_reading_required(result, input_field);
             }
