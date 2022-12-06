@@ -50,7 +50,11 @@ pub struct AttributeModel {
 
 impl AttributeModel {
     pub fn parse(attr: TokenStream) -> Self {
-        let str = attr.to_string().into_bytes();
+        let attr = attr.to_string();
+
+        println!("attr: {}", attr);
+
+        let str = attr.into_bytes();
 
         let mut bytes = str.as_slice();
 
