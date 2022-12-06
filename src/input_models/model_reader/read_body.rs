@@ -45,6 +45,12 @@ pub fn generate_read_body<TInputFiler: Fn(&InputField) -> bool>(
             }
             PropertyType::VecOf(_) => {}
             PropertyType::Struct(_) => {
+                result.push_str(DATA_SRC);
+                result.push_str(".get_required(\"");
+                result.push_str(input_field.name());
+                result.push_str("\")?; let ");
+                result.push_str(input_field.struct_field_name());
+                result.push_str(" = ");
                 result.push_str(input_field.struct_field_name());
                 result.push_str(".get_raw_str()?;");
 
