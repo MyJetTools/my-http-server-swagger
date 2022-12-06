@@ -52,8 +52,6 @@ impl AttributeModel {
     pub fn parse(attr: TokenStream) -> Self {
         let attr = attr.to_string();
 
-        println!("attr: {}", attr);
-
         let str = attr.into_bytes();
 
         let mut bytes = str.as_slice();
