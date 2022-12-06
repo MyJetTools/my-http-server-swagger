@@ -44,7 +44,9 @@ pub fn generate_read_body<TInputFiler: Fn(&InputField) -> bool>(
                 result.push_str("Some(value.try_into()?)}else{None};");
             }
             PropertyType::VecOf(_) => {}
-            PropertyType::Struct(_) => {}
+            PropertyType::Struct(_) => {
+                generate_reading_required(result, input_field);
+            }
             _ => {
                 generate_reading_required(result, input_field);
             }
