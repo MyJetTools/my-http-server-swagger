@@ -66,7 +66,7 @@ pub fn generate(result: &mut String, name: &str, input_fields: &InputFields) {
                         }
                         BodyDataToReader::RawBodyToVec => {
                             result.push_str(input_field.struct_field_name());
-                            result.push_str(": ctx.request.get_body().await?.get_body_as_json()?,");
+                            result.push_str(": ctx.request.receive_body().await?.get_body(),");
                         }
                         BodyDataToReader::DeserializeBody => {
                             result.push_str(input_field.struct_field_name());
