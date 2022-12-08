@@ -37,13 +37,13 @@ pub fn my_http_input_process_derive(input: TokenStream) -> TokenStream {
 #[proc_macro_derive(MyHttpStringEnum, attributes(http_enum_case))]
 pub fn my_http_string_enum_derive(input: TokenStream) -> TokenStream {
     let ast = syn::parse(input).unwrap();
-    crate::enum_doc::attr::impl_enum_doc(&ast, true)
+    crate::enum_doc::generate(&ast, true)
 }
 
 #[proc_macro_derive(MyHttpIntegerEnum, attributes(http_enum_case))]
 pub fn my_http_integer_enum_derive(input: TokenStream) -> TokenStream {
     let ast = syn::parse(input).unwrap();
-    crate::enum_doc::attr::impl_enum_doc(&ast, false)
+    crate::enum_doc::generate(&ast, false)
 }
 
 #[proc_macro_attribute]
