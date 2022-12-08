@@ -62,11 +62,9 @@ pub fn generate_read_not_body(result: &mut String, input_fields: &InputFields) {
                 result.push_str(input_field.struct_field_name());
                 result.push_str(" = match ");
                 result.push_str(input_field.struct_field_name());
-                result.push_str(" { Some(value) => ");
-                result.push_str(input_field.property.ty.as_str().as_str());
-                result.push_str("::from_str(&value.value)?, None => ");
-                result.push_str(input_field.property.ty.as_str().as_str());
-                result.push_str("::from_str(\"\")?,};");
+                result.push_str(" { Some(value) => value.value.parse()?, None => ");
+
+                result.push_str("\"\".parse())?,};");
             }
             _ => {
                 generate_reading_required(result, input_field);
