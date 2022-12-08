@@ -35,7 +35,9 @@ pub fn generate_read_not_body(result: &mut String, input_fields: &InputFields) {
                 result.push_str(".get_optional(\"");
                 result.push_str(input_field.name());
                 result.push_str("\"){");
-                result.push_str("Some(value.value.parse()?)}else{None};");
+                result.push_str(
+                    "let value = my_http_server::InputParamValue::from(value);Some(value.parse()?)}else{None};",
+                );
             }
             PropertyType::VecOf(sub_type) => {
                 if sub_type.is_string() {
@@ -60,7 +62,7 @@ pub fn generate_read_not_body(result: &mut String, input_fields: &InputFields) {
                 result.push_str(input_field.struct_field_name());
                 result.push_str(" = match ");
                 result.push_str(input_field.struct_field_name());
-                result.push_str(" { Some(value) => value.value.parse()?, None => ");
+                result.push_str(" { Some(value) => {let value = my_http_server::InputParamValue::from(value);value.parse()?}, None => ");
 
                 result.push_str("\"\".parse()?,};");
             }
