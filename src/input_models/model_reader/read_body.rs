@@ -35,13 +35,19 @@ pub fn generate_read_body<TInputFiler: Fn(&InputField) -> bool>(
             PropertyType::FileContent => {
                 generate_reading_required(result, input_field);
             }
-            PropertyType::OptionOf(_) => {
+            PropertyType::OptionOf(sub_ty) => {
                 result.push_str("if let Some(value) = ");
                 result.push_str(DATA_SRC);
                 result.push_str(".get_optional(\"");
                 result.push_str(input_field.name());
                 result.push_str("\"){");
-                result.push_str("Some(value.try_into()?)}else{None};");
+
+                result.push_str("let value = value.get_raw_str()?;");
+                result.push_str("let value :");
+                result.push_str(sub_ty.as_str().as_str());
+                result.push_str(" = value.parse()?;");
+
+                result.push_str("Some(value)}else{None};");
             }
             PropertyType::VecOf(_) => {}
             PropertyType::Struct(_) => {
