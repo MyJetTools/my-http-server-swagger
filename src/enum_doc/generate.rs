@@ -45,7 +45,7 @@ pub fn generate(ast: &syn::DeriveInput, is_string: bool) -> TokenStream {
     super::http_enum_structure::generate(&mut result, name.as_str(), is_string, fields.as_slice());
     result.push_str("}");
 
-    result.push_str("fn create_default() -> Result<Self,");
+    result.push_str("pub fn create_default() -> Result<Self,");
     result.push_str(HTTP_FAIL_RESULT);
     result.push_str(">{");
     if let Some(default_case) = &default_case {
@@ -65,6 +65,15 @@ pub fn generate(ast: &syn::DeriveInput, is_string: bool) -> TokenStream {
 
     result.push('}');
     //Default Trait
+
+    if let Some(default_case) = &default_case {
+        result.push_str("impl std::default::Default for ");
+        result.push_str(name);
+        result.push_str("{ fn default() -> Self {");
+        result.push_str("Self::");
+        result.push_str(default_case);
+        result.push_str("}}");
+    }
 
     //FromStr Trait
 
