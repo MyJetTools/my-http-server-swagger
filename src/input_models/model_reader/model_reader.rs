@@ -23,6 +23,7 @@ pub fn generate(result: &mut String, name: &str, input_fields: &InputFields) {
             BodyDataToReader::BodyFile => {}
             BodyDataToReader::RawBodyToVec => {}
             BodyDataToReader::BodyModel => {
+                println!("Going thorugh reading BodyModel");
                 result.push_str("let __body = ctx.request.get_body().await?;");
                 super::generate_read_body(
                     result,
