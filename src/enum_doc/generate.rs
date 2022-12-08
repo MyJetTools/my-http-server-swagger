@@ -20,7 +20,6 @@ pub fn generate(ast: &syn::DeriveInput, is_string: bool) -> TokenStream {
         if let Some(enum_json) = EnumJson::new(src_field) {
             if enum_json.is_default_value {
                 default_case = Some(enum_json.get_enum_case_value().to_string());
-                continue;
             }
 
             fields.push(enum_json);

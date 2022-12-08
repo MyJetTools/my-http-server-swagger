@@ -15,7 +15,6 @@ fn generate_content(result: &mut String, name: &str, enum_cases: &[EnumJson]) {
     for enum_case in enum_cases {
         if enum_case.is_default_value {
             default_value = true;
-            println!("Set default_value: {}", default_value);
             continue;
         }
 
@@ -28,8 +27,6 @@ fn generate_content(result: &mut String, name: &str, enum_cases: &[EnumJson]) {
 
         result.push_str(line_to_add.as_str());
     }
-
-    println!("default_value: {}", default_value);
 
     if default_value {
         result.push_str("Ok(Self::default())");
