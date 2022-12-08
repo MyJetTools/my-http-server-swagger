@@ -1,6 +1,7 @@
 use crate::input_models::input_fields::{BodyDataToReader, InputFieldSource, InputFields};
 
 pub fn generate(result: &mut String, name: &str, input_fields: &InputFields) {
+    result.push_str("use std::str::FromStr;");
     input_fields.check_types_of_field();
 
     if input_fields.has_data_to_read_from_query_or_path_or_header() {
@@ -23,7 +24,6 @@ pub fn generate(result: &mut String, name: &str, input_fields: &InputFields) {
             BodyDataToReader::BodyFile => {}
             BodyDataToReader::RawBodyToVec => {}
             BodyDataToReader::BodyModel => {
-                println!("Going reading {} thorugh reading BodyModel", name);
                 result.push_str("let __body = ctx.request.get_body().await?;");
                 super::generate_read_body(
                     result,
