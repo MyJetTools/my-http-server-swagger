@@ -15,6 +15,7 @@ fn generate_content(result: &mut String, name: &str, enum_cases: &[EnumJson]) {
     for enum_case in enum_cases {
         if enum_case.is_default_value {
             default_value = true;
+            continue;
         }
 
         let line_to_add = format!(
