@@ -36,7 +36,7 @@ pub fn generate_read_not_body(result: &mut String, input_fields: &InputFields) {
                 result.push_str(input_field.name());
                 result.push_str("\"){");
                 result.push_str(
-                    "let value = my_http_server::InputParamValue::from(value);Some(value.try_into()?)}else{None};",
+                    "let value = my_http_server::InputParamValue::from(value);Some(value.parse()?)}else{None};",
                 );
             }
             PropertyType::VecOf(sub_type) => {
