@@ -1,7 +1,6 @@
 use crate::input_models::input_fields::{BodyDataToReader, InputFieldSource, InputFields};
 
 pub fn generate(result: &mut String, name: &str, input_fields: &InputFields) {
-    result.push_str("use std::str::FromStr;");
     input_fields.check_types_of_field();
 
     if input_fields.has_data_to_read_from_query_or_path_or_header() {
