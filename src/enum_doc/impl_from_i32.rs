@@ -3,11 +3,11 @@ use super::enum_json::EnumJson;
 pub fn generate(result: &mut String, enum_cases: &[EnumJson]) {
     result.push_str("match src {");
 
-    let mut default = false;
+    let mut has_default_value = false;
 
     for enum_case in enum_cases {
         if enum_case.has_default_attr() {
-            default = true;
+            has_default_value = true;
             continue;
         }
         result.push_str(enum_case.get_id().to_string().as_str());
@@ -16,7 +16,7 @@ pub fn generate(result: &mut String, enum_cases: &[EnumJson]) {
         result.push(',');
     }
 
-    if default {
+    if has_default_value {
         result.push_str("_ => Self::default()");
     } else {
         result.push_str("_ => panic!(\"Can not parse enum with value {}\", src)");
