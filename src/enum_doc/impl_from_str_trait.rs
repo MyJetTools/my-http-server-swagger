@@ -6,17 +6,15 @@ pub fn generate(result: &mut String, name: &str, enum_cases: &[EnumJson]) {
     result.push_str("type Err = ");
     result.push_str(HTTP_FAIL_RESULT);
     result.push_str("; fn from_str(src:&str)->Result<Self,Self::Err>{");
-
     generate_content(result, name, enum_cases);
-
     result.push('}');
 }
 
 fn generate_content(result: &mut String, name: &str, enum_cases: &[EnumJson]) {
-    let mut default_value = None;
+    let mut default_value = false;
     for enum_case in enum_cases {
-        if enum_case.has_default_attr() {
-            default_value = Some(enum_case.get_enum_case_value());
+        if enum_case.is_default_value {
+            default_value = true;
         }
 
         let line_to_add = format!(
@@ -29,9 +27,8 @@ fn generate_content(result: &mut String, name: &str, enum_cases: &[EnumJson]) {
         result.push_str(line_to_add.as_str());
     }
 
-    if let Some(default) = default_value {
-        let line_to_add = format!("Ok(Self::{})", default);
-        result.push_str(line_to_add.as_str());
+    if default_value {
+        result.push_str("Ok(Self::default())");
     } else {
         let line_to_add = format!(
             "Err({http_fail_result}::as_forbidden(Some(\"{err}\".to_string())))",

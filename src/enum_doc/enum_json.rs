@@ -2,6 +2,7 @@ use crate::reflection::EnumCase;
 
 pub struct EnumJson {
     src: EnumCase,
+    pub is_default_value: bool,
 }
 
 pub const HTTP_ENUM_ATTR_NAME: &str = "http_enum_case";
@@ -12,11 +13,13 @@ impl EnumJson {
             return None;
         }
 
-        Self { src }.into()
-    }
+        let is_default_value = src.attrs.get(HTTP_ENUM_ATTR_NAME).has_attr("default");
 
-    pub fn has_default_attr(&self) -> bool {
-        self.src.attrs.get(HTTP_ENUM_ATTR_NAME).has_attr("default")
+        Self {
+            src,
+            is_default_value,
+        }
+        .into()
     }
 
     pub fn get_id(&self) -> isize {

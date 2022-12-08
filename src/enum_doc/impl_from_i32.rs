@@ -6,7 +6,7 @@ pub fn generate(result: &mut String, enum_cases: &[EnumJson]) {
     let mut has_default_value = false;
 
     for enum_case in enum_cases {
-        if enum_case.has_default_attr() {
+        if enum_case.is_default_value {
             has_default_value = true;
             continue;
         }
