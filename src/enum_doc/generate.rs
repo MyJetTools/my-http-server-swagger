@@ -48,10 +48,8 @@ pub fn generate(ast: &syn::DeriveInput, is_string: bool) -> TokenStream {
     result.push_str("pub fn create_default() -> Result<Self,");
     result.push_str(HTTP_FAIL_RESULT);
     result.push_str(">{");
-    if let Some(default_case) = &default_case {
-        result.push_str("Ok(Self::");
-        result.push_str(default_case);
-        result.push_str(")");
+    if default_case.is_some() {
+        result.push_str("Ok(Self::default())");
     } else {
         let line_to_add = format!(
             "Err({http_fail_result}::as_forbidden(Some(\"{err}\".to_string())))",
