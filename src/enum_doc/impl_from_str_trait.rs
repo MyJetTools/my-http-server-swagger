@@ -28,6 +28,8 @@ fn generate_content(result: &mut String, name: &str, enum_cases: &[EnumJson]) {
         result.push_str(line_to_add.as_str());
     }
 
+    println!("default_value: {}", default_value);
+
     if default_value {
         result.push_str("Ok(Self::default())");
     } else {
