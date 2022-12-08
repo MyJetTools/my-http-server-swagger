@@ -1,4 +1,4 @@
-use crate::consts::{HTTP_ENUM_STRUCTURE, NAME_SPACE};
+use crate::consts::{HTTP_ENUM_STRUCTURE, HTTP_FAIL_RESULT, NAME_SPACE};
 
 use proc_macro::TokenStream;
 
@@ -43,16 +43,29 @@ pub fn generate(ast: &syn::DeriveInput, is_string: bool) -> TokenStream {
     result.push_str(HTTP_ENUM_STRUCTURE);
     result.push('{');
     super::http_enum_structure::generate(&mut result, name.as_str(), is_string, fields.as_slice());
-    result.push_str("}}");
+    result.push_str("}");
 
-    //Default Trait
+    result.push_str(&name);
+    result.push_str("{ fn create_default() -> Result<Self,");
+    result.push_str(HTTP_FAIL_RESULT);
+    result.push_str(">{");
     if let Some(default_case) = &default_case {
-        result.push_str("impl Default for ");
-        result.push_str(&name);
-        result.push_str("{ fn default() -> Self { Self::");
+        result.push_str("Ok(Self::");
         result.push_str(default_case);
-        result.push_str("}}");
+        result.push_str(")");
+    } else {
+        let line_to_add = format!(
+            "Err({http_fail_result}::as_forbidden(Some(\"{err}\".to_string())))",
+            http_fail_result = HTTP_FAIL_RESULT,
+            err = format!("Type {} does not have default value to create", name)
+        );
+        result.push_str(line_to_add.as_str());
     }
+
+    result.push_str("}");
+
+    result.push('}');
+    //Default Trait
 
     //FromStr Trait
 

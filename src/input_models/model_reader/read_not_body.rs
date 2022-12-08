@@ -65,7 +65,7 @@ pub fn generate_read_not_body(result: &mut String, input_fields: &InputFields) {
                 result.push_str(" { Some(value) => {let value = my_http_server::InputParamValue::from(value);value.parse()?}, None => ");
 
                 result.push_str(input_field.property.ty.as_str().as_str());
-                result.push_str("::default(),};");
+                result.push_str("::create_default()?,};");
             }
             _ => {
                 generate_reading_required(result, input_field);
