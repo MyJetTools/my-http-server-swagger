@@ -10,6 +10,7 @@ pub enum BodyDataToReader {
     BodyModel,
 }
 
+#[derive(Debug)]
 pub enum InputFieldSource {
     Query,
     Path,
@@ -219,8 +220,6 @@ impl InputFields {
                 }
             }
 
-            println!("Body attrs amount {}", body_attrs_amount);
-
             if let Some(last_input_field) = last_body_type {
                 if body_attrs_amount == 1 {
                     match &last_input_field.property.ty {
@@ -257,6 +256,7 @@ impl InputFields {
         }
 
         for field in &self.fields {
+            println!("Field {:?}", field.src);
             match &field.src {
                 InputFieldSource::Query => {}
                 InputFieldSource::Path => {}
@@ -266,6 +266,7 @@ impl InputFields {
                         return Some(BodyDataToReader::RawBodyToVec);
                     }
 
+                    println!("Making BodyModel");
                     return Some(BodyDataToReader::BodyModel);
                 }
                 InputFieldSource::FormData => {
