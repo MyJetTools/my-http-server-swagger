@@ -219,6 +219,8 @@ impl InputFields {
                 }
             }
 
+            println!("Body attrs amount {}", body_attrs_amount);
+
             if let Some(last_input_field) = last_body_type {
                 if body_attrs_amount == 1 {
                     match &last_input_field.property.ty {
