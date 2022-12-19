@@ -42,7 +42,6 @@ pub fn generate_read_body<TInputFiler: Fn(&InputField) -> bool>(
                 result.push_str(input_field.name());
                 result.push_str("\"){");
 
-                result.push_str("let value = value.get_raw_str()?;");
                 result.push_str("let value :");
                 result.push_str(sub_ty.as_str().as_str());
                 result.push_str(" = value.try_into()?;");
@@ -55,12 +54,7 @@ pub fn generate_read_body<TInputFiler: Fn(&InputField) -> bool>(
                 result.push_str(".get_required(\"");
                 result.push_str(input_field.name());
                 result.push_str("\")?; let ");
-                result.push_str(input_field.struct_field_name());
-                result.push_str(" = ");
-                result.push_str(input_field.struct_field_name());
-                result.push_str(".get_raw_str()?;");
 
-                result.push_str("let ");
                 result.push_str(input_field.struct_field_name());
                 result.push_str(": ");
 
