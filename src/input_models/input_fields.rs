@@ -256,7 +256,6 @@ impl InputFields {
         }
 
         for field in &self.fields {
-            println!("Field {:?}", field.src);
             match &field.src {
                 InputFieldSource::Query => {}
                 InputFieldSource::Path => {}
@@ -266,7 +265,6 @@ impl InputFields {
                         return Some(BodyDataToReader::RawBodyToVec);
                     }
 
-                    println!("Making BodyModel");
                     return Some(BodyDataToReader::BodyModel);
                 }
                 InputFieldSource::FormData => {
