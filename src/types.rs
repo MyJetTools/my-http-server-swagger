@@ -1,3 +1,5 @@
+use macros_utils::ParamValue;
+
 use crate::consts::{HTTP_ARRAY_ELEMENT, HTTP_DATA_TYPE, HTTP_FIELD_TYPE, HTTP_SIMPLE_TYPE};
 use crate::input_models::input_fields::InputFieldSource;
 use crate::reflection::PropertyType;
@@ -7,7 +9,7 @@ pub fn compile_http_field(
     name: &str,
     pt: &PropertyType,
     required: bool,
-    default: Option<&str>,
+    default: Option<ParamValue>,
     src: Option<&InputFieldSource>,
 ) {
     result.push_str(HTTP_FIELD_TYPE);
@@ -46,7 +48,7 @@ pub fn compile_http_field_with_object(
     name: &str,
     body_type: &str,
     required: bool,
-    default: Option<&str>,
+    default: Option<ParamValue>,
 ) {
     result.push_str(HTTP_FIELD_TYPE);
 
@@ -157,10 +159,10 @@ fn compile_data_type(
     }
 }
 
-fn write_optional_value(result: &mut String, value: Option<&str>) {
+fn write_optional_value(result: &mut String, value: Option<ParamValue>) {
     if let Some(value) = value {
         result.push_str("Some(\"");
-        result.push_str(value);
+        result.push_str(value.get_value_as_str());
         result.push_str("\".to_string()");
     } else {
         result.push_str("None");

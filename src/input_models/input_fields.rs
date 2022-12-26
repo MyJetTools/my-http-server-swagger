@@ -1,4 +1,4 @@
-use macros_utils::attributes::AttributeFields;
+use macros_utils::{AttributeParams, ParamValue};
 
 use crate::reflection::StructProperty;
 
@@ -44,37 +44,43 @@ impl InputFieldSource {
 pub struct InputField {
     pub property: StructProperty,
     pub src: InputFieldSource,
-    pub my_attr: AttributeFields,
+    pub my_attr: AttributeParams,
 }
 
-fn get_attr(property: &StructProperty) -> Option<(AttributeFields, InputFieldSource)> {
-    for (name, fields) in &property.attrs.data {
-        let src = InputFieldSource::from_str(name.as_str());
+fn get_attr(property: &StructProperty) -> Option<(String, InputFieldSource)> {
+    for name in property.attrs.keys() {
+        let src = InputFieldSource::from_str(name);
 
         if let Some(src) = src {
-            return Some((fields.clone(), src));
+            return Some((name.to_string(), src));
         }
     }
     None
 }
 
 impl InputField {
-    pub fn new(property: StructProperty) -> Option<Self> {
-        let (my_attr, src) = get_attr(&property)?;
+    pub fn new(mut property: StructProperty) -> Option<Self> {
+        let (attr_name, src) = get_attr(&property)?;
+
+        let attr = property.attrs.remove(&attr_name).unwrap();
+
+        if attr.is_none() {
+            panic!("Attribute {} does not have any description", attr_name);
+        }
 
         return Self {
             property,
             src,
-            my_attr,
+            my_attr: attr.unwrap(),
         }
         .into();
     }
 
-    pub fn name(&self) -> &str {
-        if let Some(value) = self.my_attr.get_as_string("name") {
-            value
+    pub fn name(&self) -> String {
+        if let Some(value) = self.my_attr.get_named_param("name") {
+            value.get_value_as_str().to_string()
         } else {
-            self.property.name.as_str()
+            self.property.name.clone()
         }
     }
 
@@ -86,8 +92,8 @@ impl InputField {
         !self.property.ty.is_option()
     }
 
-    pub fn get_default_value(&self) -> Option<&str> {
-        self.my_attr.get_as_string("default")
+    pub fn get_default_value(&self) -> Option<ParamValue> {
+        self.my_attr.get_named_param("default")
     }
 
     pub fn is_reading_from_body(&self) -> bool {
@@ -117,8 +123,12 @@ impl InputField {
         return false;
     }
 
-    pub fn description(&self) -> &str {
-        if let Some(value) = self.my_attr.get_as_string("description") {
+    pub fn get_body_type(&self) -> Option<ParamValue> {
+        self.my_attr.get_named_param("body_type")
+    }
+
+    pub fn description(&self) -> ParamValue {
+        if let Some(value) = self.my_attr.get_named_param("description") {
             return value;
         }
 
@@ -128,8 +138,9 @@ impl InputField {
         );
     }
 
-    pub fn validator(&self) -> Option<&str> {
-        self.my_attr.get_as_string("validator")
+    pub fn validator(&self) -> Option<ParamValue> {
+        let result = self.my_attr.get_named_param("validator")?;
+        Some(result)
     }
 
     pub fn struct_field_name(&self) -> &str {

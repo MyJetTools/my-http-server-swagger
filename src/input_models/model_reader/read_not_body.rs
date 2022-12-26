@@ -33,7 +33,7 @@ pub fn generate_read_not_body(result: &mut String, input_fields: &InputFields) {
                 result.push_str("if let Some(value) = ");
                 result.push_str(DATA_SRC);
                 result.push_str(".get_optional(\"");
-                result.push_str(input_field.name());
+                result.push_str(input_field.name().as_str());
                 result.push_str("\"){");
                 result.push_str(
                     "let value = my_http_server::InputParamValue::from(value);Some(value.try_into()?)}else{None};",
@@ -43,19 +43,19 @@ pub fn generate_read_not_body(result: &mut String, input_fields: &InputFields) {
                 if sub_type.is_string() {
                     result.push_str(DATA_SRC);
                     result.push_str(".get_vec_of_string(\"");
-                    result.push_str(input_field.name());
+                    result.push_str(input_field.name().as_str());
                     result.push_str("\")?;");
                 } else {
                     result.push_str(DATA_SRC);
                     result.push_str(".get_vec(\"");
-                    result.push_str(input_field.name());
+                    result.push_str(input_field.name().as_str());
                     result.push_str("\")?;");
                 }
             }
             PropertyType::Struct(_) => {
                 result.push_str(DATA_SRC);
                 result.push_str(".get_optional(\"");
-                result.push_str(input_field.name());
+                result.push_str(input_field.name().as_str());
                 result.push_str("\");");
 
                 result.push_str("let ");
@@ -76,7 +76,10 @@ pub fn generate_read_not_body(result: &mut String, input_fields: &InputFields) {
             if validation.is_none() {
                 validation = Some(String::new());
             }
-            validation.as_mut().unwrap().push_str(validator);
+            validation
+                .as_mut()
+                .unwrap()
+                .push_str(validator.get_value_as_str());
             validation.as_mut().unwrap().push_str("(ctx, &");
             validation
                 .as_mut()
@@ -100,17 +103,17 @@ fn generate_reading_required(result: &mut String, input_field: &InputField) {
             result.push_str("my_http_server::InputParamValue::from(");
             result.push_str(DATA_SRC);
             result.push_str(".get_required(\"");
-            result.push_str(input_field.name());
+            result.push_str(input_field.name().as_str());
             result.push_str("\")?).try_into()?;");
         }
         InputFieldSource::Path => {
             result.push_str("http_route.get_value(&ctx.request.http_path, \"");
-            result.push_str(input_field.name());
+            result.push_str(input_field.name().as_str());
             result.push_str("\")?.try_into()?;");
         }
         InputFieldSource::Header => {
             result.push_str("ctx.request.get_required_header(\"");
-            result.push_str(input_field.name());
+            result.push_str(input_field.name().as_str());
             result.push_str("\")?.try_into()?;");
         }
         InputFieldSource::Body => {

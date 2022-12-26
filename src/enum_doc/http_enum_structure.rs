@@ -29,8 +29,8 @@ fn compile_enum_case(enum_case: &EnumJson) -> Option<String> {
     format!(
         "{NAME_SPACE}::{HTTP_ENUM_CASE}{{id:{the_id}, value:\"{value}\".to_string(), description:\"{description}\".to_string()}}",
         the_id = enum_case.get_id(),
-        value = enum_case.get_value(),
-        description = enum_case.description()
+        value = enum_case.get_value().get_value_as_str(),
+        description = enum_case.description().get_value_as_str()
     )
     .into()
 }

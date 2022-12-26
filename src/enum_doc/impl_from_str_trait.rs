@@ -20,7 +20,7 @@ fn generate_content(result: &mut String, name: &str, enum_cases: &[EnumJson]) {
 
         let line_to_add = format!(
             "if src == \"{value}\" || src == \"{the_id}\"{{return Ok(Self::{enum_value})}}\n",
-            value = enum_case.get_value(),
+            value = enum_case.get_value().get_value_as_str(),
             the_id = enum_case.get_id(),
             enum_value = enum_case.get_enum_case_value(),
         );

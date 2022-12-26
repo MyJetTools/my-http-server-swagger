@@ -12,4 +12,4 @@ proc-macro = true
 syn = { version = "*", features = ["extra-traits"] }
 quote = "*"
 macros-utils = { tag = "0.1.0", git = "https://github.com/MyJetTools/macros-utils.git" }
-types-reader = { tag = "0.1.0", git = "https://github.com/MyJetTools/types-reader.git" }
+types-reader = { tag = "0.1.1", git = "https://github.com/MyJetTools/types-reader.git" }

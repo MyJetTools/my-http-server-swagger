@@ -1,7 +1,9 @@
-use macros_utils::attributes::Attributes;
+use std::collections::HashMap;
+
+use macros_utils::AttributeParams;
 
 pub struct EnumCase {
-    pub attrs: Attributes,
+    pub attrs: HashMap<String, Option<AttributeParams>>,
     pub name: String,
 }
 

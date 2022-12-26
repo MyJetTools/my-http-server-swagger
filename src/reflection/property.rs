@@ -1,11 +1,13 @@
-use macros_utils::attributes::Attributes;
+use std::collections::HashMap;
+
+use macros_utils::AttributeParams;
 
 use super::PropertyType;
 
 pub struct StructProperty {
     pub name: String,
     pub ty: PropertyType,
-    pub attrs: Attributes,
+    pub attrs: HashMap<String, Option<AttributeParams>>,
 }
 
 impl StructProperty {

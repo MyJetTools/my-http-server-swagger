@@ -1,3 +1,5 @@
+use macros_utils::ParamValue;
+
 use crate::reflection::StructProperty;
 pub struct OutputJson {
     pub fields: Vec<JsonField>,
@@ -24,15 +26,17 @@ impl JsonField {
         Self { property }
     }
 
-    pub fn name(&self) -> &str {
-        if let Some(attr) = self.property.attrs.try_get("serde") {
-            if let Some(value) = attr.get_as_string("rename") {
-                return value;
-            } else {
-                return self.property.name.as_str();
+    pub fn name(&self) -> ParamValue {
+        if let Some(attr) = self.property.attrs.get("serde") {
+            if let Some(attr) = attr {
+                if let Some(value) = attr.get_named_param("rename") {
+                    return value;
+                }
             }
         }
 
-        self.property.name.as_str()
+        ParamValue {
+            value: self.property.name.as_bytes(),
+        }
     }
 }

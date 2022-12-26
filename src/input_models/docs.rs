@@ -19,18 +19,18 @@ fn generate_http_input_parameter(result: &mut String, input_field: &InputField) 
     result.push_str("{ field: ");
 
     if input_field.src_is_body() {
-        if let Some(body_type) = input_field.my_attr.get_as_string("body_type") {
+        if let Some(body_type) = input_field.get_body_type() {
             crate::types::compile_http_field_with_object(
                 result,
-                input_field.name(),
-                body_type,
+                input_field.name().as_str(),
+                body_type.get_value_as_str(),
                 input_field.required(),
                 input_field.get_default_value(),
             );
         } else {
             crate::types::compile_http_field(
                 result,
-                input_field.name(),
+                input_field.name().as_str(),
                 &input_field.property.ty,
                 input_field.required(),
                 input_field.get_default_value(),
@@ -40,7 +40,7 @@ fn generate_http_input_parameter(result: &mut String, input_field: &InputField) 
     } else {
         crate::types::compile_http_field(
             result,
-            input_field.name(),
+            input_field.name().as_str(),
             &input_field.property.ty,
             input_field.required(),
             input_field.get_default_value(),
@@ -49,7 +49,7 @@ fn generate_http_input_parameter(result: &mut String, input_field: &InputField) 
     };
 
     result.push_str(", description: \"");
-    result.push_str(input_field.description());
+    result.push_str(input_field.description().get_value_as_str());
 
     result.push_str("\".to_string(), source: ");
     get_input_src(result, input_field);

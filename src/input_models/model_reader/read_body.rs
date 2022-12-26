@@ -39,7 +39,7 @@ pub fn generate_read_body<TInputFiler: Fn(&InputField) -> bool>(
                 result.push_str("if let Some(value) = ");
                 result.push_str(DATA_SRC);
                 result.push_str(".get_optional(\"");
-                result.push_str(input_field.name());
+                result.push_str(input_field.name().as_str());
                 result.push_str("\"){");
 
                 result.push_str("let value :");
@@ -52,7 +52,7 @@ pub fn generate_read_body<TInputFiler: Fn(&InputField) -> bool>(
             PropertyType::Struct(_) => {
                 result.push_str(DATA_SRC);
                 result.push_str(".get_required(\"");
-                result.push_str(input_field.name());
+                result.push_str(input_field.name().as_str());
                 result.push_str("\")?; let ");
 
                 result.push_str(input_field.struct_field_name());
@@ -73,7 +73,10 @@ pub fn generate_read_body<TInputFiler: Fn(&InputField) -> bool>(
             if validation.is_none() {
                 validation = Some(String::new());
             }
-            validation.as_mut().unwrap().push_str(validator);
+            validation
+                .as_mut()
+                .unwrap()
+                .push_str(validator.get_value_as_str());
             validation.as_mut().unwrap().push_str("(ctx, &");
             validation
                 .as_mut()
@@ -105,13 +108,13 @@ fn generate_reading_required(result: &mut String, input_field: &InputField) {
         InputFieldSource::Body => {
             result.push_str(DATA_SRC);
             result.push_str(".get_required(\"");
-            result.push_str(input_field.name());
+            result.push_str(input_field.name().as_str());
             result.push_str("\")?.try_into()?;");
         }
         InputFieldSource::FormData => {
             result.push_str(DATA_SRC);
             result.push_str(".get_required(\"");
-            result.push_str(input_field.name());
+            result.push_str(input_field.name().as_str());
             result.push_str("\")?.try_into()?;");
         }
         InputFieldSource::BodyFile => {
