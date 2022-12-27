@@ -9,13 +9,15 @@ pub fn impl_output_types(ast: &syn::DeriveInput) -> proc_macro::TokenStream {
 
     let use_documentation = crate::consts::get_use_documentation();
 
+    let struct_name_as_str = stuct_name.to_string();
+
     quote! {
         impl #stuct_name{
             pub fn get_http_data_structure()->my_http_server_controllers::controllers::documentation::data_types::HttpObjectStructure{
                 #use_documentation;
 
                 my_http_server_controllers::controllers::documentation::data_types::HttpObjectStructure{
-                    struct_id: #stuct_name.to_string(),
+                    struct_id: #struct_name_as_str.to_string(),
                     fields: vec![#(#fields)*,]
                 }
             }
