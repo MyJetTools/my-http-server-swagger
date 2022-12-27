@@ -56,7 +56,7 @@ fn generate_http_input_parameter(input_field: &InputField) -> Result<TokenStream
     let result = quote! {
         #http_input_parameter_type{
             field: #field,
-            description: #description,
+            description: #description.to_string(),
             source: #source
         }
     };
