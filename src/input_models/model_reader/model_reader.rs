@@ -46,8 +46,16 @@ pub fn generate(name: &Ident, input_fields: &InputFields) -> Result<TokenStream,
             InputFieldSource::Body => {
                 if input_field.property.ty.is_file_content() {
                     let struct_field_name = input_field.property.get_field_name_ident();
-                    let item =
-                        quote!(#struct_field_name : ctx.request.get_body().await?.get_body()?);
+                    let item = quote! {
+                        #struct_field_name : {
+                            let body = ctx.request.receive_body().await?;
+                            FileContent {
+                                content_type: "".to_string(),
+                                file_name: "".to_string(),
+                                content: body.get_body(),
+                            }
+                          }
+                    };
                     fileds_to_return.push(item);
                 } else if input_field.property.ty.is_vec_of_u8() {
                     let struct_field_name = input_field.property.get_field_name_ident();
