@@ -265,7 +265,9 @@ impl<'s> InputFields<'s> {
                             return Some(BodyDataToReader::DeserializeBody);
                         }
                         types_reader::PropertyType::Struct(..) => {
-                            return Some(BodyDataToReader::DeserializeBody)
+                            if !last_input_field.property.ty.is_file_content() {
+                                return Some(BodyDataToReader::DeserializeBody);
+                            }
                         }
                     };
                 }
