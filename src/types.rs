@@ -15,7 +15,7 @@ pub fn compile_http_field(
     src: Option<&InputFieldSource>,
 ) -> TokenStream {
     let data_type = if let Some(src) = src {
-        if src.is_body_file() {
+        if src.is_body() && pt.is_file_content() {
             let http_simple_type = crate::consts::get_http_simple_type();
             return quote! {
                 data_types::HttpDataType::::SimpleType(#http_simple_type::Binary)

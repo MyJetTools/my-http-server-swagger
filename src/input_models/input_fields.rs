@@ -9,12 +9,29 @@ pub struct BodyNotBodyFields<'s> {
     pub not_body_fields: Option<Vec<&'s InputField<'s>>>,
 }
 
-pub enum BodyDataToReader {
-    FormData,
-    BodyFile,
-    RawBodyToVec,
-    DeserializeBody,
-    BodyModel,
+pub struct BodyDataToReader {
+    pub body_file: usize,
+    pub body_model: usize,
+    pub body_raw: usize,
+    pub body_field: usize,
+    pub form_data_field: usize,
+}
+
+impl BodyDataToReader {
+    pub fn has_form_data(&self) -> bool {
+        self.form_data_field > 0
+    }
+
+    pub fn has_body_data(&self) -> bool {
+        self.body_file > 0 || self.body_model > 0 || self.body_raw > 0 || self.body_field > 0
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.body_file > 0
+            && self.body_field == 0
+            && self.body_model == 0
+            && self.form_data_field == 0
+    }
 }
 
 #[derive(Debug)]
@@ -24,7 +41,6 @@ pub enum InputFieldSource {
     Header,
     Body,
     FormData,
-    BodyFile,
 }
 
 impl InputFieldSource {
@@ -35,14 +51,13 @@ impl InputFieldSource {
             "http_path" => Some(Self::Path),
             "http_form_data" => Some(Self::FormData),
             "http_body" => Some(Self::Body),
-            "http_body_file" => Some(Self::BodyFile),
             _ => None,
         }
     }
 
-    pub fn is_body_file(&self) -> bool {
+    pub fn is_body(&self) -> bool {
         match self {
-            InputFieldSource::BodyFile => true,
+            Self::Body => true,
             _ => false,
         }
     }
@@ -112,7 +127,6 @@ impl<'s> InputField<'s> {
             InputFieldSource::Header => false,
             InputFieldSource::Body => true,
             InputFieldSource::FormData => true,
-            InputFieldSource::BodyFile => true,
         }
     }
 
@@ -168,7 +182,6 @@ impl<'s> InputFields<'s> {
     }
 
     pub fn get_body_and_not_body_fields(&'s self) -> BodyNotBodyFields<'s> {
-        self.check_types_of_field();
         let mut body_fields = rust_extensions::lazy::LazyVec::with_capacity(self.fields.len());
         let mut not_body_fields = rust_extensions::lazy::LazyVec::with_capacity(self.fields.len());
 
@@ -186,114 +199,110 @@ impl<'s> InputFields<'s> {
         }
     }
 
-    pub fn check_types_of_field(&self) {
-        let mut has_body_file = 0;
-        let mut has_body = 0;
-        let mut has_form = 0;
-
-        for field in &self.fields {
-            match field.src {
-                InputFieldSource::Query => {}
-                InputFieldSource::Path => {}
-                InputFieldSource::Header => {}
-                InputFieldSource::Body => has_body += 1,
-                InputFieldSource::FormData => has_form += 1,
-                InputFieldSource::BodyFile => has_body_file += 1,
-            }
-        }
-
-        if has_body_file > 1 {
-            panic!("Only one field can be attributed as body_file");
-        }
-
-        if has_body_file > 0 && has_body > 0 {
-            panic!("Model can not have both body_file attribute and body attribute");
-        }
-
-        if has_body_file > 0 && has_form > 0 {
-            panic!("Model can not have both body_file attribute and from attribute");
-        }
-    }
-
-    pub fn has_body_data_to_read(&self) -> Option<BodyDataToReader> {
-        {
-            let mut body_attrs_amount = 0;
-            let mut last_body_type = None;
-
-            for field in &self.fields {
-                match &field.src {
-                    InputFieldSource::Query => {}
-                    InputFieldSource::Path => {}
-                    InputFieldSource::Header => {}
-                    InputFieldSource::Body => {
-                        body_attrs_amount += 1;
-                        last_body_type = Some(field);
-                    }
-                    InputFieldSource::FormData => {
-                        body_attrs_amount += 1;
-                    }
-                    InputFieldSource::BodyFile => {
-                        body_attrs_amount += 1;
-                    }
-                }
-            }
-
-            if let Some(last_input_field) = last_body_type {
-                if body_attrs_amount == 1 {
-                    match &last_input_field.property.ty {
-                        types_reader::PropertyType::U8 => {}
-                        types_reader::PropertyType::I8 => {}
-                        types_reader::PropertyType::U16 => {}
-                        types_reader::PropertyType::I16 => {}
-                        types_reader::PropertyType::U32 => {}
-                        types_reader::PropertyType::I32 => {}
-                        types_reader::PropertyType::U64 => {}
-                        types_reader::PropertyType::I64 => {}
-                        types_reader::PropertyType::F32 => {}
-                        types_reader::PropertyType::F64 => {}
-                        types_reader::PropertyType::USize => {}
-                        types_reader::PropertyType::ISize => {}
-                        types_reader::PropertyType::String => {}
-                        types_reader::PropertyType::Str => {}
-                        types_reader::PropertyType::Bool => {}
-                        types_reader::PropertyType::DateTime => {}
-                        types_reader::PropertyType::OptionOf(_) => {}
-                        types_reader::PropertyType::VecOf(sub_type) => {
-                            if sub_type.is_u8() {
-                                return Some(BodyDataToReader::RawBodyToVec);
-                            }
-                            return Some(BodyDataToReader::DeserializeBody);
-                        }
-                        types_reader::PropertyType::Struct(..) => {
-                            if !last_input_field.property.ty.is_file_content() {
-                                return Some(BodyDataToReader::DeserializeBody);
-                            }
-                        }
-                    };
-                }
-            }
-        }
+    pub fn has_body_data_to_read(&self) -> Result<Option<BodyDataToReader>, syn::Error> {
+        let mut body_data_reader = BodyDataToReader {
+            body_file: 0,
+            form_data_field: 0,
+            body_field: 0,
+            body_model: 0,
+            body_raw: 0,
+        };
 
         for field in &self.fields {
             match &field.src {
-                InputFieldSource::Query => {}
-                InputFieldSource::Path => {}
-                InputFieldSource::Header => {}
                 InputFieldSource::Body => {
-                    if field.property.ty.is_vec_of_u8() {
-                        return Some(BodyDataToReader::RawBodyToVec);
-                    }
+                    if body_data_reader.has_form_data() {
+                        let err = syn::Error::new_spanned(
+                            field.property.field,
+                            "Form data and body data can not be mixed",
+                        );
+                        return Err(err);
+                    };
 
-                    return Some(BodyDataToReader::BodyModel);
+                    if field.property.ty.is_file_content() {
+                        if body_data_reader.body_raw > 1 {
+                            let err = syn::Error::new_spanned(
+                                field.property.field,
+                                "Field is already attributed as reading raw body to vec of u8",
+                            );
+                            return Err(err);
+                        }
+
+                        if body_data_reader.body_field > 1 {
+                            let err = syn::Error::new_spanned(
+                                field.property.field,
+                                "Field is already attributed as reading body model",
+                            );
+                            return Err(err);
+                        }
+
+                        body_data_reader.body_file += 1;
+                        if body_data_reader.body_file > 1 {
+                            let err = syn::Error::new_spanned(
+                                field.property.field,
+                                "Only one field can be attributed as body_file",
+                            );
+                            return Err(err);
+                        }
+                    } else if field.property.ty.is_vec_of_u8() {
+                        if body_data_reader.body_file > 1 {
+                            let err = syn::Error::new_spanned(
+                                field.property.field,
+                                "Field is already attributed as reading body file",
+                            );
+                            return Err(err);
+                        }
+
+                        if body_data_reader.body_field > 1 {
+                            let err = syn::Error::new_spanned(
+                                field.property.field,
+                                "Field is already attributed as reading body model",
+                            );
+                            return Err(err);
+                        }
+
+                        body_data_reader.body_raw += 1;
+
+                        if body_data_reader.body_raw > 1 {
+                            let err = syn::Error::new_spanned(
+                                field.property.field,
+                                "Only one field can be complietly serrialized from body",
+                            );
+                            return Err(err);
+                        }
+                    } else if field.property.ty.is_struct() {
+                        body_data_reader.body_model += 1;
+
+                        if body_data_reader.body_model > 1 {
+                            let err = syn::Error::new_spanned(
+                                field.property.field,
+                                "Only one field can be complietly serrialized from body",
+                            );
+                            return Err(err);
+                        }
+                    } else {
+                        body_data_reader.body_field += 1;
+                    }
                 }
                 InputFieldSource::FormData => {
-                    return Some(BodyDataToReader::FormData);
+                    if body_data_reader.has_body_data() {
+                        let err = syn::Error::new_spanned(
+                            field.property.field,
+                            "Form data and body data can not be mixed",
+                        );
+                        return Err(err);
+                    };
+
+                    body_data_reader.form_data_field += 1;
                 }
-                InputFieldSource::BodyFile => {
-                    return Some(BodyDataToReader::BodyFile);
-                }
+                _ => {}
             }
         }
-        return None;
+
+        if body_data_reader.is_empty() {
+            Ok(None)
+        } else {
+            Ok(Some(body_data_reader))
+        }
     }
 }

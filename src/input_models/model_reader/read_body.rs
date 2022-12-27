@@ -23,12 +23,6 @@ pub fn generate_read_body(input_fields: &Vec<&InputField>) -> TokenStream {
     for input_field in input_fields {
         let struct_field_name = input_field.property.get_field_name_ident();
 
-        println!(
-            "input_field: {}. ty: {}",
-            struct_field_name.to_string(),
-            input_field.property.ty.get_token_stream()
-        );
-
         match &input_field.property.ty {
             PropertyType::OptionOf(sub_type) => {
                 let input_field_name = input_field.name();
@@ -81,6 +75,7 @@ pub fn generate_read_body(input_fields: &Vec<&InputField>) -> TokenStream {
     quote! {
         let #init_fields ={
             let __body = ctx.request.get_body().await?;
+            let __reader = __body.get_body_data_reader()?;
             #(#reading_feilds)*
             #init_fields
         };
@@ -111,9 +106,6 @@ fn generate_reading_required(input_field: &InputField, data_src: &TokenStream) -
             let input_field_name = input_field_name.get_value_as_str();
 
             quote!(#data_src.get_required(#input_field_name)?.try_into()?;)
-        }
-        InputFieldSource::BodyFile => {
-            panic!("Bug. Should not read BodyFile at read body model");
         }
     }
 }

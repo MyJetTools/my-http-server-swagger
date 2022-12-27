@@ -133,8 +133,5 @@ fn generate_reading_required(input_field: &InputField) -> TokenStream {
         InputFieldSource::FormData => {
             panic!("Bug. Should not read Form at generate_reading_required");
         }
-        InputFieldSource::BodyFile => {
-            panic!("Bug. Should not read BodyFile at generate_reading_required");
-        }
     }
 }

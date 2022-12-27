@@ -1,6 +1,9 @@
 use proc_macro2::{Ident, TokenStream};
 
-use crate::input_models::input_fields::{BodyDataToReader, InputFieldSource, InputFields};
+use crate::{
+    input_models::input_fields::{InputFieldSource, InputFields},
+    proprety_type_ext::PropertyTypeExt,
+};
 use quote::quote;
 
 pub fn generate(name: &Ident, input_fields: &InputFields) -> Result<TokenStream, syn::Error> {
@@ -12,16 +15,14 @@ pub fn generate(name: &Ident, input_fields: &InputFields) -> Result<TokenStream,
         None
     };
 
-    let has_body_data_to_read = input_fields.has_body_data_to_read();
+    let has_body_data_to_read = input_fields.has_body_data_to_read()?;
 
-    let read_body = if let Some(body_fields) = fileds.body_fields {
-        if let Some(body_data_reader_type) = &has_body_data_to_read {
-            match body_data_reader_type {
-                BodyDataToReader::FormData => Some(super::generate_read_body(&body_fields)),
-
-                BodyDataToReader::BodyModel => Some(super::generate_read_body(&body_fields)),
-                _ => None,
-            }
+    let read_body = if let Some(body_data_to_read) = has_body_data_to_read {
+        let body_fields = fileds.body_fields.as_ref().unwrap();
+        if body_data_to_read.form_data_field > 0 {
+            Some(super::generate_read_body(body_fields))
+        } else if body_data_to_read.body_field > 0 {
+            Some(super::generate_read_body(body_fields))
         } else {
             None
         }
@@ -43,42 +44,26 @@ pub fn generate(name: &Ident, input_fields: &InputFields) -> Result<TokenStream,
                 fileds_to_return.push(input_field.get_struct_fiel_name_as_token_stream());
             }
             InputFieldSource::Body => {
-                if let Some(has_body_data_to_read) = &has_body_data_to_read {
-                    match has_body_data_to_read {
-                        BodyDataToReader::FormData => {
-                            fileds_to_return
-                                .push(input_field.get_struct_fiel_name_as_token_stream());
-                        }
-                        BodyDataToReader::BodyFile => {
-                            let struct_field_name = input_field.property.get_field_name_ident();
-                            let item = quote!(#struct_field_name : ctx.request.get_body().await?.get_body_as_json()?);
-                            fileds_to_return.push(item);
-                        }
-                        BodyDataToReader::RawBodyToVec => {
-                            let struct_field_name = input_field.property.get_field_name_ident();
-                            let item = quote!(#struct_field_name : ctx.request.receive_body().await?.get_body());
-                            fileds_to_return.push(item);
-                        }
-                        BodyDataToReader::DeserializeBody => {
-                            let struct_field_name = input_field.property.get_field_name_ident();
-                            let item = quote!(#struct_field_name : ctx.request.get_body().await?.get_body_as_json()?);
-                            fileds_to_return.push(item);
-                        }
-                        BodyDataToReader::BodyModel => {
-                            fileds_to_return
-                                .push(input_field.get_struct_fiel_name_as_token_stream());
-                        }
-                    }
+                if input_field.property.ty.is_file_content() {
+                    let struct_field_name = input_field.property.get_field_name_ident();
+                    let item =
+                        quote!(#struct_field_name : ctx.request.get_body().await?.get_body()?);
+                    fileds_to_return.push(item);
+                } else if input_field.property.ty.is_vec_of_u8() {
+                    let struct_field_name = input_field.property.get_field_name_ident();
+                    let item =
+                        quote!(#struct_field_name : ctx.request.receive_body().await?.get_body());
+                    fileds_to_return.push(item);
+                } else if input_field.property.ty.is_struct() {
+                    let struct_field_name = input_field.property.get_field_name_ident();
+                    let item = quote!(#struct_field_name : ctx.request.get_body().await?.get_body_as_json()?);
+                    fileds_to_return.push(item);
+                } else {
+                    fileds_to_return.push(input_field.get_struct_fiel_name_as_token_stream());
                 }
             }
             InputFieldSource::FormData => {
                 fileds_to_return.push(input_field.get_struct_fiel_name_as_token_stream());
-            }
-            InputFieldSource::BodyFile => {
-                let struct_field_name = input_field.property.get_field_name_ident();
-                let item =
-                    quote!(#struct_field_name : ctx.request.receive_body().await?.get_body());
-                fileds_to_return.push(item);
             }
         }
     }
