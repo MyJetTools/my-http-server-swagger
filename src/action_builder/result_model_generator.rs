@@ -45,7 +45,7 @@ pub fn generate(results: &[HttpResult]) -> TokenStream {
         fields.push(quote::quote! {
             #http_result_type{
                 nullable: false,
-                description: #description,
+                description: #description.to_string(),
                 http_code: #http_code,
                 data_type: #data_type,
             }
