@@ -10,7 +10,10 @@ pub trait PropertyTypeExt {
 impl<'s> PropertyTypeExt for PropertyType<'s> {
     fn is_file_content(&self) -> bool {
         match self {
-            PropertyType::Struct(name, _) => name == "FileContent",
+            PropertyType::Struct(name, _) => {
+                println!("name: {}", name);
+                name == "FileContent"
+            }
             _ => false,
         }
     }
