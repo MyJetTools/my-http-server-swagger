@@ -1,74 +1,52 @@
 use macros_utils::ParamValue;
+use proc_macro2::TokenStream;
+use quote::quote;
+use types_reader::PropertyType;
 
-use crate::consts::{HTTP_ARRAY_ELEMENT, HTTP_DATA_TYPE, HTTP_FIELD_TYPE, HTTP_SIMPLE_TYPE};
+use crate::as_token_stream::AsTokenStream;
 use crate::input_models::input_fields::InputFieldSource;
-use crate::reflection::PropertyType;
+use crate::proprety_type_ext::PropertyTypeExt;
 
 pub fn compile_http_field(
-    result: &mut String,
     name: &str,
     pt: &PropertyType,
     required: bool,
     default: Option<ParamValue>,
     src: Option<&InputFieldSource>,
-) {
-    result.push_str(HTTP_FIELD_TYPE);
-    result.push_str("::new(\"");
-    result.push_str(name);
-
-    result.push_str("\", ");
-
-    if let Some(src) = src {
+) -> TokenStream {
+    let data_type = if let Some(src) = src {
         if src.is_body_file() {
-            result.push_str(HTTP_DATA_TYPE);
-            result.push_str("::SimpleType(");
-
-            result.push_str(HTTP_SIMPLE_TYPE);
-            result.push_str("::Binary)");
+            let http_simple_type = crate::consts::get_http_simple_type();
+            return quote! {
+                data_types::HttpDataType::::SimpleType(#http_simple_type::Binary)
+            };
         } else {
-            compile_data_type(result, name, pt, TypeIsWrappedTo::None);
+            compile_data_type(name, pt, TypeIsWrappedTo::None)
         }
     } else {
-        compile_data_type(result, name, pt, TypeIsWrappedTo::None);
+        compile_data_type(name, pt, TypeIsWrappedTo::None)
+    };
+
+    let default = default.as_token_stream();
+    let http_field_type = crate::consts::get_http_field_type();
+    quote! {
+        #http_field_type::new(#name, #data_type, #required, #default)
     }
-
-    result.push_str(", ");
-
-    write_bool_value(result, required);
-
-    result.push_str(", ");
-
-    write_optional_value(result, default);
-
-    result.push(')');
 }
 
 pub fn compile_http_field_with_object(
-    result: &mut String,
     name: &str,
-    body_type: &str,
+    body_type: &TokenStream,
     required: bool,
     default: Option<ParamValue>,
-) {
-    result.push_str(HTTP_FIELD_TYPE);
+) -> TokenStream {
+    let http_field_type = crate::consts::get_http_field_type();
 
-    result.push_str("::new(\"");
-    result.push_str(name);
+    let default = default.as_token_stream();
 
-    result.push_str("\", ");
-
-    result.push_str(body_type);
-    result.push_str("::");
-    result.push_str(crate::consts::FN_GET_HTTP_DATA_STRUCTURE);
-    result.push_str("().into_http_data_type_object(), ");
-
-    write_bool_value(result, required);
-
-    result.push_str(", ");
-
-    write_optional_value(result, default);
-
-    result.push_str(")");
+    quote! {
+        #http_field_type::new(#name, #body_type::get_http_data_structure().into_http_data_type_object(), #required, #default)
+    }
 }
 
 enum TypeIsWrappedTo {
@@ -78,29 +56,16 @@ enum TypeIsWrappedTo {
 }
 
 fn compile_data_type(
-    result: &mut String,
     prop_name: &str,
     pt: &PropertyType,
     type_is_wrapped_to: TypeIsWrappedTo,
-) {
+) -> TokenStream {
     if let PropertyType::OptionOf(generic_type) = pt {
-        compile_data_type(
-            result,
-            prop_name,
-            generic_type.as_ref(),
-            TypeIsWrappedTo::Option,
-        );
-        return;
+        return compile_data_type(prop_name, generic_type.as_ref(), TypeIsWrappedTo::Option);
     }
 
     if let PropertyType::VecOf(generic_type) = pt {
-        compile_data_type(
-            result,
-            prop_name,
-            generic_type.as_ref(),
-            TypeIsWrappedTo::Vec,
-        );
-        return;
+        return compile_data_type(prop_name, generic_type.as_ref(), TypeIsWrappedTo::Vec);
     }
 
     if let Some(simple_type) =
@@ -108,71 +73,40 @@ fn compile_data_type(
     {
         match type_is_wrapped_to {
             TypeIsWrappedTo::None => {
-                result.push_str(HTTP_DATA_TYPE);
-                result.push_str("::SimpleType(");
-                result.push_str(simple_type.as_str());
-                result.push_str(")");
-                return;
+                let http_data_type = crate::consts::get_http_data_type();
+                return quote! {
+                    #http_data_type::SimpleType(#simple_type)
+                };
             }
 
             TypeIsWrappedTo::Option => {
-                result.push_str(HTTP_DATA_TYPE);
-                result.push_str("::SimpleType(");
-                result.push_str(simple_type.as_str());
-                result.push_str(")");
-                return;
+                let http_data_type = crate::consts::get_http_data_type();
+                return quote! {
+                    #http_data_type::SimpleType(#simple_type)
+                };
             }
             TypeIsWrappedTo::Vec => {
-                result.push_str(HTTP_DATA_TYPE);
-                result.push_str("::ArrayOf(");
-                result.push_str(HTTP_ARRAY_ELEMENT);
-                result.push_str("::SimpleType(");
-                result.push_str(simple_type.as_str());
-                result.push_str("))");
-                return;
+                let http_data_type = crate::consts::get_http_data_type();
+                let http_array_element = crate::consts::get_http_array_element();
+                return quote! {
+                    #http_data_type::ArrayOf(#http_array_element::SimpleType(#simple_type))
+                };
             }
         };
     }
 
     match type_is_wrapped_to {
         TypeIsWrappedTo::None => {
-            result.push_str(pt.as_str().as_str());
-            result.push_str("::");
-            result.push_str(crate::consts::FN_GET_HTTP_DATA_STRUCTURE);
-            result.push_str("().into_http_data_type_object()");
-            return;
+            let tp = pt.get_token_stream();
+            return quote!(#tp::get_http_data_structure().into_http_data_type_object());
         }
         TypeIsWrappedTo::Option => {
-            result.push_str(pt.as_str().as_str());
-            result.push_str("::");
-            result.push_str(crate::consts::FN_GET_HTTP_DATA_STRUCTURE);
-            result.push_str("().into_http_data_type_object()");
-            return;
+            let tp = pt.get_token_stream();
+            return quote!(#tp::get_http_data_structure().into_http_data_type_object());
         }
         TypeIsWrappedTo::Vec => {
-            result.push_str(pt.as_str().as_str());
-            result.push_str("::");
-            result.push_str(crate::consts::FN_GET_HTTP_DATA_STRUCTURE);
-            result.push_str("().into_http_data_type_array()");
-            return;
+            let tp = pt.get_token_stream();
+            return quote!(#tp::get_http_data_structure().into_http_data_type_object());
         }
     }
-}
-
-fn write_optional_value(result: &mut String, value: Option<ParamValue>) {
-    if let Some(value) = value {
-        result.push_str("Some(\"");
-        result.push_str(value.get_value_as_str());
-        result.push_str("\".to_string()");
-    } else {
-        result.push_str("None");
-    };
-}
-
-fn write_bool_value(result: &mut String, value: bool) {
-    if value {
-        result.push_str("true");
-    } else {
-        result.push_str("false");
-    };
 }

@@ -1,22 +1,47 @@
-use proc_macro::TokenStream;
+use quote::quote;
+use types_reader::StructProperty;
 
-use crate::reflection::StructProperty;
-
-use crate::consts::{HTTP_OBJECT_STRUCTURE, NAME_SPACE};
-
-pub fn impl_output_types(ast: &syn::DeriveInput) -> TokenStream {
-    let name = &ast.ident.to_string();
+pub fn impl_output_types(ast: &syn::DeriveInput) -> proc_macro::TokenStream {
+    let stuct_name = &ast.ident;
     let fields = StructProperty::read(ast);
 
-    let code = format!(
-        r###" impl {name}{{
-            pub fn {fn_name}()->{NAME_SPACE}::{HTTP_OBJECT_STRUCTURE}{{
-                {get_http_object_structure}
-            }}
-        }}"###,
-        get_http_object_structure = super::http_object_structure::generate(name.as_str(), fields),
-        fn_name = crate::consts::FN_GET_HTTP_DATA_STRUCTURE
-    );
+    let fields = generate_http_object_structure(fields);
 
-    code.parse().unwrap()
+    let use_documentation = crate::consts::get_use_documentation();
+
+    quote! {
+        impl #stuct_name{
+            pub fn get_http_data_structure()->my_http_server_controllers::controllers::documentation::data_types::HttpObjectStructure{
+                #use_documentation;
+
+                my_http_server_controllers::controllers::documentation::data_types::HttpObjectStructure{
+                    struct_id: #stuct_name.to_string(),
+                    fields: vec![#(#fields)*,]
+                }
+            }
+        }
+    }
+    .into()
+}
+
+pub fn generate_http_object_structure(
+    fields: Vec<StructProperty>,
+) -> Vec<proc_macro2::TokenStream> {
+    let json = super::out_json::OutputJson::new(fields);
+
+    let mut result = Vec::new();
+
+    for field in json.fields {
+        let line = crate::types::compile_http_field(
+            field.name().get_value_as_str(),
+            &field.property.ty,
+            true,
+            None,
+            None,
+        );
+
+        result.push(line);
+    }
+
+    result
 }

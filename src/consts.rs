@@ -1,38 +1,82 @@
-pub const FN_GET_HTTP_DATA_STRUCTURE: &str = "get_http_data_structure";
+use proc_macro2::TokenStream;
+use quote::quote;
 
-pub const USE_DOCUMENTATION: &str =
-    "use my_http_server_controllers::controllers::documentation::*;";
+pub fn get_http_field_type() -> TokenStream {
+    quote!(data_types::HttpField)
+}
 
-pub const NAME_SPACE: &str = "my_http_server_controllers::controllers::documentation";
+pub fn get_http_data_type() -> TokenStream {
+    quote!(data_types::HttpDataType)
+}
 
-pub const HTTP_INPUT_PARAMETER_TYPE: &str = "in_parameters::HttpInputParameter";
+pub fn get_http_array_element() -> TokenStream {
+    quote!(data_types::ArrayElement)
+}
 
-pub const HTTP_INPUT_PARAMETER_TYPE_WITH_NS: &str =
-    "my_http_server_controllers::controllers::documentation::in_parameters::HttpInputParameter";
+pub fn get_use_documentation() -> TokenStream {
+    quote!(
+        use my_http_server_controllers::controllers::documentation::*;
+    )
+}
 
-pub const HTTP_FIELD_TYPE: &str = "data_types::HttpField";
+pub fn get_name_space() -> TokenStream {
+    quote!(my_http_server_controllers::controllers::documentation)
+}
 
-pub const HTTP_PARAMETER_INPUT_SRC: &str = "in_parameters::HttpParameterInputSource";
+pub fn get_http_input_parameter_type() -> TokenStream {
+    quote!(in_parameters::HttpInputParameter)
+}
 
-pub const HTTP_OBJECT_STRUCTURE: &str = "data_types::HttpObjectStructure";
+pub fn get_http_input_parameter_type_with_ns() -> TokenStream {
+    quote!(
+        my_http_server_controllers::controllers::documentation::in_parameters::HttpInputParameter
+    )
+}
 
-pub const HTTP_ENUM_STRUCTURE: &str = "data_types::HttpEnumStructure";
-pub const ENUM_TYPE: &str = "data_types::EnumType";
-pub const HTTP_ENUM_CASE: &str = "data_types::HttpEnumCase";
+pub fn get_http_parameter_input_src() -> TokenStream {
+    quote!(in_parameters::HttpParameterInputSource)
+}
 
-pub const HTTP_CONTEXT: &str = "my_http_server::HttpContext";
+pub fn get_http_enum_structure() -> TokenStream {
+    quote!(data_types::HttpEnumStructure)
+}
 
-pub const HTTP_FAIL_RESULT: &str = "my_http_server::HttpFailResult";
+pub fn get_enum_type() -> TokenStream {
+    quote!(data_types::EnumType)
+}
 
-pub const HTTP_OK_RESULT: &str = "my_http_server::HttpOkResult";
+pub fn get_http_enum_case() -> TokenStream {
+    quote!(data_types::HttpEnumCase)
+}
 
-pub const HTTP_SIMPLE_TYPE: &str = "data_types::HttpSimpleType";
+pub fn get_http_context() -> TokenStream {
+    quote!(my_http_server::HttpContext)
+}
 
-pub const HTTP_ARRAY_ELEMENT: &str = "data_types::ArrayElement";
+pub fn get_http_fail_result() -> TokenStream {
+    quote!(my_http_server::HttpFailResult)
+}
 
-pub const HTTP_DATA_TYPE: &str = "data_types::HttpDataType";
+pub fn get_http_ok_result() -> TokenStream {
+    quote!(my_http_server::HttpOkResult)
+}
 
-pub const HTTP_ACTION_DESCRIPTION: &str = "HttpActionDescription";
+pub fn get_http_simple_type() -> TokenStream {
+    quote!(data_types::HttpSimpleType)
+}
 
-pub const HTTP_ACTION_DESCRIPTION_WITH_NS: &str =
-    "my_http_server_controllers::controllers::documentation::HttpActionDescription";
+pub fn get_http_action_description() -> TokenStream {
+    quote!(HttpActionDescription)
+}
+
+pub fn get_http_action_description_with_ns() -> TokenStream {
+    quote!(my_http_server_controllers::controllers::documentation::HttpActionDescription)
+}
+
+pub fn get_http_route() -> TokenStream {
+    quote!(my_http_server_controllers::controllers::HttpRoute)
+}
+
+pub fn get_http_result() -> TokenStream {
+    quote!(my_http_server_controllers::controllers::documentation::out_results::HttpResult)
+}

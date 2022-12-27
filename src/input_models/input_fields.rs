@@ -1,6 +1,13 @@
 use macros_utils::{AttributeParams, ParamValue};
+use proc_macro2::TokenStream;
+use types_reader::{PropertyType, StructProperty};
 
-use crate::reflection::StructProperty;
+use crate::proprety_type_ext::PropertyTypeExt;
+
+pub struct BodyNotBodyFields<'s> {
+    pub body_fields: Option<Vec<&'s InputField<'s>>>,
+    pub not_body_fields: Option<Vec<&'s InputField<'s>>>,
+}
 
 pub enum BodyDataToReader {
     FormData,
@@ -41,8 +48,8 @@ impl InputFieldSource {
     }
 }
 
-pub struct InputField {
-    pub property: StructProperty,
+pub struct InputField<'s> {
+    pub property: StructProperty<'s>,
     pub src: InputFieldSource,
     pub my_attr: AttributeParams,
 }
@@ -58,8 +65,8 @@ fn get_attr(property: &StructProperty) -> Option<(String, InputFieldSource)> {
     None
 }
 
-impl InputField {
-    pub fn new(mut property: StructProperty) -> Option<Self> {
+impl<'s> InputField<'s> {
+    pub fn new(mut property: StructProperty<'s>) -> Option<Self> {
         let (attr_name, src) = get_attr(&property)?;
 
         let attr = property.attrs.remove(&attr_name).unwrap();
@@ -76,19 +83,21 @@ impl InputField {
         .into();
     }
 
-    pub fn name(&self) -> String {
+    pub fn name(&self) -> ParamValue {
         if let Some(value) = self.my_attr.get_named_param("name") {
-            value.get_value_as_str().to_string()
+            value
         } else {
-            self.property.name.clone()
+            ParamValue {
+                value: self.property.name.as_bytes(),
+            }
         }
     }
 
     pub fn required(&self) -> bool {
-        if self.property.ty.is_vec() {
-            return false;
+        match &self.property.ty {
+            PropertyType::VecOf(_) => return false,
+            _ => {}
         }
-
         !self.property.ty.is_option()
     }
 
@@ -115,27 +124,19 @@ impl InputField {
         return false;
     }
 
-    pub fn src_is_form_data(&self) -> bool {
-        if let InputFieldSource::FormData = self.src {
-            return true;
-        }
-
-        return false;
-    }
-
     pub fn get_body_type(&self) -> Option<ParamValue> {
         self.my_attr.get_named_param("body_type")
     }
 
-    pub fn description(&self) -> ParamValue {
+    pub fn description(&self) -> Result<ParamValue, syn::Error> {
         if let Some(value) = self.my_attr.get_named_param("description") {
-            return value;
+            return Ok(value);
         }
 
-        panic!(
-            "Description field is missing of the field {}",
-            self.property.name
-        );
+        let err =
+            syn::Error::new_spanned(self.property.field, "description is missing of the field");
+
+        Err(err)
     }
 
     pub fn validator(&self) -> Option<ParamValue> {
@@ -143,17 +144,18 @@ impl InputField {
         Some(result)
     }
 
-    pub fn struct_field_name(&self) -> &str {
-        self.property.name.as_str()
+    pub fn get_struct_fiel_name_as_token_stream(&self) -> TokenStream {
+        let name = self.property.get_field_name_ident();
+        quote::quote!(#name)
     }
 }
 
-pub struct InputFields {
-    pub fields: Vec<InputField>,
+pub struct InputFields<'s> {
+    pub fields: Vec<InputField<'s>>,
 }
 
-impl InputFields {
-    pub fn new(src: Vec<StructProperty>) -> Self {
+impl<'s> InputFields<'s> {
+    pub fn new(src: Vec<StructProperty<'s>>) -> Self {
         let mut fields = Vec::new();
 
         for prop in src {
@@ -163,6 +165,25 @@ impl InputFields {
         }
 
         Self { fields }
+    }
+
+    pub fn get_body_and_not_body_fields(&'s self) -> BodyNotBodyFields<'s> {
+        self.check_types_of_field();
+        let mut body_fields = rust_extensions::lazy::LazyVec::with_capacity(self.fields.len());
+        let mut not_body_fields = rust_extensions::lazy::LazyVec::with_capacity(self.fields.len());
+
+        for field in &self.fields {
+            if field.is_reading_from_body() {
+                body_fields.add(field);
+            } else {
+                not_body_fields.add(field);
+            }
+        }
+
+        BodyNotBodyFields {
+            body_fields: body_fields.get_result(),
+            not_body_fields: not_body_fields.get_result(),
+        }
     }
 
     pub fn check_types_of_field(&self) {
@@ -194,20 +215,6 @@ impl InputFields {
         }
     }
 
-    pub fn has_data_to_read_from_query_or_path_or_header(&self) -> bool {
-        for field in &self.fields {
-            match &field.src {
-                InputFieldSource::Query => return true,
-                InputFieldSource::Path => return true,
-                InputFieldSource::Header => return true,
-                InputFieldSource::Body => {}
-                InputFieldSource::FormData => {}
-                InputFieldSource::BodyFile => {}
-            }
-        }
-        return false;
-    }
-
     pub fn has_body_data_to_read(&self) -> Option<BodyDataToReader> {
         {
             let mut body_attrs_amount = 0;
@@ -234,31 +241,30 @@ impl InputFields {
             if let Some(last_input_field) = last_body_type {
                 if body_attrs_amount == 1 {
                     match &last_input_field.property.ty {
-                        crate::reflection::PropertyType::U8 => {}
-                        crate::reflection::PropertyType::I8 => {}
-                        crate::reflection::PropertyType::U16 => {}
-                        crate::reflection::PropertyType::I16 => {}
-                        crate::reflection::PropertyType::U32 => {}
-                        crate::reflection::PropertyType::I32 => {}
-                        crate::reflection::PropertyType::U64 => {}
-                        crate::reflection::PropertyType::I64 => {}
-                        crate::reflection::PropertyType::F32 => {}
-                        crate::reflection::PropertyType::F64 => {}
-                        crate::reflection::PropertyType::USize => {}
-                        crate::reflection::PropertyType::ISize => {}
-                        crate::reflection::PropertyType::String => {}
-                        crate::reflection::PropertyType::Str => {}
-                        crate::reflection::PropertyType::Bool => {}
-                        crate::reflection::PropertyType::DateTime => {}
-                        crate::reflection::PropertyType::FileContent => {}
-                        crate::reflection::PropertyType::OptionOf(_) => {}
-                        crate::reflection::PropertyType::VecOf(sub_type) => {
+                        types_reader::PropertyType::U8 => {}
+                        types_reader::PropertyType::I8 => {}
+                        types_reader::PropertyType::U16 => {}
+                        types_reader::PropertyType::I16 => {}
+                        types_reader::PropertyType::U32 => {}
+                        types_reader::PropertyType::I32 => {}
+                        types_reader::PropertyType::U64 => {}
+                        types_reader::PropertyType::I64 => {}
+                        types_reader::PropertyType::F32 => {}
+                        types_reader::PropertyType::F64 => {}
+                        types_reader::PropertyType::USize => {}
+                        types_reader::PropertyType::ISize => {}
+                        types_reader::PropertyType::String => {}
+                        types_reader::PropertyType::Str => {}
+                        types_reader::PropertyType::Bool => {}
+                        types_reader::PropertyType::DateTime => {}
+                        types_reader::PropertyType::OptionOf(_) => {}
+                        types_reader::PropertyType::VecOf(sub_type) => {
                             if sub_type.is_u8() {
                                 return Some(BodyDataToReader::RawBodyToVec);
                             }
                             return Some(BodyDataToReader::DeserializeBody);
                         }
-                        crate::reflection::PropertyType::Struct(_) => {
+                        types_reader::PropertyType::Struct(..) => {
                             return Some(BodyDataToReader::DeserializeBody)
                         }
                     };

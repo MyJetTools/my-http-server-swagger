@@ -1,58 +1,54 @@
-use crate::consts::*;
 use proc_macro::TokenStream;
 
 use super::attributes::AttributeModel;
 
 pub fn build_action(attr: TokenStream, input: TokenStream) -> TokenStream {
-    let mut result = input.to_string();
-
     let ast: syn::DeriveInput = syn::parse(input).unwrap();
 
     let attrs = AttributeModel::parse(attr);
 
-    let struct_name = ast.ident.to_string();
+    let struct_name = &ast.ident;
 
-    result.push_str(
-        format!(
-            "impl {action_name} for {struct_name}{{",
-            action_name = attrs.method.get_trait_name(),
-        )
-        .as_str(),
-    );
+    let trait_name = attrs.method.get_trait_name();
 
-    result.push_str("fn get_route(&self) -> &str {\"");
-    result.push_str(attrs.route.as_str());
-    result.push_str("\"}}\n");
+    let route = attrs.route.as_str();
 
-    result.push_str("impl my_http_server_controllers::controllers::actions::GetDescription for ");
+    let http_action_description = crate::consts::get_http_action_description_with_ns();
 
-    result.push_str(struct_name.as_str());
+    let description = super::generate_http_action_description_fn(&attrs);
 
-    result.push('{');
-    result.push_str(
-        format!("fn get_description(&self) -> Option<{HTTP_ACTION_DESCRIPTION_WITH_NS}>{{")
-            .as_str(),
-    );
-    super::generate_http_action_description_fn(&mut result, &attrs);
-    result.push_str("}}");
+    let http_route = crate::consts::get_http_route();
 
-    result.push_str("#[async_trait::async_trait]");
+    let http_context = crate::consts::get_http_context();
 
-    result
-        .push_str("impl my_http_server_controllers::controllers::actions::HandleHttpRequest for ");
+    let http_ok_result = crate::consts::get_http_ok_result();
 
-    result.push_str(struct_name.as_str());
+    let http_fail_result = crate::consts::get_http_fail_result();
 
-    result.push('{');
+    let handle_request = super::generate_handle_request_fn(&attrs.input_data);
 
-    result.push_str(
-        format!("async fn handle_request(&self, http_route: &my_http_server_controllers::controllers::HttpRoute, ctx: &mut {HTTP_CONTEXT}) -> Result<{HTTP_OK_RESULT}, {HTTP_FAIL_RESULT}> {{ ")
-            .as_str(),
-    );
-    super::generate_handle_request_fn(&mut result, &attrs.input_data);
-    result.push_str("}\n");
+    quote::quote! {
 
-    result.push_str("}");
+        impl #trait_name for #struct_name{
+            fn get_route(&self) -> &str {
+                #route
+            }
 
-    result.parse().unwrap()
+            impl my_http_server_controllers::controllers::actions::GetDescription for #struct_name{
+                fn get_description(&self) -> Option<#http_action_description>{
+                    #description
+                }
+            }
+
+            #[async_trait::async_trait]
+            impl my_http_server_controllers::controllers::actions::HandleHttpRequest for #struct_name{
+                async fn handle_request(&self, http_route: &#http_route, ctx: &mut #http_context) -> Result<#http_ok_result, #http_fail_result> {
+                    #handle_request
+                }
+
+            }
+
+        }
+    }
+    .into()
 }

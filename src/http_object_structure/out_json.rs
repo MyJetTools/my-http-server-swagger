@@ -1,12 +1,12 @@
 use macros_utils::ParamValue;
+use types_reader::StructProperty;
 
-use crate::reflection::StructProperty;
-pub struct OutputJson {
-    pub fields: Vec<JsonField>,
+pub struct OutputJson<'s> {
+    pub fields: Vec<JsonField<'s>>,
 }
 
-impl OutputJson {
-    pub fn new(properties: Vec<StructProperty>) -> Self {
+impl<'s> OutputJson<'s> {
+    pub fn new(properties: Vec<StructProperty<'s>>) -> Self {
         let mut fields = Vec::new();
 
         for property in properties {
@@ -17,12 +17,12 @@ impl OutputJson {
     }
 }
 
-pub struct JsonField {
-    pub property: StructProperty,
+pub struct JsonField<'s> {
+    pub property: StructProperty<'s>,
 }
 
-impl JsonField {
-    pub fn new(property: StructProperty) -> Self {
+impl<'s> JsonField<'s> {
+    pub fn new(property: StructProperty<'s>) -> Self {
         Self { property }
     }
 

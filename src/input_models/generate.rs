@@ -1,35 +1,40 @@
-use crate::consts::*;
 use proc_macro::TokenStream;
 
 use super::input_fields::InputFields;
+use quote::quote;
 
 pub fn generate(ast: &syn::DeriveInput) -> TokenStream {
-    let name = &ast.ident;
+    let struct_name = &ast.ident;
 
-    let fields = crate::reflection::StructProperty::read(ast);
+    let fields = types_reader::StructProperty::read(ast);
 
     let fields = InputFields::new(fields);
 
-    let struct_name = name.to_string();
+    let http_input_param = crate::consts::get_http_input_parameter_type_with_ns();
 
-    let mut result = String::new();
-    result.push_str("impl ");
-    result.push_str(struct_name.as_str());
-    result.push_str("{");
+    let http_ctx = crate::consts::get_http_context();
 
-    result.push_str("pub fn get_input_params()->Vec<");
-    result.push_str(HTTP_INPUT_PARAMETER_TYPE_WITH_NS);
-    result.push_str(">{");
+    let http_fail_result = crate::consts::get_http_fail_result();
 
-    super::docs::generate_http_input(&mut result, &fields);
-    result.push_str("} pub async fn parse_http_input(http_route: &my_http_server_controllers::controllers::HttpRoute, ctx: &mut ");
-    result.push_str(HTTP_CONTEXT);
-    result.push_str(")->Result<Self, ");
-    result.push_str(HTTP_FAIL_RESULT);
+    let http_input = match super::docs::generate_http_input(&fields) {
+        Ok(result) => result,
+        Err(err) => err.to_compile_error(),
+    };
 
-    result.push_str(">{");
-    super::model_reader::generate(&mut result, struct_name.as_str(), &fields);
-    result.push_str("}}");
+    let parse_http_input = match super::model_reader::generate(&struct_name, &fields) {
+        Ok(result) => result,
+        Err(err) => err.to_compile_error(),
+    };
 
-    result.parse().unwrap()
+    quote!{
+        impl #struct_name{
+            pub fn get_input_params()->Vec<#http_input_param>{
+                #http_input
+            }
+
+            pub async fn parse_http_input(http_route: &my_http_server_controllers::controllers::HttpRoute, ctx: &mut #http_ctx)->Result<Self,#http_fail_result>{
+                #parse_http_input
+            }
+        }
+    }.into()
 }

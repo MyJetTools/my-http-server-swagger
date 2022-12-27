@@ -1,53 +1,47 @@
-use crate::consts::*;
+use proc_macro2::TokenStream;
 
 use super::attributes::AttributeModel;
 
-pub fn generate_http_action_description_fn(result: &mut String, attrs: &AttributeModel) {
+pub fn generate_http_action_description_fn(attrs: &AttributeModel) -> TokenStream {
     if attrs.api_data.is_none() {
-        result.push_str("None");
-        return;
+        return quote::quote!(None);
     }
-
-    result.push_str(USE_DOCUMENTATION);
 
     let api_data = attrs.api_data.as_ref().unwrap();
 
-    result.push_str(HTTP_ACTION_DESCRIPTION);
-    result.push_str("{");
+    let use_documentation = crate::consts::get_use_documentation();
 
-    result.push_str("controller_name: \"");
-    result.push_str(api_data.controller.as_str());
-    result.push('"');
-    result.push(',');
+    let http_action_description = crate::consts::get_http_action_description();
 
-    result.push_str("summary: \"");
-    result.push_str(api_data.summary.as_str());
-    result.push('"');
-    result.push(',');
+    let controller_name = api_data.controller.as_str();
+    let summary = api_data.summary.as_str();
+    let description = api_data.description.as_str();
+    let should_be_authorized = api_data.should_be_authorized.as_str();
 
-    result.push_str("description: \"");
-    result.push_str(api_data.description.as_str());
-    result.push('"');
-    result.push(',');
+    let input_params = generate_get_input_params(&attrs.input_data);
 
-    result.push_str("should_be_authorized: ");
-    result.push_str(api_data.should_be_authorized.as_str());
-    result.push(',');
+    let results = super::result_model_generator::generate(&api_data.result);
 
-    result.push_str("input_params: ");
-    generate_get_input_params(result, &attrs.input_data);
-    result.push(',');
+    quote::quote! {
+        #use_documentation;
 
-    result.push_str("results: ");
-    super::result_model_generator::generate(result, &api_data.result);
-    result.push_str("}.into()");
+        #http_action_description{
+            controller_name: #controller_name,
+            summary: #summary,
+            description: #description,
+            should_be_authorized: #should_be_authorized,
+            input_params: #input_params,
+            results: #results,
+        }.into()
+
+    }
 }
 
-fn generate_get_input_params(result: &mut String, input_data: &Option<String>) {
+fn generate_get_input_params(input_data: &Option<String>) -> TokenStream {
     if let Some(input_data) = input_data {
-        result.push_str(input_data);
-        result.push_str("::get_input_params().into()");
+        let input_data = proc_macro2::Literal::string(input_data);
+        quote::quote!(#input_data::get_input_params().into())
     } else {
-        result.push_str("in_parameters::HttpParameters::new(None)");
+        quote::quote!(in_parameters::HttpParameters::new(None))
     }
 }

@@ -1,3 +1,5 @@
+use proc_macro2::TokenStream;
+
 pub enum HttpMethod {
     Get,
     Post,
@@ -15,12 +17,20 @@ impl HttpMethod {
             _ => panic!("Unsupported http method: {}", src),
         }
     }
-    pub fn get_trait_name(&self) -> &str {
+    pub fn get_trait_name(&self) -> TokenStream {
         match self {
-            HttpMethod::Get => "my_http_server_controllers::controllers::actions::GetAction",
-            HttpMethod::Post => "my_http_server_controllers::controllers::actions::PostAction",
-            HttpMethod::Put => "my_http_server_controllers::controllers::actions::PutAction",
-            HttpMethod::Delete => "my_http_server_controllers::controllers::actions::DeleteAction",
+            HttpMethod::Get => {
+                quote::quote!(my_http_server_controllers::controllers::actions::GetAction)
+            }
+            HttpMethod::Post => {
+                quote::quote!(my_http_server_controllers::controllers::actions::PostAction)
+            }
+            HttpMethod::Put => {
+                quote::quote!(my_http_server_controllers::controllers::actions::PutAction)
+            }
+            HttpMethod::Delete => {
+                quote::quote!(my_http_server_controllers::controllers::actions::DeleteAction)
+            }
         }
     }
 }
