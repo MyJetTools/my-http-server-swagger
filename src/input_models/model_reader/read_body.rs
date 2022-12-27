@@ -23,6 +23,12 @@ pub fn generate_read_body(input_fields: &Vec<&InputField>) -> TokenStream {
     for input_field in input_fields {
         let struct_field_name = input_field.property.get_field_name_ident();
 
+        println!(
+            "input_field: {}. ty: {}",
+            struct_field_name.to_string(),
+            input_field.property.ty.get_token_stream()
+        );
+
         match &input_field.property.ty {
             PropertyType::OptionOf(sub_type) => {
                 let input_field_name = input_field.name();
