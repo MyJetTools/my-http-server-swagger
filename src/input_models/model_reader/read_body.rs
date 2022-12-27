@@ -23,30 +23,30 @@ pub fn generate_read_body(input_fields: &Vec<&InputField>) -> TokenStream {
     for input_field in input_fields {
         let struct_field_name = input_field.property.get_field_name_ident();
 
-        if input_field.property.ty.is_file_content() {
-            let line = generate_reading_required(input_field, &data_src);
-            reading_feilds.push(line);
-        } else {
-            match &input_field.property.ty {
-                PropertyType::OptionOf(sub_type) => {
-                    let input_field_name = input_field.name();
-                    let input_field_name = input_field_name.get_value_as_str();
+        match &input_field.property.ty {
+            PropertyType::OptionOf(sub_type) => {
+                let input_field_name = input_field.name();
+                let input_field_name = input_field_name.get_value_as_str();
 
-                    let sub_type = sub_type.get_token_stream();
+                let sub_type = sub_type.get_token_stream();
 
-                    let line = quote::quote! {
-                        let #struct_field_name = if let Some(value) = #data_src.get_optional(#input_field_name){
-                            let value: #sub_type = value.try_into()?;
-                            Some(value)
-                        }else{
-                            None
-                        }
-                    };
+                let line = quote::quote! {
+                    let #struct_field_name = if let Some(value) = #data_src.get_optional(#input_field_name){
+                        let value: #sub_type = value.try_into()?;
+                        Some(value)
+                    }else{
+                        None
+                    }
+                };
 
+                reading_feilds.push(line);
+            }
+            PropertyType::VecOf(_) => {}
+            PropertyType::Struct(_, ty) => {
+                if input_field.property.ty.is_file_content() {
+                    let line = generate_reading_required(input_field, &data_src);
                     reading_feilds.push(line);
-                }
-                PropertyType::VecOf(_) => {}
-                PropertyType::Struct(_, ty) => {
+                } else {
                     let input_field_name = input_field.name();
                     let input_field_name = input_field_name.get_value_as_str();
 
@@ -57,16 +57,16 @@ pub fn generate_read_body(input_fields: &Vec<&InputField>) -> TokenStream {
 
                     reading_feilds.push(line);
                 }
-                _ => {
-                    reading_feilds.push(generate_reading_required(input_field, &data_src));
-                }
             }
+            _ => {
+                reading_feilds.push(generate_reading_required(input_field, &data_src));
+            }
+        }
 
-            if let Some(validator) = input_field.validator() {
-                let validation_fn_name =
-                    proc_macro2::TokenStream::from_str(validator.get_value_as_str()).unwrap();
-                validation.push(quote!(#validation_fn_name(ctx, &#struct_field_name)?;));
-            }
+        if let Some(validator) = input_field.validator() {
+            let validation_fn_name =
+                proc_macro2::TokenStream::from_str(validator.get_value_as_str()).unwrap();
+            validation.push(quote!(#validation_fn_name(ctx, &#struct_field_name)?;));
         }
     }
 
