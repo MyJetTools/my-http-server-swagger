@@ -1,4 +1,6 @@
-use proc_macro::TokenStream;
+use std::str::FromStr;
+
+use proc_macro2::TokenStream;
 
 use super::{http_method::HttpMethod, HttpResult};
 
@@ -39,6 +41,10 @@ impl ApiData {
         }
         .into()
     }
+
+    pub fn get_should_be_authorized(&self) -> TokenStream {
+        TokenStream::from_str(&self.should_be_authorized).unwrap()
+    }
 }
 
 pub struct AttributeModel {
@@ -49,7 +55,7 @@ pub struct AttributeModel {
 }
 
 impl AttributeModel {
-    pub fn parse(attr: TokenStream) -> Self {
+    pub fn parse(attr: proc_macro::TokenStream) -> Self {
         let attr = attr.to_string();
 
         let str = attr.into_bytes();

@@ -16,7 +16,7 @@ pub fn generate_http_action_description_fn(attrs: &AttributeModel) -> TokenStrea
     let controller_name = api_data.controller.as_str();
     let summary = api_data.summary.as_str();
     let description = api_data.description.as_str();
-    let should_be_authorized = api_data.should_be_authorized.as_str();
+    let should_be_authorized = api_data.get_should_be_authorized();
 
     let input_params = generate_get_input_params(&attrs.input_data);
 
