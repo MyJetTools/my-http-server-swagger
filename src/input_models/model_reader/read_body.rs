@@ -1,3 +1,5 @@
+use std::str::FromStr;
+
 use proc_macro2::TokenStream;
 use quote::quote;
 use types_reader::PropertyType;
@@ -56,7 +58,8 @@ pub fn generate_read_body(input_fields: &Vec<&InputField>) -> TokenStream {
         }
 
         if let Some(validator) = input_field.validator() {
-            let validation_fn_name = proc_macro2::Literal::string(validator.get_value_as_str());
+            let validation_fn_name =
+                proc_macro2::TokenStream::from_str(validator.get_value_as_str()).unwrap();
             validation.push(quote!(#validation_fn_name(ctx, &#struct_field_name)?;));
         }
     }

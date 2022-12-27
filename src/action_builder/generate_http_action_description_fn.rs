@@ -1,3 +1,5 @@
+use std::str::FromStr;
+
 use proc_macro2::TokenStream;
 
 use super::attributes::AttributeModel;
@@ -39,7 +41,7 @@ pub fn generate_http_action_description_fn(attrs: &AttributeModel) -> TokenStrea
 
 fn generate_get_input_params(input_data: &Option<String>) -> TokenStream {
     if let Some(input_data) = input_data {
-        let input_data = proc_macro2::Literal::string(input_data);
+        let input_data = TokenStream::from_str(input_data).unwrap();
         quote::quote!(#input_data::get_input_params().into())
     } else {
         quote::quote!(in_parameters::HttpParameters::new(None))

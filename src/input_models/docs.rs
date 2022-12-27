@@ -1,3 +1,5 @@
+use std::str::FromStr;
+
 use proc_macro2::TokenStream;
 
 use super::input_fields::{InputField, InputFieldSource, InputFields};
@@ -21,7 +23,8 @@ pub fn generate_http_input(fields: &InputFields) -> Result<TokenStream, syn::Err
 fn generate_http_input_parameter(input_field: &InputField) -> Result<TokenStream, syn::Error> {
     let field = if input_field.src_is_body() {
         if let Some(body_type) = input_field.get_body_type() {
-            let body_type = proc_macro2::Literal::string(body_type.get_value_as_str());
+            let body_type =
+                proc_macro2::TokenStream::from_str(body_type.get_value_as_str()).unwrap();
             crate::types::compile_http_field_with_object(
                 input_field.name().get_value_as_str(),
                 &quote!(#body_type),

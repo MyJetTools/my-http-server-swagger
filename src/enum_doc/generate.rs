@@ -1,3 +1,5 @@
+use std::str::FromStr;
+
 use proc_macro::TokenStream;
 use types_reader::EnumCase;
 
@@ -32,7 +34,7 @@ pub fn generate(ast: &syn::DeriveInput, is_string: bool) -> TokenStream {
     //Default Trait
 
     let default_trait = if let Some(default_case) = &default_case {
-        let default_case = proc_macro2::Literal::string(default_case);
+        let default_case = proc_macro2::TokenStream::from_str(default_case).unwrap();
 
         let result = quote::quote! {
             impl std::default::Default for #struct_name{

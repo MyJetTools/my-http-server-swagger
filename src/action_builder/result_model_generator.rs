@@ -1,3 +1,5 @@
+use std::str::FromStr;
+
 use proc_macro2::TokenStream;
 
 use super::attributes::HttpResult;
@@ -27,12 +29,12 @@ pub fn generate(results: &[HttpResult]) -> TokenStream {
                 super::attributes::ResultType::ArrayOfSimpleType(type_name) => {
                     let http_array_element = crate::consts::get_http_array_element();
                     let http_simple_type = crate::consts::get_http_simple_type();
-                    let type_name = proc_macro2::Literal::string(type_name);
+                    let type_name = TokenStream::from_str(type_name).unwrap();
                     quote::quote!(#http_data_type::ArrayOf(#http_array_element::SimpleType(#http_simple_type::#type_name)))
                 }
                 super::attributes::ResultType::SimpleType(type_name) => {
                     let http_simple_type = crate::consts::get_http_simple_type();
-                    let type_name = proc_macro2::Literal::string(type_name);
+                    let type_name = TokenStream::from_str(type_name).unwrap();
                     quote::quote!(#http_data_type::SimpleType(#http_simple_type::#type_name))
                 }
             }
@@ -54,6 +56,6 @@ pub fn generate(results: &[HttpResult]) -> TokenStream {
 }
 
 fn generate_as_object_or_array(object_name: &str, into_structure: TokenStream) -> TokenStream {
-    let object_name = proc_macro2::Literal::string(object_name);
+    let object_name = TokenStream::from_str(object_name).unwrap();
     quote::quote!(#object_name::get_http_data_structure().#into_structure())
 }
