@@ -3,6 +3,7 @@ use proc_macro::TokenStream;
 use super::attributes::AttributeModel;
 
 pub fn build_action(attr: TokenStream, input: TokenStream) -> TokenStream {
+
     let ast: syn::DeriveInput = syn::parse(input).unwrap();
 
     let attrs = AttributeModel::parse(attr);
@@ -28,6 +29,7 @@ pub fn build_action(attr: TokenStream, input: TokenStream) -> TokenStream {
     let handle_request = super::generate_handle_request_fn(&attrs.input_data);
 
     quote::quote! {
+        #ast
 
         impl #trait_name for #struct_name{
             fn get_route(&self) -> &str {
