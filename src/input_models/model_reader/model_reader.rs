@@ -53,7 +53,15 @@ pub fn generate(name: &Ident, input_fields: &InputFields) -> Result<TokenStream,
                 }
             }
             InputFieldSource::FormData => {
-                fileds_to_return.push(input_field.get_struct_fiel_name_as_token_stream());
+                let body_data_to_read = has_body_data_to_read.as_ref().unwrap();
+
+                if body_data_to_read.http_form > 1 {
+                    fileds_to_return.push(input_field.get_struct_fiel_name_as_token_stream());
+                } else {
+                    let struct_field_name = input_field.get_struct_fiel_name_as_token_stream();
+                    let read_value = read_from_form_data_as_single_field(input_field)?;
+                    fileds_to_return.push(quote!(#struct_field_name: #read_value));
+                }
             }
         }
     }
@@ -81,6 +89,54 @@ fn read_from_body_as_single_field(input_field: &InputField) -> Result<TokenStrea
         let result = quote!({
             let byte_array = ctx.request.receive_body().await?.get_body();
             serde_json::from_slice(byte_array.as_slice()).unwrap()
+        });
+        return Ok(result);
+    }
+
+    if input_field.property.ty.is_struct() {
+        let result = quote!({
+            let body = ctx.request.receive_body().await?;
+            body.get_body()
+        });
+
+        return Ok(result);
+    }
+
+    let field_name = input_field.name();
+    let field_name = field_name.get_value_as_str();
+
+    if input_field.property.ty.is_option() {
+        let result = quote!({
+            let body = ctx.request.receive_body().await?;
+            let body_reader = body.get_body_data_reader()?;
+
+            if let Some(value) = body_reader.get_optional(#field_name){
+                Some(value.try_into()?)
+            }else{
+                None
+            }
+        });
+        return Ok(result);
+    } else {
+        let result = quote!({
+            let body = ctx.request.receive_body().await?;
+            let body_reader = body.get_body_data_reader()?;
+            body_reader.get_required(#field_name)?.try_into()?
+        });
+        return Ok(result);
+    }
+}
+
+fn read_from_form_data_as_single_field(
+    input_field: &InputField,
+) -> Result<TokenStream, syn::Error> {
+    if input_field.property.ty.is_file_content() {
+        let name = input_field.name();
+        let name = name.get_value_as_str();
+
+        let result = quote!({
+            let data_reader = ctx.request.receive_body().await?.get_body_data_reader()?;
+            data_reader.get_required(#name)?.try_into()?
         });
         return Ok(result);
     }
