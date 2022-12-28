@@ -135,7 +135,8 @@ fn read_from_form_data_as_single_field(
         let name = name.get_value_as_str();
 
         let result = quote!({
-            let data_reader = ctx.request.receive_body().await?.get_body_data_reader()?;
+            let body = ctx.request.receive_body().await?
+            let data_reader = body.get_body_data_reader()?;
             data_reader.get_required(#name)?.try_into()?
         });
         return Ok(result);
