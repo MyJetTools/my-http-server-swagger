@@ -17,7 +17,7 @@ pub fn impl_output_types(ast: &syn::DeriveInput) -> proc_macro::TokenStream {
                 #use_documentation;
 
                 data_types::HttpObjectStructure{
-                    struct_id: #struct_name_as_str.to_string(),
+                    struct_id: #struct_name_as_str,
                     fields: vec![#(#fields)*,]
                 }
             }
