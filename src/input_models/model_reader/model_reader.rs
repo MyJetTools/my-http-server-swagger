@@ -47,7 +47,7 @@ pub fn generate(name: &Ident, input_fields: &InputFields) -> Result<TokenStream,
                 if input_field.property.ty.is_file_content() {
                     return Err(syn::Error::new_spanned(
                         input_field.property.ty.get_token_stream(),
-                        "http_body can not be used with FileContent. Please use Vec<u8> and http_body_file attribute",
+                        "http_body can not be used with FileContent. Please use Vec<u8> and http_body_file attribute to read file",
                     ));
                 } else if input_field.property.ty.is_vec_of_u8() {
                     let struct_field_name = input_field.property.get_field_name_ident();

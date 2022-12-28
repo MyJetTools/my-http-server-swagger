@@ -52,7 +52,7 @@ impl InputFieldSource {
             "http_path" => Some(Self::Path),
             "http_form_data" => Some(Self::FormData),
             "http_body" => Some(Self::Body),
-            "http_body_file" => Some(Self::Body),
+            "http_body_file" => Some(Self::BodyFile),
             _ => None,
         }
     }
@@ -223,30 +223,11 @@ impl<'s> InputFields<'s> {
                     };
 
                     if field.property.ty.is_file_content() {
-                        if body_data_reader.body_raw > 1 {
-                            let err = syn::Error::new_spanned(
-                                field.property.field,
-                                "Field is already attributed as reading raw body to vec of u8",
-                            );
-                            return Err(err);
-                        }
-
-                        if body_data_reader.body_field > 1 {
-                            let err = syn::Error::new_spanned(
-                                field.property.field,
-                                "Field is already attributed as reading body model",
-                            );
-                            return Err(err);
-                        }
-
-                        body_data_reader.body_file += 1;
-                        if body_data_reader.body_file > 1 {
-                            let err = syn::Error::new_spanned(
-                                field.property.field,
-                                "Only one field can be attributed as body_file",
-                            );
-                            return Err(err);
-                        }
+                        let err = syn::Error::new_spanned(
+                            field.property.field,
+                            "Field is already attributed as reading body file",
+                        );
+                        return Err(err);
                     } else if field.property.ty.is_vec_of_u8() {
                         if body_data_reader.body_file > 1 {
                             let err = syn::Error::new_spanned(
@@ -289,6 +270,17 @@ impl<'s> InputFields<'s> {
                 }
                 InputFieldSource::FormData => {
                     if body_data_reader.has_body_data() {
+                        let err = syn::Error::new_spanned(
+                            field.property.field,
+                            "Form data and body data can not be mixed",
+                        );
+                        return Err(err);
+                    };
+
+                    body_data_reader.form_data_field += 1;
+                }
+                InputFieldSource::BodyFile => {
+                    if body_data_reader.has_form_data() {
                         let err = syn::Error::new_spanned(
                             field.property.field,
                             "Form data and body data can not be mixed",
