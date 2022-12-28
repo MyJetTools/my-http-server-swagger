@@ -13,7 +13,7 @@ use crate::{
 pub fn get_body_data_src() -> TokenStream {
     quote!(__reader)
 }
-pub fn generate_read_body(input_fields: &Vec<&InputField>) -> TokenStream {
+pub fn generate_read_body(input_fields: &Vec<&InputField>) -> Result<TokenStream, syn::Error> {
     let data_src = get_body_data_src();
 
     let mut validation = Vec::with_capacity(input_fields.len());
@@ -44,7 +44,7 @@ pub fn generate_read_body(input_fields: &Vec<&InputField>) -> TokenStream {
             PropertyType::VecOf(_) => {}
             PropertyType::Struct(_, ty) => {
                 if input_field.property.ty.is_file_content() {
-                    let line = generate_reading_required(input_field, &data_src);
+                    let line = generate_reading_required(input_field, &data_src)?;
                     reading_feilds.push(line);
                 } else {
                     let input_field_name = input_field.name();
@@ -59,7 +59,7 @@ pub fn generate_read_body(input_fields: &Vec<&InputField>) -> TokenStream {
                 }
             }
             _ => {
-                reading_feilds.push(generate_reading_required(input_field, &data_src));
+                reading_feilds.push(generate_reading_required(input_field, &data_src)?);
             }
         }
 
@@ -72,7 +72,7 @@ pub fn generate_read_body(input_fields: &Vec<&InputField>) -> TokenStream {
 
     let init_fields = input_fields.as_token_stream();
 
-    quote! {
+    let result = quote! {
         let #init_fields ={
             let __body = ctx.request.get_body().await?;
             let __reader = __body.get_body_data_reader()?;
@@ -81,11 +81,16 @@ pub fn generate_read_body(input_fields: &Vec<&InputField>) -> TokenStream {
         };
 
         #(#validation)*
-    }
+    };
+
+    Ok(result)
 }
 
-fn generate_reading_required(input_field: &InputField, data_src: &TokenStream) -> TokenStream {
-    match input_field.src {
+fn generate_reading_required(
+    input_field: &InputField,
+    data_src: &TokenStream,
+) -> Result<TokenStream, syn::Error> {
+    let result = match input_field.src {
         InputFieldSource::Query => {
             panic!("Bug. Query is not supported for read body model");
         }
@@ -101,11 +106,16 @@ fn generate_reading_required(input_field: &InputField, data_src: &TokenStream) -
 
             quote!(#data_src.get_required(#input_field_name)?.try_into()?;)
         }
+        InputFieldSource::BodyFile => {
+            panic!("Not Implemented")
+        }
         InputFieldSource::FormData => {
             let input_field_name = input_field.name();
             let input_field_name = input_field_name.get_value_as_str();
 
             quote!(#data_src.get_required(#input_field_name)?.try_into()?;)
         }
-    }
+    };
+
+    Ok(result)
 }

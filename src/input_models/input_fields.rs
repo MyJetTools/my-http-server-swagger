@@ -40,6 +40,7 @@ pub enum InputFieldSource {
     Path,
     Header,
     Body,
+    BodyFile,
     FormData,
 }
 
@@ -51,6 +52,7 @@ impl InputFieldSource {
             "http_path" => Some(Self::Path),
             "http_form_data" => Some(Self::FormData),
             "http_body" => Some(Self::Body),
+            "http_body_file" => Some(Self::Body),
             _ => None,
         }
     }
@@ -127,6 +129,7 @@ impl<'s> InputField<'s> {
             InputFieldSource::Header => false,
             InputFieldSource::Body => true,
             InputFieldSource::FormData => true,
+            InputFieldSource::BodyFile => true,
         }
     }
 

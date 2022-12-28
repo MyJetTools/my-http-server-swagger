@@ -76,5 +76,6 @@ fn get_input_src(field: &InputField) -> TokenStream {
         InputFieldSource::Header => quote!(#http_parameter_input_src::Header),
         InputFieldSource::Body => quote!(#http_parameter_input_src::Body),
         InputFieldSource::FormData => quote!(#http_parameter_input_src::FormData),
+        InputFieldSource::BodyFile => quote!(#http_parameter_input_src::Body),
     }
 }

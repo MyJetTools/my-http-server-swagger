@@ -20,9 +20,9 @@ pub fn generate(name: &Ident, input_fields: &InputFields) -> Result<TokenStream,
     let read_body = if let Some(body_data_to_read) = has_body_data_to_read {
         let body_fields = fileds.body_fields.as_ref().unwrap();
         if body_data_to_read.form_data_field > 0 {
-            Some(super::generate_read_body(body_fields))
+            Some(super::generate_read_body(body_fields)?)
         } else if body_data_to_read.body_field > 0 {
-            Some(super::generate_read_body(body_fields))
+            Some(super::generate_read_body(body_fields)?)
         } else {
             None
         }
@@ -45,18 +45,10 @@ pub fn generate(name: &Ident, input_fields: &InputFields) -> Result<TokenStream,
             }
             InputFieldSource::Body => {
                 if input_field.property.ty.is_file_content() {
-                    let struct_field_name = input_field.property.get_field_name_ident();
-                    let item = quote! {
-                        #struct_field_name : {
-                            let body = ctx.request.receive_body().await?;
-                            FileContent {
-                                content_type: "".to_string(),
-                                file_name: "".to_string(),
-                                content: body.get_body(),
-                            }
-                          }
-                    };
-                    fileds_to_return.push(item);
+                    return Err(syn::Error::new_spanned(
+                        input_field.property.ty.get_token_stream(),
+                        "http_body can not be used with FileContent. Please use Vec<u8> and http_body_file attribute",
+                    ));
                 } else if input_field.property.ty.is_vec_of_u8() {
                     let struct_field_name = input_field.property.get_field_name_ident();
                     let item =
@@ -73,6 +65,24 @@ pub fn generate(name: &Ident, input_fields: &InputFields) -> Result<TokenStream,
             InputFieldSource::FormData => {
                 fileds_to_return.push(input_field.get_struct_fiel_name_as_token_stream());
             }
+
+            InputFieldSource::BodyFile => {
+                if input_field.property.ty.is_vec_of_u8() {
+                    let struct_field_name = input_field.property.get_field_name_ident();
+                    let item = quote! {
+                        #struct_field_name : {
+                            let body = ctx.request.receive_body().await?;
+                            body.get_body()
+                          }
+                    };
+                    fileds_to_return.push(item);
+                } else {
+                    return Err(syn::Error::new_spanned(
+                        input_field.property.ty.get_token_stream(),
+                        "http_body_file can only be used with Vec<u8>",
+                    ));
+                }
+            }
         }
     }
 
@@ -83,5 +93,6 @@ pub fn generate(name: &Ident, input_fields: &InputFields) -> Result<TokenStream,
             #(#fileds_to_return),*
         })
     };
+
     Ok(result)
 }
