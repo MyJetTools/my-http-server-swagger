@@ -223,11 +223,10 @@ impl<'s> InputFields<'s> {
                     };
 
                     if field.property.ty.is_file_content() {
-                        let err = syn::Error::new_spanned(
-                            field.property.field,
-                            "Field is already attributed as reading body file",
-                        );
-                        return Err(err);
+                        return Err(syn::Error::new_spanned(
+                            field.property.ty.get_token_stream(),
+                            "Please use http_body_file with Vec<u8> to read file as body",
+                        ));
                     } else if field.property.ty.is_vec_of_u8() {
                         if body_data_reader.body_file > 1 {
                             let err = syn::Error::new_spanned(
