@@ -106,9 +106,6 @@ fn generate_reading_required(
 
             quote!(#data_src.get_required(#input_field_name)?.try_into()?;)
         }
-        InputFieldSource::BodyFile => {
-            panic!("Not Implemented")
-        }
         InputFieldSource::FormData => {
             let input_field_name = input_field.name();
             let input_field_name = input_field_name.get_value_as_str();

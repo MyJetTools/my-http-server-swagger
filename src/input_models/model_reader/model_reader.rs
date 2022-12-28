@@ -1,7 +1,7 @@
 use proc_macro2::{Ident, TokenStream};
 
 use crate::{
-    input_models::input_fields::{InputFieldSource, InputFields},
+    input_models::input_fields::{InputField, InputFieldSource, InputFields},
     proprety_type_ext::PropertyTypeExt,
 };
 use quote::quote;
@@ -17,11 +17,9 @@ pub fn generate(name: &Ident, input_fields: &InputFields) -> Result<TokenStream,
 
     let has_body_data_to_read = input_fields.has_body_data_to_read()?;
 
-    let read_body = if let Some(body_data_to_read) = has_body_data_to_read {
+    let read_body = if let Some(body_data_to_read) = &has_body_data_to_read {
         let body_fields = fileds.body_fields.as_ref().unwrap();
-        if body_data_to_read.form_data_field > 0 {
-            Some(super::generate_read_body(body_fields)?)
-        } else if body_data_to_read.body_field > 0 {
+        if body_data_to_read.http_form > 1 || body_data_to_read.http_body > 1 {
             Some(super::generate_read_body(body_fields)?)
         } else {
             None
@@ -44,44 +42,18 @@ pub fn generate(name: &Ident, input_fields: &InputFields) -> Result<TokenStream,
                 fileds_to_return.push(input_field.get_struct_fiel_name_as_token_stream());
             }
             InputFieldSource::Body => {
-                if input_field.property.ty.is_file_content() {
-                    return Err(syn::Error::new_spanned(
-                        input_field.property.ty.get_token_stream(),
-                        "http_body can not be used with FileContent. Please use Vec<u8> and http_body_file attribute to read file",
-                    ));
-                } else if input_field.property.ty.is_vec_of_u8() {
-                    let struct_field_name = input_field.property.get_field_name_ident();
-                    let item =
-                        quote!(#struct_field_name : ctx.request.receive_body().await?.get_body());
-                    fileds_to_return.push(item);
-                } else if input_field.property.ty.is_struct() {
-                    let struct_field_name = input_field.property.get_field_name_ident();
-                    let item = quote!(#struct_field_name : ctx.request.get_body().await?.get_body_as_json()?);
-                    fileds_to_return.push(item);
-                } else {
+                let body_data_to_read = has_body_data_to_read.as_ref().unwrap();
+
+                if body_data_to_read.http_body > 1 {
                     fileds_to_return.push(input_field.get_struct_fiel_name_as_token_stream());
+                } else {
+                    let struct_field_name = input_field.get_struct_fiel_name_as_token_stream();
+                    let read_value = read_from_body_as_single_field(input_field)?;
+                    fileds_to_return.push(quote!(#struct_field_name: #read_value));
                 }
             }
             InputFieldSource::FormData => {
                 fileds_to_return.push(input_field.get_struct_fiel_name_as_token_stream());
-            }
-
-            InputFieldSource::BodyFile => {
-                if input_field.property.ty.is_vec_of_u8() {
-                    let struct_field_name = input_field.property.get_field_name_ident();
-                    let item = quote! {
-                        #struct_field_name : {
-                            let body = ctx.request.receive_body().await?;
-                            body.get_body()
-                          }
-                    };
-                    fileds_to_return.push(item);
-                } else {
-                    return Err(syn::Error::new_spanned(
-                        input_field.property.ty.get_token_stream(),
-                        "http_body_file can only be used with Vec<u8>",
-                    ));
-                }
             }
         }
     }
@@ -95,4 +67,29 @@ pub fn generate(name: &Ident, input_fields: &InputFields) -> Result<TokenStream,
     };
 
     Ok(result)
+}
+
+fn read_from_body_as_single_field(input_field: &InputField) -> Result<TokenStream, syn::Error> {
+    if input_field.property.ty.is_vec_of_u8() {
+        let result = quote!({
+            let body = ctx.request.receive_body().await?;
+            body.get_body()
+        });
+
+        return Ok(result);
+    }
+
+    if input_field.property.ty.is_struct() {
+        let result = quote!({
+            let body = ctx.request.receive_body().await?;
+            body.get_body()
+        });
+
+        return Ok(result);
+    }
+
+    Err(syn::Error::new_spanned(
+        input_field.property.field,
+        "Not Supported type for single field as a body",
+    ))
 }

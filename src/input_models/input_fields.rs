@@ -2,35 +2,27 @@ use macros_utils::{AttributeParams, ParamValue};
 use proc_macro2::TokenStream;
 use types_reader::{PropertyType, StructProperty};
 
-use crate::proprety_type_ext::PropertyTypeExt;
-
 pub struct BodyNotBodyFields<'s> {
     pub body_fields: Option<Vec<&'s InputField<'s>>>,
     pub not_body_fields: Option<Vec<&'s InputField<'s>>>,
 }
 
 pub struct BodyDataToReader {
-    pub body_file: usize,
-    pub body_model: usize,
-    pub body_raw: usize,
-    pub body_field: usize,
-    pub form_data_field: usize,
+    pub http_form: usize,
+    pub http_body: usize,
 }
 
 impl BodyDataToReader {
     pub fn has_form_data(&self) -> bool {
-        self.form_data_field > 0
+        self.http_form > 0
     }
 
     pub fn has_body_data(&self) -> bool {
-        self.body_file > 0 || self.body_model > 0 || self.body_raw > 0 || self.body_field > 0
+        self.http_body > 0
     }
 
     pub fn is_empty(&self) -> bool {
-        self.body_file > 0
-            && self.body_field == 0
-            && self.body_model == 0
-            && self.form_data_field == 0
+        self.http_form == 0 && self.http_body == 0
     }
 }
 
@@ -40,7 +32,6 @@ pub enum InputFieldSource {
     Path,
     Header,
     Body,
-    BodyFile,
     FormData,
 }
 
@@ -52,7 +43,6 @@ impl InputFieldSource {
             "http_path" => Some(Self::Path),
             "http_form_data" => Some(Self::FormData),
             "http_body" => Some(Self::Body),
-            "http_body_file" => Some(Self::BodyFile),
             _ => None,
         }
     }
@@ -129,7 +119,6 @@ impl<'s> InputField<'s> {
             InputFieldSource::Header => false,
             InputFieldSource::Body => true,
             InputFieldSource::FormData => true,
-            InputFieldSource::BodyFile => true,
         }
     }
 
@@ -204,11 +193,8 @@ impl<'s> InputFields<'s> {
 
     pub fn has_body_data_to_read(&self) -> Result<Option<BodyDataToReader>, syn::Error> {
         let mut body_data_reader = BodyDataToReader {
-            body_file: 0,
-            form_data_field: 0,
-            body_field: 0,
-            body_model: 0,
-            body_raw: 0,
+            http_form: 0,
+            http_body: 0,
         };
 
         for field in &self.fields {
@@ -222,50 +208,7 @@ impl<'s> InputFields<'s> {
                         return Err(err);
                     };
 
-                    if field.property.ty.is_file_content() {
-                        return Err(syn::Error::new_spanned(
-                            field.property.get_syn_type(),
-                            "Please use http_body_file with Vec<u8> to read file as body",
-                        ));
-                    } else if field.property.ty.is_vec_of_u8() {
-                        if body_data_reader.body_file > 1 {
-                            let err = syn::Error::new_spanned(
-                                field.property.field,
-                                "Field is already attributed as reading body file",
-                            );
-                            return Err(err);
-                        }
-
-                        if body_data_reader.body_field > 1 {
-                            let err = syn::Error::new_spanned(
-                                field.property.field,
-                                "Field is already attributed as reading body model",
-                            );
-                            return Err(err);
-                        }
-
-                        body_data_reader.body_raw += 1;
-
-                        if body_data_reader.body_raw > 1 {
-                            let err = syn::Error::new_spanned(
-                                field.property.field,
-                                "Only one field can be complietly serrialized from body",
-                            );
-                            return Err(err);
-                        }
-                    } else if field.property.ty.is_struct() {
-                        body_data_reader.body_model += 1;
-
-                        if body_data_reader.body_model > 1 {
-                            let err = syn::Error::new_spanned(
-                                field.property.field,
-                                "Only one field can be complietly serrialized from body",
-                            );
-                            return Err(err);
-                        }
-                    } else {
-                        body_data_reader.body_field += 1;
-                    }
+                    body_data_reader.http_body += 1;
                 }
                 InputFieldSource::FormData => {
                     if body_data_reader.has_body_data() {
@@ -276,34 +219,9 @@ impl<'s> InputFields<'s> {
                         return Err(err);
                     };
 
-                    body_data_reader.form_data_field += 1;
+                    body_data_reader.http_form += 1;
                 }
-                InputFieldSource::BodyFile => {
-                    if !field.property.ty.is_vec_of_u8() {
-                        return Err(syn::Error::new_spanned(
-                            field.property.get_syn_type(),
-                            "Please use http_body_file with Vec<u8> to read file as body",
-                        ));
-                    }
 
-                    if body_data_reader.has_form_data() {
-                        let err = syn::Error::new_spanned(
-                            field.property.field,
-                            "Form data and body data can not be mixed",
-                        );
-                        return Err(err);
-                    };
-
-                    body_data_reader.body_file += 1;
-
-                    if body_data_reader.body_file > 1 {
-                        let err = syn::Error::new_spanned(
-                            field.property.field,
-                            "Body file can be read only once",
-                        );
-                        return Err(err);
-                    }
-                }
                 _ => {}
             }
         }
