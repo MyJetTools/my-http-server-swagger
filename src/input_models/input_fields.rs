@@ -224,7 +224,7 @@ impl<'s> InputFields<'s> {
 
                     if field.property.ty.is_file_content() {
                         return Err(syn::Error::new_spanned(
-                            field.property.ty.get_token_stream(),
+                            field.property.get_syn_type(),
                             "Please use http_body_file with Vec<u8> to read file as body",
                         ));
                     } else if field.property.ty.is_vec_of_u8() {
