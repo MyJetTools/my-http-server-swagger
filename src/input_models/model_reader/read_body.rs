@@ -53,7 +53,7 @@ pub fn generate_read_body(input_fields: &Vec<&InputField>) -> Result<TokenStream
                     let input_field_name = input_field.name();
                     let input_field_name = input_field_name.get_value_as_str();
 
-                    let line = quote!(let #struct_field_name: #data_src.get_required(#input_field_name)?.try_into()?;);
+                    let line = quote!(let #struct_field_name = #data_src.get_required(#input_field_name)?.try_into()?;);
                     reading_feilds.push(line);
                 }
             }
@@ -108,13 +108,13 @@ fn generate_reading_required(
             let input_field_name = input_field.name();
             let input_field_name = input_field_name.get_value_as_str();
 
-            quote!(let #struct_field: #data_src.get_required(#input_field_name)?.try_into()?;)
+            quote!(let #struct_field = #data_src.get_required(#input_field_name)?.try_into()?;)
         }
         InputFieldSource::FormData => {
             let input_field_name = input_field.name();
             let input_field_name = input_field_name.get_value_as_str();
 
-            quote!(let #struct_field: #data_src.get_required(#input_field_name)?.try_into()?;)
+            quote!(let #struct_field = #data_src.get_required(#input_field_name)?.try_into()?;)
         }
     };
 
