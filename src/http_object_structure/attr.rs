@@ -23,6 +23,21 @@ pub fn impl_output_types(ast: &syn::DeriveInput) -> proc_macro::TokenStream {
             }
         }
 
+        impl<'s> TryFrom<my_http_server::InputParamValue<'s>> for #stuct_name {
+            type Error = my_http_server::HttpFailResult;
+        
+            fn try_from(value: my_http_server::InputParamValue) -> Result<Self, Self::Error> {
+                let value = value.get_raw_str()?;
+                match serde_json::from_str(value) {
+                    Ok(result) => Ok(result),
+                    Err(err) => Err(HttpFailResult::invalid_value_to_parse(format!(
+                        "Can't parse json value: {}",
+                        err
+                    ))),
+                }
+            }
+        }
+
     }
     .into()
 }
