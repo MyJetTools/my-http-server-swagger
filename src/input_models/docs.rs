@@ -23,14 +23,24 @@ pub fn generate_http_input(fields: &InputFields) -> Result<TokenStream, syn::Err
 fn generate_http_input_parameter(input_field: &InputField) -> Result<TokenStream, syn::Error> {
     let field = if input_field.src_is_body() {
         if let Some(body_type) = input_field.get_body_type() {
-            let body_type =
-                proc_macro2::TokenStream::from_str(body_type.get_value_as_str()).unwrap();
-            crate::types::compile_http_field_with_object(
-                input_field.name().get_value_as_str(),
-                &quote!(#body_type),
-                input_field.required(),
-                input_field.get_default_value(),
-            )
+            let body_type = body_type.get_value_as_str();
+
+            if body_type == "file" {
+                let http_simple_type = crate::consts::get_http_simple_type();
+                let result = quote! {
+                    data_types::HttpDataType::SimpleType(#http_simple_type::Binary)
+                };
+
+                result
+            } else {
+                let body_type = proc_macro2::TokenStream::from_str(body_type).unwrap();
+                crate::types::compile_http_field_with_object(
+                    input_field.name().get_value_as_str(),
+                    &quote!(#body_type),
+                    input_field.required(),
+                    input_field.get_default_value(),
+                )
+            }
         } else {
             crate::types::compile_http_field(
                 input_field.name().get_value_as_str(),
