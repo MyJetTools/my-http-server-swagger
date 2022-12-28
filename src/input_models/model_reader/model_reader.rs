@@ -71,8 +71,20 @@ pub fn generate(name: &Ident, input_fields: &InputFields) -> Result<TokenStream,
 
 fn read_from_body_as_single_field(input_field: &InputField) -> Result<TokenStream, syn::Error> {
     if input_field.property.ty.is_vec_of_u8() {
-        let result = quote!(ctx.request.receive_body().await?.get_body());
+        if let Some(body_type) = input_field.get_body_type() {
+            if body_type.get_value_as_str() == "file" {
+                let result = quote!(ctx.request.receive_body().await?.get_body());
+                return Ok(result);
+            }
+        }
 
+        let result = quote!({
+            let result = quote!({
+                let byte_array = ctx.request.receive_body().await?.get_body();
+                serde_json::from_slice(byte_array.as_slice()).unwrap()
+            });
+            return Ok(result);
+        });
         return Ok(result);
     }
 
