@@ -4,11 +4,12 @@ use proc_macro::TokenStream;
 use syn;
 
 mod action_builder;
+mod as_token_stream;
 mod consts;
 mod enum_doc;
 mod http_object_structure;
 mod input_models;
-mod reflection;
+mod proprety_type_ext;
 mod types;
 
 #[proc_macro_derive(
@@ -20,7 +21,6 @@ mod types;
         http_form_data,
         http_body,
         http_body_type,
-        http_body_file,
     )
 )]
 pub fn my_http_input_doc_derive(input: TokenStream) -> TokenStream {

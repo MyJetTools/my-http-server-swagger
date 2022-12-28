@@ -1,13 +1,29 @@
 use macros_utils::{AttributeParams, ParamValue};
+use proc_macro2::TokenStream;
+use types_reader::{PropertyType, StructProperty};
 
-use crate::reflection::StructProperty;
+pub struct BodyNotBodyFields<'s> {
+    pub body_fields: Option<Vec<&'s InputField<'s>>>,
+    pub not_body_fields: Option<Vec<&'s InputField<'s>>>,
+}
 
-pub enum BodyDataToReader {
-    FormData,
-    BodyFile,
-    RawBodyToVec,
-    DeserializeBody,
-    BodyModel,
+pub struct BodyDataToReader {
+    pub http_form: usize,
+    pub http_body: usize,
+}
+
+impl BodyDataToReader {
+    pub fn has_form_data(&self) -> bool {
+        self.http_form > 0
+    }
+
+    pub fn has_body_data(&self) -> bool {
+        self.http_body > 0
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.http_form == 0 && self.http_body == 0
+    }
 }
 
 #[derive(Debug)]
@@ -17,7 +33,6 @@ pub enum InputFieldSource {
     Header,
     Body,
     FormData,
-    BodyFile,
 }
 
 impl InputFieldSource {
@@ -28,21 +43,13 @@ impl InputFieldSource {
             "http_path" => Some(Self::Path),
             "http_form_data" => Some(Self::FormData),
             "http_body" => Some(Self::Body),
-            "http_body_file" => Some(Self::BodyFile),
             _ => None,
-        }
-    }
-
-    pub fn is_body_file(&self) -> bool {
-        match self {
-            InputFieldSource::BodyFile => true,
-            _ => false,
         }
     }
 }
 
-pub struct InputField {
-    pub property: StructProperty,
+pub struct InputField<'s> {
+    pub property: StructProperty<'s>,
     pub src: InputFieldSource,
     pub my_attr: AttributeParams,
 }
@@ -58,8 +65,8 @@ fn get_attr(property: &StructProperty) -> Option<(String, InputFieldSource)> {
     None
 }
 
-impl InputField {
-    pub fn new(mut property: StructProperty) -> Option<Self> {
+impl<'s> InputField<'s> {
+    pub fn new(mut property: StructProperty<'s>) -> Option<Self> {
         let (attr_name, src) = get_attr(&property)?;
 
         let attr = property.attrs.remove(&attr_name).unwrap();
@@ -76,19 +83,21 @@ impl InputField {
         .into();
     }
 
-    pub fn name(&self) -> String {
+    pub fn name(&self) -> ParamValue {
         if let Some(value) = self.my_attr.get_named_param("name") {
-            value.get_value_as_str().to_string()
+            value
         } else {
-            self.property.name.clone()
+            ParamValue {
+                value: self.property.name.as_bytes(),
+            }
         }
     }
 
     pub fn required(&self) -> bool {
-        if self.property.ty.is_vec() {
-            return false;
+        match &self.property.ty {
+            PropertyType::VecOf(_) => return false,
+            _ => {}
         }
-
         !self.property.ty.is_option()
     }
 
@@ -103,7 +112,6 @@ impl InputField {
             InputFieldSource::Header => false,
             InputFieldSource::Body => true,
             InputFieldSource::FormData => true,
-            InputFieldSource::BodyFile => true,
         }
     }
 
@@ -115,27 +123,19 @@ impl InputField {
         return false;
     }
 
-    pub fn src_is_form_data(&self) -> bool {
-        if let InputFieldSource::FormData = self.src {
-            return true;
-        }
-
-        return false;
-    }
-
     pub fn get_body_type(&self) -> Option<ParamValue> {
         self.my_attr.get_named_param("body_type")
     }
 
-    pub fn description(&self) -> ParamValue {
+    pub fn description(&self) -> Result<ParamValue, syn::Error> {
         if let Some(value) = self.my_attr.get_named_param("description") {
-            return value;
+            return Ok(value);
         }
 
-        panic!(
-            "Description field is missing of the field {}",
-            self.property.name
-        );
+        let err =
+            syn::Error::new_spanned(self.property.field, "description is missing of the field");
+
+        Err(err)
     }
 
     pub fn validator(&self) -> Option<ParamValue> {
@@ -143,17 +143,18 @@ impl InputField {
         Some(result)
     }
 
-    pub fn struct_field_name(&self) -> &str {
-        self.property.name.as_str()
+    pub fn get_struct_fiel_name_as_token_stream(&self) -> TokenStream {
+        let name = self.property.get_field_name_ident();
+        quote::quote!(#name)
     }
 }
 
-pub struct InputFields {
-    pub fields: Vec<InputField>,
+pub struct InputFields<'s> {
+    pub fields: Vec<InputField<'s>>,
 }
 
-impl InputFields {
-    pub fn new(src: Vec<StructProperty>) -> Self {
+impl<'s> InputFields<'s> {
+    pub fn new(src: Vec<StructProperty<'s>>) -> Self {
         let mut fields = Vec::new();
 
         for prop in src {
@@ -165,127 +166,63 @@ impl InputFields {
         Self { fields }
     }
 
-    pub fn check_types_of_field(&self) {
-        let mut has_body_file = 0;
-        let mut has_body = 0;
-        let mut has_form = 0;
+    pub fn get_body_and_not_body_fields(&'s self) -> BodyNotBodyFields<'s> {
+        let mut body_fields = rust_extensions::lazy::LazyVec::with_capacity(self.fields.len());
+        let mut not_body_fields = rust_extensions::lazy::LazyVec::with_capacity(self.fields.len());
 
         for field in &self.fields {
-            match field.src {
-                InputFieldSource::Query => {}
-                InputFieldSource::Path => {}
-                InputFieldSource::Header => {}
-                InputFieldSource::Body => has_body += 1,
-                InputFieldSource::FormData => has_form += 1,
-                InputFieldSource::BodyFile => has_body_file += 1,
+            if field.is_reading_from_body() {
+                body_fields.add(field);
+            } else {
+                not_body_fields.add(field);
             }
         }
 
-        if has_body_file > 1 {
-            panic!("Only one field can be attributed as body_file");
-        }
-
-        if has_body_file > 0 && has_body > 0 {
-            panic!("Model can not have both body_file attribute and body attribute");
-        }
-
-        if has_body_file > 0 && has_form > 0 {
-            panic!("Model can not have both body_file attribute and from attribute");
+        BodyNotBodyFields {
+            body_fields: body_fields.get_result(),
+            not_body_fields: not_body_fields.get_result(),
         }
     }
 
-    pub fn has_data_to_read_from_query_or_path_or_header(&self) -> bool {
-        for field in &self.fields {
-            match &field.src {
-                InputFieldSource::Query => return true,
-                InputFieldSource::Path => return true,
-                InputFieldSource::Header => return true,
-                InputFieldSource::Body => {}
-                InputFieldSource::FormData => {}
-                InputFieldSource::BodyFile => {}
-            }
-        }
-        return false;
-    }
-
-    pub fn has_body_data_to_read(&self) -> Option<BodyDataToReader> {
-        {
-            let mut body_attrs_amount = 0;
-            let mut last_body_type = None;
-
-            for field in &self.fields {
-                match &field.src {
-                    InputFieldSource::Query => {}
-                    InputFieldSource::Path => {}
-                    InputFieldSource::Header => {}
-                    InputFieldSource::Body => {
-                        body_attrs_amount += 1;
-                        last_body_type = Some(field);
-                    }
-                    InputFieldSource::FormData => {
-                        body_attrs_amount += 1;
-                    }
-                    InputFieldSource::BodyFile => {
-                        body_attrs_amount += 1;
-                    }
-                }
-            }
-
-            if let Some(last_input_field) = last_body_type {
-                if body_attrs_amount == 1 {
-                    match &last_input_field.property.ty {
-                        crate::reflection::PropertyType::U8 => {}
-                        crate::reflection::PropertyType::I8 => {}
-                        crate::reflection::PropertyType::U16 => {}
-                        crate::reflection::PropertyType::I16 => {}
-                        crate::reflection::PropertyType::U32 => {}
-                        crate::reflection::PropertyType::I32 => {}
-                        crate::reflection::PropertyType::U64 => {}
-                        crate::reflection::PropertyType::I64 => {}
-                        crate::reflection::PropertyType::F32 => {}
-                        crate::reflection::PropertyType::F64 => {}
-                        crate::reflection::PropertyType::USize => {}
-                        crate::reflection::PropertyType::ISize => {}
-                        crate::reflection::PropertyType::String => {}
-                        crate::reflection::PropertyType::Str => {}
-                        crate::reflection::PropertyType::Bool => {}
-                        crate::reflection::PropertyType::DateTime => {}
-                        crate::reflection::PropertyType::FileContent => {}
-                        crate::reflection::PropertyType::OptionOf(_) => {}
-                        crate::reflection::PropertyType::VecOf(sub_type) => {
-                            if sub_type.is_u8() {
-                                return Some(BodyDataToReader::RawBodyToVec);
-                            }
-                            return Some(BodyDataToReader::DeserializeBody);
-                        }
-                        crate::reflection::PropertyType::Struct(_) => {
-                            return Some(BodyDataToReader::DeserializeBody)
-                        }
-                    };
-                }
-            }
-        }
+    pub fn has_body_data_to_read(&self) -> Result<Option<BodyDataToReader>, syn::Error> {
+        let mut body_data_reader = BodyDataToReader {
+            http_form: 0,
+            http_body: 0,
+        };
 
         for field in &self.fields {
             match &field.src {
-                InputFieldSource::Query => {}
-                InputFieldSource::Path => {}
-                InputFieldSource::Header => {}
                 InputFieldSource::Body => {
-                    if field.property.ty.is_vec_of_u8() {
-                        return Some(BodyDataToReader::RawBodyToVec);
-                    }
+                    if body_data_reader.has_form_data() {
+                        let err = syn::Error::new_spanned(
+                            field.property.field,
+                            "Form data and body data can not be mixed",
+                        );
+                        return Err(err);
+                    };
 
-                    return Some(BodyDataToReader::BodyModel);
+                    body_data_reader.http_body += 1;
                 }
                 InputFieldSource::FormData => {
-                    return Some(BodyDataToReader::FormData);
+                    if body_data_reader.has_body_data() {
+                        let err = syn::Error::new_spanned(
+                            field.property.field,
+                            "Form data and body data can not be mixed",
+                        );
+                        return Err(err);
+                    };
+
+                    body_data_reader.http_form += 1;
                 }
-                InputFieldSource::BodyFile => {
-                    return Some(BodyDataToReader::BodyFile);
-                }
+
+                _ => {}
             }
         }
-        return None;
+
+        if body_data_reader.is_empty() {
+            Ok(None)
+        } else {
+            Ok(Some(body_data_reader))
+        }
     }
 }

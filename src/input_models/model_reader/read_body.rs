@@ -1,101 +1,96 @@
+use std::str::FromStr;
+
+use proc_macro2::TokenStream;
+use quote::quote;
+use types_reader::PropertyType;
+
 use crate::{
-    input_models::input_fields::{InputField, InputFieldSource, InputFields},
-    reflection::PropertyType,
+    as_token_stream::AsTokenStream,
+    input_models::input_fields::{InputField, InputFieldSource},
+    proprety_type_ext::PropertyTypeExt,
 };
 
-const DATA_SRC: &str = "__reader";
-pub fn generate_read_body<TInputFiler: Fn(&InputField) -> bool>(
-    result: &mut String,
-    input_fields: &InputFields,
-    read_from_body_expression: &str,
-    filter: TInputFiler,
-) {
-    let mut validation: Option<String> = None;
+pub fn get_body_data_src() -> TokenStream {
+    quote!(__reader)
+}
+pub fn generate_read_body(input_fields: &Vec<&InputField>) -> Result<TokenStream, syn::Error> {
+    let data_src = get_body_data_src();
 
-    result.push_str("let ");
-    generate_init_fields(result, input_fields, &filter);
+    let mut validation = Vec::with_capacity(input_fields.len());
 
-    result.push_str("={\n");
+    let mut reading_feilds = Vec::with_capacity(input_fields.len());
 
-    result.push_str("let ");
-
-    result.push_str(DATA_SRC);
-    result.push_str(read_from_body_expression);
-
-    for input_field in &input_fields.fields {
-        if !filter(input_field) {
-            continue;
-        }
-
-        result.push_str("let ");
-        result.push_str(input_field.struct_field_name());
-        result.push_str(" = ");
+    for input_field in input_fields {
+        let struct_field_name = input_field.property.get_field_name_ident();
 
         match &input_field.property.ty {
-            PropertyType::FileContent => {
-                generate_reading_required(result, input_field);
-            }
-            PropertyType::OptionOf(sub_ty) => {
-                result.push_str("if let Some(value) = ");
-                result.push_str(DATA_SRC);
-                result.push_str(".get_optional(\"");
-                result.push_str(input_field.name().as_str());
-                result.push_str("\"){");
+            PropertyType::OptionOf(sub_type) => {
+                let input_field_name = input_field.name();
+                let input_field_name = input_field_name.get_value_as_str();
 
-                result.push_str("let value :");
-                result.push_str(sub_ty.as_str().as_str());
-                result.push_str(" = value.try_into()?;");
+                let sub_type = sub_type.get_token_stream();
 
-                result.push_str("Some(value)}else{None};");
+                let line = quote::quote! {
+                    let #struct_field_name = if let Some(value) = #data_src.get_optional(#input_field_name){
+                        let value: #sub_type = value.try_into()?;
+                        Some(value)
+                    }else{
+                        None
+                    }
+                };
+
+                reading_feilds.push(line);
             }
             PropertyType::VecOf(_) => {}
-            PropertyType::Struct(_) => {
-                result.push_str(DATA_SRC);
-                result.push_str(".get_required(\"");
-                result.push_str(input_field.name().as_str());
-                result.push_str("\")?; let ");
+            PropertyType::Struct(_, ty) => {
+                if input_field.property.ty.is_file_content() {
+                    let line = generate_reading_required(input_field, &data_src)?;
+                    reading_feilds.push(line);
+                } else {
+                    let input_field_name = input_field.name();
+                    let input_field_name = input_field_name.get_value_as_str();
 
-                result.push_str(input_field.struct_field_name());
-                result.push_str(": ");
+                    let line = quote::quote! {
+                        let #struct_field_name = #data_src.get_required(#input_field_name)?;
+                        let #struct_field_name: #ty = #struct_field_name.try_into()?;
+                    };
 
-                result.push_str(input_field.property.ty.as_str().as_str());
-                result.push_str(" = ");
-
-                result.push_str(input_field.struct_field_name());
-                result.push_str(".try_into()?;");
+                    reading_feilds.push(line);
+                }
             }
             _ => {
-                generate_reading_required(result, input_field);
+                reading_feilds.push(generate_reading_required(input_field, &data_src)?);
             }
         }
 
         if let Some(validator) = input_field.validator() {
-            if validation.is_none() {
-                validation = Some(String::new());
-            }
-            validation
-                .as_mut()
-                .unwrap()
-                .push_str(validator.get_value_as_str());
-            validation.as_mut().unwrap().push_str("(ctx, &");
-            validation
-                .as_mut()
-                .unwrap()
-                .push_str(input_field.struct_field_name());
-            validation.as_mut().unwrap().push_str(")?;\n");
+            let validation_fn_name =
+                proc_macro2::TokenStream::from_str(validator.get_value_as_str()).unwrap();
+            validation.push(quote!(#validation_fn_name(ctx, &#struct_field_name)?;));
         }
     }
 
-    if let Some(validation) = validation {
-        result.push_str(validation.as_str());
-    }
+    let init_fields = input_fields.as_token_stream();
 
-    generate_init_fields(result, input_fields, &filter);
-    result.push_str("};\n");
+    let result = quote! {
+        let #init_fields ={
+            let __body = ctx.request.get_body().await?;
+            let __reader = __body.get_body_data_reader()?;
+            #(#reading_feilds)*
+            #init_fields
+        };
+
+        #(#validation)*
+    };
+
+    Ok(result)
 }
 
-fn generate_reading_required(result: &mut String, input_field: &InputField) {
-    match input_field.src {
+fn generate_reading_required(
+    input_field: &InputField,
+    data_src: &TokenStream,
+) -> Result<TokenStream, syn::Error> {
+    let result = match input_field.src {
         InputFieldSource::Query => {
             panic!("Bug. Query is not supported for read body model");
         }
@@ -106,46 +101,18 @@ fn generate_reading_required(result: &mut String, input_field: &InputField) {
             panic!("Bug. Path is not supported for read body model");
         }
         InputFieldSource::Body => {
-            result.push_str(DATA_SRC);
-            result.push_str(".get_required(\"");
-            result.push_str(input_field.name().as_str());
-            result.push_str("\")?.try_into()?;");
+            let input_field_name = input_field.name();
+            let input_field_name = input_field_name.get_value_as_str();
+
+            quote!(#data_src.get_required(#input_field_name)?.try_into()?;)
         }
         InputFieldSource::FormData => {
-            result.push_str(DATA_SRC);
-            result.push_str(".get_required(\"");
-            result.push_str(input_field.name().as_str());
-            result.push_str("\")?.try_into()?;");
+            let input_field_name = input_field.name();
+            let input_field_name = input_field_name.get_value_as_str();
+
+            quote!(#data_src.get_required(#input_field_name)?.try_into()?;)
         }
-        InputFieldSource::BodyFile => {
-            panic!("Bug. Should not read BodyFile at read body model");
-        }
-    }
-}
+    };
 
-fn generate_init_fields<TInputFiler: Fn(&InputField) -> bool>(
-    result: &mut String,
-    input_fields: &InputFields,
-    filter: &TInputFiler,
-) {
-    let amount = input_fields.fields.iter().filter(|f| filter(f)).count();
-
-    if amount > 1 {
-        result.push('(');
-    }
-
-    let mut no = 0;
-    for input_field in &input_fields.fields {
-        if filter(input_field) {
-            if no > 0 {
-                result.push(',');
-            }
-            result.push_str(input_field.property.name.as_str());
-            no += 1;
-        }
-    }
-
-    if amount > 1 {
-        result.push(')');
-    }
+    Ok(result)
 }

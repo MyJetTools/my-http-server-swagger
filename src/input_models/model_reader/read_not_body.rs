@@ -1,156 +1,137 @@
-use crate::{
-    input_models::input_fields::{InputField, InputFieldSource, InputFields},
-    reflection::PropertyType,
-};
+use std::str::FromStr;
 
-const DATA_SRC: &str = "__query_string";
+use crate::as_token_stream::AsTokenStream;
+use proc_macro2::TokenStream;
+use types_reader::PropertyType;
 
-pub fn generate_read_not_body(result: &mut String, input_fields: &InputFields) {
-    let mut validation: Option<String> = None;
+use crate::input_models::input_fields::{InputField, InputFieldSource};
 
-    result.push_str("let ");
-    generate_init_fields(result, input_fields);
+use quote::quote;
 
-    result.push_str("={\n");
+pub fn get_query_string_data_src() -> TokenStream {
+    quote!(__query_string)
+}
 
-    result.push_str("let ");
-    result.push_str(DATA_SRC);
+pub fn generate_read_not_body(input_fields: &Vec<&InputField>) -> TokenStream {
+    let mut validation = Vec::with_capacity(input_fields.len());
+    let data_src = get_query_string_data_src();
 
-    result.push_str(" = ctx.request.get_query_string()?;\n");
+    let mut reading_feilds = Vec::with_capacity(input_fields.len());
 
-    for input_field in &input_fields.fields {
-        if input_field.is_reading_from_body() {
-            continue;
-        }
-
-        result.push_str("let ");
-        result.push_str(input_field.struct_field_name());
-        result.push_str(" = ");
+    for input_field in input_fields {
+        let struct_field_name = input_field.property.get_field_name_ident();
 
         match &input_field.property.ty {
-            PropertyType::FileContent => {}
             PropertyType::OptionOf(_) => {
-                result.push_str("if let Some(value) = ");
-                result.push_str(DATA_SRC);
-                result.push_str(".get_optional(\"");
-                result.push_str(input_field.name().as_str());
-                result.push_str("\"){");
-                result.push_str(
-                    "let value = my_http_server::InputParamValue::from(value);Some(value.try_into()?)}else{None};",
-                );
+                let input_field_name = input_field.name();
+                let input_field_name = input_field_name.get_value_as_str();
+
+                let item = quote! {
+                    let #struct_field_name = if let Some(value) = #data_src.get_optional(#input_field_name){
+                        let value = my_http_server::InputParamValue::from(value);
+                        Some(value.try_into()?)
+                    }else{
+                        None
+                    };
+                }.into();
+                reading_feilds.push(item);
             }
             PropertyType::VecOf(sub_type) => {
                 if sub_type.is_string() {
-                    result.push_str(DATA_SRC);
-                    result.push_str(".get_vec_of_string(\"");
-                    result.push_str(input_field.name().as_str());
-                    result.push_str("\")?;");
+                    let input_field_name = input_field.name();
+                    let input_field_name = input_field_name.get_value_as_str();
+
+                    let item = quote! {
+                      let #struct_field_name = #data_src.get_vec_of_string(#input_field_name)?;
+                    }
+                    .into();
+
+                    reading_feilds.push(item);
                 } else {
-                    result.push_str(DATA_SRC);
-                    result.push_str(".get_vec(\"");
-                    result.push_str(input_field.name().as_str());
-                    result.push_str("\")?;");
+                    let input_field_name = input_field.name();
+                    let input_field_name = input_field_name.get_value_as_str();
+
+                    let item = quote! {
+                       let #struct_field_name = #data_src.get_vec(#input_field_name)?;
+                    }
+                    .into();
+
+                    reading_feilds.push(item);
                 }
             }
-            PropertyType::Struct(_) => {
-                result.push_str(DATA_SRC);
-                result.push_str(".get_optional(\"");
-                result.push_str(input_field.name().as_str());
-                result.push_str("\");");
+            PropertyType::Struct(..) => {
+                let input_field_name = input_field.name();
+                let input_field_name = input_field_name.get_value_as_str();
 
-                result.push_str("let ");
-                result.push_str(input_field.struct_field_name());
-                result.push_str(" = match ");
-                result.push_str(input_field.struct_field_name());
-                result.push_str(" { Some(value) => {let value = my_http_server::InputParamValue::from(value);value.try_into()?}, None => ");
+                let prop_type = input_field.property.get_syn_type();
 
-                result.push_str(input_field.property.ty.as_str().as_str());
-                result.push_str("::create_default()?,};");
+                let item = quote! {
+                   let #struct_field_name = match #data_src.get_optional(#input_field_name){
+                    Some(value) =>{
+                        let value = my_http_server::InputParamValue::from(value);
+                        value.try_into()?
+                    },
+                    None => {
+                        #prop_type::create_default()?
+                    }
+                   };
+
+                }
+                .into();
+
+                reading_feilds.push(item);
             }
             _ => {
-                generate_reading_required(result, input_field);
+                reading_feilds.push(generate_reading_required(input_field));
             }
         }
 
         if let Some(validator) = input_field.validator() {
-            if validation.is_none() {
-                validation = Some(String::new());
-            }
-            validation
-                .as_mut()
-                .unwrap()
-                .push_str(validator.get_value_as_str());
-            validation.as_mut().unwrap().push_str("(ctx, &");
-            validation
-                .as_mut()
-                .unwrap()
-                .push_str(input_field.struct_field_name());
-            validation.as_mut().unwrap().push_str(")?;\n");
+            let validation_fn_name =
+                proc_macro2::TokenStream::from_str(validator.get_value_as_str()).unwrap();
+            validation.push(quote!(#validation_fn_name(ctx, &#struct_field_name)?;));
         }
     }
 
-    if let Some(validation) = validation {
-        result.push_str(validation.as_str());
-    }
+    let init_fields = input_fields.as_token_stream();
 
-    generate_init_fields(result, input_fields);
-    result.push_str("};\n");
+    quote! {
+        let #init_fields = {
+            let #data_src = ctx.request.get_query_string()?;
+            #(#reading_feilds)*
+            #init_fields
+        };
+        #(#validation)*
+    }
 }
 
-fn generate_reading_required(result: &mut String, input_field: &InputField) {
+fn generate_reading_required(input_field: &InputField) -> TokenStream {
+    let struct_field_name = input_field.property.get_field_name_ident();
     match input_field.src {
         InputFieldSource::Query => {
-            result.push_str("my_http_server::InputParamValue::from(");
-            result.push_str(DATA_SRC);
-            result.push_str(".get_required(\"");
-            result.push_str(input_field.name().as_str());
-            result.push_str("\")?).try_into()?;");
+            let data_src = get_query_string_data_src();
+            let input_field_name = input_field.name();
+            let input_field_name = input_field_name.get_value_as_str();
+
+            quote!(let #struct_field_name = my_http_server::InputParamValue::from(#data_src.get_required(#input_field_name)?).try_into()?;)
         }
         InputFieldSource::Path => {
-            result.push_str("http_route.get_value(&ctx.request.http_path, \"");
-            result.push_str(input_field.name().as_str());
-            result.push_str("\")?.try_into()?;");
+            let input_field_name = input_field.name();
+            let input_field_name = input_field_name.get_value_as_str();
+
+            quote!(let #struct_field_name = http_route.get_value(&ctx.request.http_path, #input_field_name)?.try_into()?;)
         }
         InputFieldSource::Header => {
-            result.push_str("ctx.request.get_required_header(\"");
-            result.push_str(input_field.name().as_str());
-            result.push_str("\")?.try_into()?;");
+            let input_field_name = input_field.name();
+            let input_field_name = input_field_name.get_value_as_str();
+
+            quote!(let #struct_field_name = ctx.request.get_required_header(#input_field_name)?.try_into()?;)
         }
         InputFieldSource::Body => {
-            panic!("Bug. Should not read Body at generate_reading_required");
+            panic!("Bug. Should not read from Body at generate_reading_required");
         }
         InputFieldSource::FormData => {
-            panic!("Bug. Should not read Form at generate_reading_required");
+            panic!("Bug. Should not read from FormData at generate_reading_required");
         }
-        InputFieldSource::BodyFile => {
-            panic!("Bug. Should not read BodyFile at generate_reading_required");
-        }
-    }
-}
-
-fn generate_init_fields(result: &mut String, input_fields: &InputFields) {
-    let amount = input_fields
-        .fields
-        .iter()
-        .filter(|f| !f.is_reading_from_body())
-        .count();
-
-    if amount > 1 {
-        result.push('(');
-    }
-
-    let mut no = 0;
-    for input_field in &input_fields.fields {
-        if !input_field.is_reading_from_body() {
-            if no > 0 {
-                result.push(',');
-            }
-            result.push_str(input_field.property.name.as_str());
-            no += 1;
-        }
-    }
-
-    if amount > 1 {
-        result.push(')');
     }
 }

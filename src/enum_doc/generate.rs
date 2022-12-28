@@ -1,14 +1,14 @@
-use crate::consts::{HTTP_ENUM_STRUCTURE, HTTP_FAIL_RESULT, NAME_SPACE};
+use std::str::FromStr;
 
 use proc_macro::TokenStream;
+use types_reader::EnumCase;
 
-use crate::{
-    enum_doc::enum_json::{EnumJson, HTTP_ENUM_ATTR_NAME},
-    reflection::EnumCase,
-};
+use crate::enum_doc::enum_json::{EnumJson, HTTP_ENUM_ATTR_NAME};
 
 pub fn generate(ast: &syn::DeriveInput, is_string: bool) -> TokenStream {
-    let name = &ast.ident.to_string();
+    let struct_name = &ast.ident;
+    let struct_name_as_str = struct_name.to_string();
+
     let src_fields = EnumCase::read(ast);
 
     let mut fields = Vec::new();
@@ -31,65 +31,92 @@ pub fn generate(ast: &syn::DeriveInput, is_string: bool) -> TokenStream {
         }
     }
 
-    let mut result = String::new();
-
-    result.push_str("impl ");
-    result.push_str(name);
-    result.push('{');
-
-    result.push_str("pub fn get_http_data_structure()->");
-    result.push_str(NAME_SPACE);
-    result.push_str("::");
-    result.push_str(HTTP_ENUM_STRUCTURE);
-    result.push('{');
-    super::http_enum_structure::generate(&mut result, name.as_str(), is_string, fields.as_slice());
-    result.push_str("}");
-
-    result.push_str("pub fn create_default() -> Result<Self,");
-    result.push_str(HTTP_FAIL_RESULT);
-    result.push_str(">{");
-    if default_case.is_some() {
-        result.push_str("Ok(Self::default())");
-    } else {
-        let line_to_add = format!(
-            "Err({http_fail_result}::as_forbidden(Some(\"{err}\".to_string())))",
-            http_fail_result = HTTP_FAIL_RESULT,
-            err = format!("Type {} does not have default value to create", name)
-        );
-        result.push_str(line_to_add.as_str());
-    }
-
-    result.push_str("}");
-
-    result.push('}');
     //Default Trait
 
-    if let Some(default_case) = &default_case {
-        result.push_str("impl std::default::Default for ");
-        result.push_str(name);
-        result.push_str("{ fn default() -> Self {");
-        result.push_str("Self::");
-        result.push_str(default_case);
-        result.push_str("}}");
+    let default_trait = if let Some(default_case) = &default_case {
+        let default_case = proc_macro2::TokenStream::from_str(default_case).unwrap();
+
+        let result = quote::quote! {
+            impl std::default::Default for #struct_name{
+                fn default() -> Self {
+                    Self::#default_case
+                }
+            }
+        };
+
+        Some(result)
+    } else {
+        None
+    };
+
+    let name_space = crate::consts::get_name_space();
+    let http_enum_structure = crate::consts::get_http_enum_structure();
+
+    let http_fail_result = crate::consts::get_http_fail_result();
+
+    let impl_get_http_data_structure = match super::http_enum_structure::generate(
+        &struct_name_as_str,
+        is_string,
+        fields.as_slice(),
+    ) {
+        Ok(impl_get_http_data_structure) => impl_get_http_data_structure,
+        Err(err) => err.to_compile_error(),
+    };
+
+    let create_default_impl = if default_case.is_some() {
+        quote::quote!(Ok(Self::default()))
+    } else {
+        let err = format!(
+            "Type {} does not have default value to create",
+            struct_name_as_str
+        );
+        quote::quote! {
+            Err(#http_fail_result::as_forbidden(Some(#err)))
+        }
+    };
+
+    let impl_from_str =
+        match super::impl_from_str_trait::generate(&struct_name_as_str.as_str(), fields.as_slice())
+        {
+            Ok(impl_from_str) => impl_from_str,
+            Err(err) => vec![err.to_compile_error()],
+        };
+
+    let impl_from_i32 = match super::impl_from_i32::generate(fields.as_slice()) {
+        Ok(impl_from_i32) => impl_from_i32,
+        Err(err) => vec![err.to_compile_error()],
+    };
+
+    quote::quote! {
+        impl #struct_name{
+
+            pub fn get_http_data_structure()->#name_space::#http_enum_structure{
+                #impl_get_http_data_structure
+            }
+
+            pub fn create_default() -> Result<Self,#http_fail_result>{
+                #create_default_impl
+            }
+
+        }
+
+        #default_trait
+
+        impl std::str::FromStr for #struct_name{
+            type Err = #http_fail_result;
+            fn from_str(src:&str)->Result<Self,Self::Err>{
+                #(#impl_from_str)*
+            }
+        }
+
+        impl From<i32> for #struct_name{
+            fn from(src: i32) -> Self {
+                match src {
+                #(#impl_from_i32),*
+                }
+            }
+        }
+
     }
-
-    //FromStr Trait
-
-    result.push_str("impl std::str::FromStr for ");
-    result.push_str(name);
-    result.push('{');
-    super::impl_from_str_trait::generate(&mut result, name.as_str(), fields.as_slice());
-    result.push('}');
-
-    // From<number>
-
-    if !is_string {
-        result.push_str("impl From<i32> for ");
-        result.push_str(name);
-        result.push_str("{ fn from(src: i32) -> Self {");
-        super::impl_from_i32::generate(&mut result, fields.as_slice());
-        result.push_str("}}");
-    }
-
-    result.parse().unwrap()
+    .into()
 }

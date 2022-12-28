@@ -1,94 +1,101 @@
-use crate::input_models::input_fields::{BodyDataToReader, InputFieldSource, InputFields};
+use proc_macro2::{Ident, TokenStream};
 
-pub fn generate(result: &mut String, name: &str, input_fields: &InputFields) {
-    input_fields.check_types_of_field();
+use crate::{
+    input_models::input_fields::{InputField, InputFieldSource, InputFields},
+    proprety_type_ext::PropertyTypeExt,
+};
+use quote::quote;
 
-    if input_fields.has_data_to_read_from_query_or_path_or_header() {
-        super::generate_read_not_body(result, input_fields);
-    }
+pub fn generate(name: &Ident, input_fields: &InputFields) -> Result<TokenStream, syn::Error> {
+    let fileds = input_fields.get_body_and_not_body_fields();
 
-    let has_body_data_to_read = input_fields.has_body_data_to_read();
+    let reading_no_body = if let Some(not_body_fields) = fileds.not_body_fields {
+        Some(super::generate_read_not_body(&not_body_fields))
+    } else {
+        None
+    };
 
-    if let Some(body_data_reader_type) = &has_body_data_to_read {
-        match body_data_reader_type {
-            BodyDataToReader::FormData => {
-                result.push_str("let __body = ctx.request.get_body().await?;");
-                super::generate_read_body(
-                    result,
-                    input_fields,
-                    " = __body.get_body_data_reader()?;",
-                    |f| f.src_is_form_data(),
-                );
-            }
-            BodyDataToReader::BodyFile => {}
-            BodyDataToReader::RawBodyToVec => {}
-            BodyDataToReader::BodyModel => {
-                result.push_str("let __body = ctx.request.get_body().await?;");
-                super::generate_read_body(
-                    result,
-                    input_fields,
-                    " = __body.get_body_data_reader()?;",
-                    |f| f.src_is_body(),
-                );
-            }
-            BodyDataToReader::DeserializeBody => {}
+    let has_body_data_to_read = input_fields.has_body_data_to_read()?;
+
+    let read_body = if let Some(body_data_to_read) = &has_body_data_to_read {
+        let body_fields = fileds.body_fields.as_ref().unwrap();
+        if body_data_to_read.http_form > 1 || body_data_to_read.http_body > 1 {
+            Some(super::generate_read_body(body_fields)?)
+        } else {
+            None
         }
-    }
+    } else {
+        None
+    };
 
-    result.push_str("Ok(");
-    result.push_str(name);
-    result.push('{');
+    let mut fileds_to_return = Vec::new();
 
     for input_field in &input_fields.fields {
         match &input_field.src {
             InputFieldSource::Query => {
-                result.push_str(input_field.struct_field_name());
-                result.push(',');
+                fileds_to_return.push(input_field.get_struct_fiel_name_as_token_stream());
             }
             InputFieldSource::Path => {
-                result.push_str(input_field.struct_field_name());
-                result.push(',');
+                fileds_to_return.push(input_field.get_struct_fiel_name_as_token_stream());
             }
             InputFieldSource::Header => {
-                result.push_str(input_field.struct_field_name());
-                result.push(',');
+                fileds_to_return.push(input_field.get_struct_fiel_name_as_token_stream());
             }
             InputFieldSource::Body => {
-                if let Some(has_body_data_to_read) = &has_body_data_to_read {
-                    match has_body_data_to_read {
-                        BodyDataToReader::FormData => {
-                            result.push_str(input_field.struct_field_name());
-                            result.push_str(",");
-                        }
-                        BodyDataToReader::BodyFile => {
-                            result.push_str(input_field.struct_field_name());
-                            result.push_str(": ctx.request.get_body().await?.get_body_as_json()?,");
-                        }
-                        BodyDataToReader::RawBodyToVec => {
-                            result.push_str(input_field.struct_field_name());
-                            result.push_str(": ctx.request.receive_body().await?.get_body(),");
-                        }
-                        BodyDataToReader::DeserializeBody => {
-                            result.push_str(input_field.struct_field_name());
-                            result.push_str(": ctx.request.get_body().await?.get_body_as_json()?,");
-                        }
-                        BodyDataToReader::BodyModel => {
-                            result.push_str(input_field.struct_field_name());
-                            result.push_str(",");
-                        }
-                    }
+                let body_data_to_read = has_body_data_to_read.as_ref().unwrap();
+
+                if body_data_to_read.http_body > 1 {
+                    fileds_to_return.push(input_field.get_struct_fiel_name_as_token_stream());
+                } else {
+                    let struct_field_name = input_field.get_struct_fiel_name_as_token_stream();
+                    let read_value = read_from_body_as_single_field(input_field)?;
+                    fileds_to_return.push(quote!(#struct_field_name: #read_value));
                 }
             }
             InputFieldSource::FormData => {
-                result.push_str(input_field.struct_field_name());
-                result.push(',');
-            }
-            InputFieldSource::BodyFile => {
-                result.push_str(input_field.struct_field_name());
-                result.push_str(": ctx.request.receive_body().await?.get_body(),");
+                fileds_to_return.push(input_field.get_struct_fiel_name_as_token_stream());
             }
         }
     }
 
-    result.push_str("})");
+    let result = quote! {
+        #reading_no_body
+        #read_body
+        Ok(#name{
+            #(#fileds_to_return),*
+        })
+    };
+
+    Ok(result)
+}
+
+fn read_from_body_as_single_field(input_field: &InputField) -> Result<TokenStream, syn::Error> {
+    if input_field.property.ty.is_vec_of_u8() {
+        if let Some(body_type) = input_field.get_body_type() {
+            if body_type.get_value_as_str() == "file" {
+                let result = quote!(ctx.request.receive_body().await?.get_body());
+                return Ok(result);
+            }
+        }
+
+        let result = quote!({
+            let byte_array = ctx.request.receive_body().await?.get_body();
+            serde_json::from_slice(byte_array.as_slice()).unwrap()
+        });
+        return Ok(result);
+    }
+
+    if input_field.property.ty.is_struct() {
+        let result = quote!({
+            let body = ctx.request.receive_body().await?;
+            body.get_body()
+        });
+
+        return Ok(result);
+    }
+
+    Err(syn::Error::new_spanned(
+        input_field.property.field,
+        "Not Supported type for single field as a body",
+    ))
 }
