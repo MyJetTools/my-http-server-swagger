@@ -79,11 +79,8 @@ fn read_from_body_as_single_field(input_field: &InputField) -> Result<TokenStrea
         }
 
         let result = quote!({
-            let result = quote!({
-                let byte_array = ctx.request.receive_body().await?.get_body();
-                serde_json::from_slice(byte_array.as_slice()).unwrap()
-            });
-            return Ok(result);
+            let byte_array = ctx.request.receive_body().await?.get_body();
+            serde_json::from_slice(byte_array.as_slice()).unwrap()
         });
         return Ok(result);
     }
