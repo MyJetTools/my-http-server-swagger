@@ -1,6 +1,6 @@
 use std::str::FromStr;
 
-use proc_macro2::TokenStream;
+use proc_macro2::{Ident, TokenStream};
 use quote::quote;
 use types_reader::PropertyType;
 
@@ -44,8 +44,11 @@ pub fn generate_read_body(input_fields: &Vec<&InputField>) -> Result<TokenStream
             PropertyType::VecOf(_) => {}
             PropertyType::Struct(_, ty) => {
                 if input_field.property.ty.is_file_content() {
-                    let line = generate_reading_required(input_field, &data_src)?;
-                    reading_feilds.push(line);
+                    reading_feilds.push(generate_reading_required(
+                        input_field,
+                        &data_src,
+                        &struct_field_name,
+                    )?);
                 } else {
                     let input_field_name = input_field.name();
                     let input_field_name = input_field_name.get_value_as_str();
@@ -59,7 +62,11 @@ pub fn generate_read_body(input_fields: &Vec<&InputField>) -> Result<TokenStream
                 }
             }
             _ => {
-                reading_feilds.push(generate_reading_required(input_field, &data_src)?);
+                reading_feilds.push(generate_reading_required(
+                    input_field,
+                    &data_src,
+                    &struct_field_name,
+                )?);
             }
         }
 
@@ -89,6 +96,7 @@ pub fn generate_read_body(input_fields: &Vec<&InputField>) -> Result<TokenStream
 fn generate_reading_required(
     input_field: &InputField,
     data_src: &TokenStream,
+    struct_field: &Ident,
 ) -> Result<TokenStream, syn::Error> {
     let result = match input_field.src {
         InputFieldSource::Query => {
@@ -104,13 +112,13 @@ fn generate_reading_required(
             let input_field_name = input_field.name();
             let input_field_name = input_field_name.get_value_as_str();
 
-            quote!(#data_src.get_required(#input_field_name)?.try_into()?;)
+            quote!(#struct_field: #data_src.get_required(#input_field_name)?.try_into()?;)
         }
         InputFieldSource::FormData => {
             let input_field_name = input_field.name();
             let input_field_name = input_field_name.get_value_as_str();
 
-            quote!(#data_src.get_required(#input_field_name)?.try_into()?;)
+            quote!(#struct_field: #data_src.get_required(#input_field_name)?.try_into()?;)
         }
     };
 
