@@ -23,15 +23,6 @@ pub fn impl_output_types(ast: &syn::DeriveInput) -> proc_macro::TokenStream {
             }
         }
 
-
-        impl TryInto<#stuct_name> for #stuct_name{
-            type Error = my_http_server_controllers::controllers::documentation::data_types::HttpObjectStructureError;
-
-            fn try_into(self) -> Result<Self, Self::Error> {
-              todo!("Implement");
-            }
-        }
-
     }
     .into()
 }
