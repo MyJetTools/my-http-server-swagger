@@ -71,10 +71,7 @@ pub fn generate(name: &Ident, input_fields: &InputFields) -> Result<TokenStream,
 
 fn read_from_body_as_single_field(input_field: &InputField) -> Result<TokenStream, syn::Error> {
     if input_field.property.ty.is_vec_of_u8() {
-        let result = quote!({
-            let body = ctx.request.receive_body().await?;
-            body.get_body()
-        });
+        let result = quote!(ctx.request.receive_body().await?.get_body());
 
         return Ok(result);
     }
