@@ -52,7 +52,7 @@ pub fn compile_http_field_with_object(
         ))
     } else {
         let body_type = proc_macro2::TokenStream::from_str(body_type).unwrap();
-        quote!(#body_type::::get_http_data_structure().into_http_data_type_object())
+        quote!(#body_type::get_http_data_structure().into_http_data_type_object())
     };
 
     quote! {
