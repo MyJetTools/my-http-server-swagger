@@ -1,5 +1,3 @@
-use std::str::FromStr;
-
 use proc_macro2::TokenStream;
 
 use super::input_fields::{InputField, InputFieldSource, InputFields};
@@ -37,7 +35,6 @@ fn generate_http_input_parameter(input_field: &InputField) -> Result<TokenStream
                 &input_field.property.ty,
                 input_field.required(),
                 input_field.get_default_value(),
-                Some(&input_field.src),
             )
         }
     } else {
@@ -46,7 +43,6 @@ fn generate_http_input_parameter(input_field: &InputField) -> Result<TokenStream
             &input_field.property.ty,
             input_field.required(),
             input_field.get_default_value(),
-            Some(&input_field.src),
         )
     };
 

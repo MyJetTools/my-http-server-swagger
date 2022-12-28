@@ -39,7 +39,6 @@ pub fn generate_http_object_structure(
             &field.property.ty,
             true,
             None,
-            None,
         );
 
         result.push(line);

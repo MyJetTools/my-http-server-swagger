@@ -46,13 +46,6 @@ impl InputFieldSource {
             _ => None,
         }
     }
-
-    pub fn is_body(&self) -> bool {
-        match self {
-            Self::Body => true,
-            _ => false,
-        }
-    }
 }
 
 pub struct InputField<'s> {

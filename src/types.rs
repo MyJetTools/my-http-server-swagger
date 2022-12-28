@@ -6,7 +6,6 @@ use quote::quote;
 use types_reader::PropertyType;
 
 use crate::as_token_stream::AsTokenStream;
-use crate::input_models::input_fields::InputFieldSource;
 use crate::proprety_type_ext::PropertyTypeExt;
 
 pub fn compile_http_field(
@@ -14,20 +13,8 @@ pub fn compile_http_field(
     pt: &PropertyType,
     required: bool,
     default: Option<ParamValue>,
-    src: Option<&InputFieldSource>,
 ) -> TokenStream {
-    let data_type = if let Some(src) = src {
-        if src.is_body() {
-            let http_simple_type = crate::consts::get_http_simple_type();
-            return quote! {
-                data_types::HttpDataType::SimpleType(#http_simple_type::Binary)
-            };
-        } else {
-            compile_data_type(name, pt, TypeIsWrappedTo::None)
-        }
-    } else {
-        compile_data_type(name, pt, TypeIsWrappedTo::None)
-    };
+    let data_type = compile_data_type(name, pt, TypeIsWrappedTo::None);
 
     let default = default.as_token_stream();
     let http_field_type = crate::consts::get_http_field_type();
