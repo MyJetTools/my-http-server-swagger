@@ -18,7 +18,7 @@ pub fn compile_http_field(
         if src.is_body() && pt.is_file_content() {
             let http_simple_type = crate::consts::get_http_simple_type();
             return quote! {
-                data_types::HttpDataType::::SimpleType(#http_simple_type::Binary)
+                data_types::HttpDataType::SimpleType(#http_simple_type::Binary)
             };
         } else {
             compile_data_type(name, pt, TypeIsWrappedTo::None)
