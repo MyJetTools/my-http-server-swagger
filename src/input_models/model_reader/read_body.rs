@@ -36,7 +36,7 @@ pub fn generate_read_body(input_fields: &Vec<&InputField>) -> Result<TokenStream
                         Some(value)
                     }else{
                         None
-                    }
+                    };
                 };
 
                 reading_feilds.push(line);

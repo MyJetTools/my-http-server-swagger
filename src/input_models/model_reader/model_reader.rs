@@ -1,5 +1,3 @@
-use std::f32::consts::E;
-
 use proc_macro2::{Ident, TokenStream};
 
 use crate::{
