@@ -279,6 +279,13 @@ impl<'s> InputFields<'s> {
                     body_data_reader.form_data_field += 1;
                 }
                 InputFieldSource::BodyFile => {
+                    if field.property.ty.is_file_content() {
+                        return Err(syn::Error::new_spanned(
+                            field.property.get_syn_type(),
+                            "Please use http_body_file with Vec<u8> to read file as body",
+                        ));
+                    }
+
                     if body_data_reader.has_form_data() {
                         let err = syn::Error::new_spanned(
                             field.property.field,
@@ -287,7 +294,7 @@ impl<'s> InputFields<'s> {
                         return Err(err);
                     };
 
-                    body_data_reader.form_data_field += 1;
+                    body_data_reader.body_file += 1;
                 }
                 _ => {}
             }
