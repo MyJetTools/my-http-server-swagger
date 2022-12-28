@@ -96,7 +96,8 @@ fn read_from_body_as_single_field(input_field: &InputField) -> Result<TokenStrea
     if input_field.property.ty.is_struct() {
         let result = quote!({
             let body = ctx.request.receive_body().await?;
-            body.get_body()
+            let bytes = body.get_body();
+            serde_json::from_slice(bytes.as_slice()).unwrap()
         });
 
         return Ok(result);
@@ -144,9 +145,13 @@ fn read_from_form_data_as_single_field(
 
     if input_field.property.ty.is_struct() {
         let result = quote!({
-            let body = ctx.request.receive_body().await?;
-            let bytes = body.get_body();
-            serde_json::from_slice(bytes.as_slice()).unwrap()
+            let result = quote!({
+                let body = ctx.request.receive_body().await?;
+                let bytes = body.get_body();
+                serde_json::from_slice(bytes.as_slice()).unwrap()
+            });
+
+            return Ok(result);
         });
 
         return Ok(result);
