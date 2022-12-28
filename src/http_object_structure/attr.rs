@@ -11,6 +11,8 @@ pub fn impl_output_types(ast: &syn::DeriveInput) -> proc_macro::TokenStream {
 
     let struct_name_as_str = stuct_name.to_string();
 
+    let http_fail_result = crate::consts::get_http_fail_result();
+
     quote! {
         impl #stuct_name{
             pub fn get_http_data_structure()->my_http_server_controllers::controllers::documentation::data_types::HttpObjectStructure{
@@ -30,7 +32,7 @@ pub fn impl_output_types(ast: &syn::DeriveInput) -> proc_macro::TokenStream {
                 let value = value.get_raw_str()?;
                 match serde_json::from_str(value) {
                     Ok(result) => Ok(result),
-                    Err(err) => Err(HttpFailResult::invalid_value_to_parse(format!(
+                    Err(err) => Err(#http_fail_result::invalid_value_to_parse(format!(
                         "Can't parse json value: {}",
                         err
                     ))),
