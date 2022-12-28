@@ -46,7 +46,7 @@ pub fn compile_http_field_with_object(
 
     let default = default.as_token_stream();
 
-    let body_type = if body_type == "File" {
+    let body_type = if body_type == "file" {
         quote!(data_types::HttpDataType::SimpleType(
             data_types::HttpSimpleType::Binary
         ))
