@@ -279,7 +279,7 @@ impl<'s> InputFields<'s> {
                     body_data_reader.form_data_field += 1;
                 }
                 InputFieldSource::BodyFile => {
-                    if field.property.ty.is_file_content() {
+                    if !field.property.ty.is_vec_of_u8() {
                         return Err(syn::Error::new_spanned(
                             field.property.get_syn_type(),
                             "Please use http_body_file with Vec<u8> to read file as body",
@@ -295,6 +295,14 @@ impl<'s> InputFields<'s> {
                     };
 
                     body_data_reader.body_file += 1;
+
+                    if body_data_reader.body_file > 1 {
+                        let err = syn::Error::new_spanned(
+                            field.property.field,
+                            "Body file can be read only once",
+                        );
+                        return Err(err);
+                    }
                 }
                 _ => {}
             }
