@@ -1,3 +1,5 @@
+use std::f32::consts::E;
+
 use proc_macro2::{Ident, TokenStream};
 
 use crate::{
@@ -94,8 +96,27 @@ fn read_from_body_as_single_field(input_field: &InputField) -> Result<TokenStrea
         return Ok(result);
     }
 
-    Err(syn::Error::new_spanned(
-        input_field.property.field,
-        "Not Supported type for single field as a body",
-    ))
+    let field_name = input_field.name();
+    let field_name = field_name.get_value_as_str();
+
+    if input_field.property.ty.is_option() {
+        let result = quote!({
+            let body = ctx.request.receive_body().await?;
+            let body_reader = body.get_body_data_reader()?;
+
+            if let Some(value) = body_reader.get_optional(#field_name){
+                Some(value.try_into()?)
+            }else{
+                None
+            }
+        });
+        return Ok(result);
+    } else {
+        let result = quote!({
+            let body = ctx.request.receive_body().await?;
+            let body_reader = body.get_body_data_reader()?;
+            body_reader.get_required(#field_name)?.try_into()?
+        });
+        return Ok(result);
+    }
 }
