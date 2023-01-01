@@ -78,5 +78,5 @@ pub fn get_http_route() -> TokenStream {
 }
 
 pub fn get_http_result() -> TokenStream {
-    quote!(my_http_server_controllers::controllers::documentation::out_results::HttpResult)
+    quote!(out_results::HttpResult)
 }

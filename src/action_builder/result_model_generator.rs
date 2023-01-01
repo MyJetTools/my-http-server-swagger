@@ -39,7 +39,7 @@ pub fn generate(results: &[HttpResult]) -> TokenStream {
                 }
             }
         } else {
-            quote::quote!(http_data_type::None)
+            quote::quote!(#http_data_type::None)
         };
 
         fields.push(quote::quote! {
