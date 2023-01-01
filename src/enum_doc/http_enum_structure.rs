@@ -34,7 +34,7 @@ pub fn generate(
 
         #name_space::#http_enum_structure{
             struct_id: #name,
-            enum_type: #name_space::#enum_type::#tp,
+            enum_type: #enum_type::#tp,
             cases: vec![#(#cases),*],
         }
     };
