@@ -112,7 +112,7 @@ pub fn generate(ast: &syn::DeriveInput, is_string: bool) -> TokenStream {
         impl From<i32> for #struct_name{
             fn from(src: i32) -> Self {
                 match src {
-                #(#impl_from_i32),*
+                #(#impl_from_i32)*
                 }
             }
         }
