@@ -71,7 +71,7 @@ pub fn generate(ast: &syn::DeriveInput, is_string: bool) -> TokenStream {
             struct_name_as_str
         );
         quote::quote! {
-            Err(#http_fail_result::as_forbidden(Some(#err)))
+            Err(#http_fail_result::as_forbidden(Some(#err.to_string())))
         }
     };
 
@@ -95,7 +95,7 @@ pub fn generate(ast: &syn::DeriveInput, is_string: bool) -> TokenStream {
             }
 
             pub fn create_default() -> Result<Self,#http_fail_result>{
-                #create_default_impl.to_string()
+                #create_default_impl
             }
 
         }
