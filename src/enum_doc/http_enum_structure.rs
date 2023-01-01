@@ -56,7 +56,7 @@ fn compile_enum_case(enum_case: &EnumJson) -> Result<Option<TokenStream>, syn::E
 
     Ok(quote::quote! {
         #name_space::#http_enum_case{
-            id: #id
+            id: #id,
             value: #value,
             description: #description
         }
