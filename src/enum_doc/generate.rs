@@ -117,10 +117,10 @@ pub fn generate(ast: &syn::DeriveInput, is_string: bool) -> TokenStream {
             }
         }
 
-        impl TryInto<my_http_server::InputParamValue> for #struct_name{
-            type Error = HttpFailResult;
+        impl<'s> TryInto<#struct_name> for my_http_server::InputParamValue<'s>{
+            type Error = my_http_server::HttpFailResult;
 
-            fn try_into(self) -> Result<DateTimeAsMicroseconds, Self::Error> {
+            fn try_into(self) -> Result<#struct_name, Self::Error> {
                 self.from_str()
             }
 
