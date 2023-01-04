@@ -6,7 +6,6 @@ use quote::quote;
 use types_reader::PropertyType;
 
 use crate::as_token_stream::AsTokenStream;
-use crate::proprety_type_ext::PropertyTypeExt;
 
 pub fn compile_http_field(
     name: &str,
@@ -62,6 +61,7 @@ fn compile_data_type(
         let type_token = generic_type.get_token_stream();
 
         return quote!(#type_token::get_data_type());
+
         //return compile_data_type(prop_name, generic_type.as_ref(), TypeIsWrappedTo::Option);
     }
 

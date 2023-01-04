@@ -31,7 +31,6 @@ pub fn generate(ast: &syn::DeriveInput) -> TokenStream {
     quote!{
         impl #struct_name{
             pub fn get_input_params()->Vec<#http_input_param>{
-                #use_doc
                 #http_input
             }
 

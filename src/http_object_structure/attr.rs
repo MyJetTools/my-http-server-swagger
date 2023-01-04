@@ -40,6 +40,12 @@ pub fn impl_output_types(ast: &syn::DeriveInput) -> proc_macro::TokenStream {
             }
         }
 
+        impl DataTypeProvider for #stuct_name {
+            fn get_data_type() -> DataType {
+                todo!("Implement")
+            }
+        }
+
     }
     .into()
 }
