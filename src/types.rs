@@ -53,11 +53,16 @@ enum TypeIsWrappedTo {
     Vec,
 }
 
-fn compile_data_type(prop_name: &str, pt: &PropertyType) -> TokenStream {
+fn compile_data_type(
+    prop_name: &str,
+    pt: &PropertyType,
+    type_is_wrapped_to: TypeIsWrappedTo,
+) -> TokenStream {
     if let PropertyType::OptionOf(generic_type) = pt {
         let type_token = generic_type.get_token_stream();
+
         return quote!(#type_token::get_data_type());
-        //    return compile_data_type(prop_name, generic_type.as_ref(), TypeIsWrappedTo::Option);
+        //return compile_data_type(prop_name, generic_type.as_ref(), TypeIsWrappedTo::Option);
     }
 
     /*
