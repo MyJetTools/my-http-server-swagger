@@ -10,7 +10,7 @@ pub fn generate(ast: &syn::DeriveInput) -> TokenStream {
 
     let fields = InputFields::new(fields);
 
-    let http_input_param = crate::consts::get_http_input_parameter_type_with_ns();
+    let http_input_param = crate::consts::get_http_input_parameter();
 
     let http_ctx = crate::consts::get_http_context();
 

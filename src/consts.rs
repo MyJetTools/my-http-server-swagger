@@ -23,14 +23,8 @@ pub fn get_name_space() -> TokenStream {
     quote!(my_http_server_controllers::controllers::documentation)
 }
 
-pub fn get_http_input_parameter_type() -> TokenStream {
+pub fn get_http_input_parameter() -> TokenStream {
     quote!(in_parameters::HttpInputParameter)
-}
-
-pub fn get_http_input_parameter_type_with_ns() -> TokenStream {
-    quote!(
-        my_http_server_controllers::controllers::documentation::in_parameters::HttpInputParameter
-    )
 }
 
 pub fn get_http_parameter_input_src() -> TokenStream {

@@ -66,6 +66,11 @@ fn compile_data_type(
         return compile_data_type(prop_name, generic_type.as_ref(), TypeIsWrappedTo::Vec);
     }
 
+    let type_token = pt.get_token_stream();
+
+    return quote!(#type_token::get_data_type());
+
+    /*
     if let Some(simple_type) =
         pt.get_swagger_simple_type(prop_name.to_lowercase().contains("password"))
     {
@@ -107,4 +112,5 @@ fn compile_data_type(
             return quote!(#tp::get_http_data_structure().into_http_data_type_object());
         }
     }
+     */
 }

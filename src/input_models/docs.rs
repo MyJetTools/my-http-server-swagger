@@ -46,7 +46,7 @@ fn generate_http_input_parameter(input_field: &InputField) -> Result<TokenStream
         )
     };
 
-    let http_input_parameter_type = crate::consts::get_http_input_parameter_type();
+    let http_input_parameter_type = crate::consts::get_http_input_parameter();
     let description = input_field.description()?;
     let description = description.get_value_as_str();
 
