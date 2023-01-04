@@ -91,7 +91,7 @@ fn render_obj_fields(fields: &[StructProperty])->Vec<proc_macro2::TokenStream>{
             None,
         );
 
-        result.push(quote!(__hos.fields.push(#line)));
+        result.push(quote!(__hos.fields.push(#line);));
     }
 
     result
