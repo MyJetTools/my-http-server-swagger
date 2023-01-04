@@ -21,8 +21,6 @@ pub fn generate(ast: &syn::DeriveInput) -> TokenStream {
         Err(err) => err.to_compile_error(),
     };
 
-    let use_doc = crate::consts::get_use_documentation();
-
     let parse_http_input = match super::model_reader::generate(&struct_name, &fields) {
         Ok(result) => result,
         Err(err) => err.to_compile_error(),
