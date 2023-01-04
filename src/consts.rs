@@ -27,6 +27,12 @@ pub fn get_http_input_parameter() -> TokenStream {
     quote!(in_parameters::HttpInputParameter)
 }
 
+pub fn get_http_input_parameter_with_ns() -> TokenStream {
+    quote!(
+        my_http_server_controllers::controllers::documentation::in_parameters::HttpInputParameter
+    )
+}
+
 pub fn get_http_parameter_input_src() -> TokenStream {
     quote!(in_parameters::HttpParameterInputSource)
 }
