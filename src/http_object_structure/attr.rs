@@ -5,6 +5,8 @@ pub fn impl_output_types(ast: &syn::DeriveInput) -> proc_macro::TokenStream {
     let stuct_name = &ast.ident;
     let fields = StructProperty::read(ast);
 
+    let obj_fields = render_obj_fields(&fields);
+    
     let fields = generate_http_object_structure(fields);
 
     let use_documentation = crate::consts::get_use_documentation();
@@ -12,6 +14,8 @@ pub fn impl_output_types(ast: &syn::DeriveInput) -> proc_macro::TokenStream {
     let struct_name_as_str = stuct_name.to_string();
 
     let http_fail_result = crate::consts::get_http_fail_result();
+
+
 
     quote! {
         impl #stuct_name{
@@ -40,9 +44,13 @@ pub fn impl_output_types(ast: &syn::DeriveInput) -> proc_macro::TokenStream {
             }
         }
 
-        impl DataTypeProvider for #stuct_name {
-            fn get_data_type() -> DataType {
-                todo!("Implement")
+        impl my_http_server_controllers::controllers::documentation::DataTypeProvider for #stuct_name {
+            fn get_data_type() -> my_http_server_controllers::controllers::documentation::data_types::HttpDataType {
+                #use_documentation;
+
+                let __hos = data_types::HttpObjectStructure::new(#struct_name_as_str);
+                #(#obj_fields)*
+                __hos.into_http_data_type_object()
             }
         }
 
@@ -69,4 +77,24 @@ pub fn generate_http_object_structure(
     }
 
     result
+}
+
+
+fn render_obj_fields(fields: &[StructProperty])->Vec<proc_macro2::TokenStream>{
+
+    let mut result = Vec::with_capacity(fields.len());
+    for field in fields {
+        let line = crate::types::compile_http_field(
+            &field.name,
+            &field.ty,
+            true,
+            None,
+        );
+
+        result.push(quote!(__hos.fields.push(#line)));
+    }
+
+    result
+
+
 }
