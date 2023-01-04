@@ -135,7 +135,7 @@ impl<'s> InputField<'s> {
     pub fn get_body_type(&self) -> Option<ParamValue> {
         match self.get_my_attr().get_named_param("body_type") {
             Ok(result) => Some(result),
-            Err(_) => todo!(),
+            Err(_) => None,
         }
     }
 
