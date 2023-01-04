@@ -48,7 +48,7 @@ pub fn impl_output_types(ast: &syn::DeriveInput) -> proc_macro::TokenStream {
             fn get_data_type() -> my_http_server_controllers::controllers::documentation::data_types::HttpDataType {
                 #use_documentation;
 
-                let __hos = data_types::HttpObjectStructure::new(#struct_name_as_str);
+                let mut __hos = data_types::HttpObjectStructure::new(#struct_name_as_str);
                 #(#obj_fields)*
                 __hos.into_http_data_type_object()
             }
