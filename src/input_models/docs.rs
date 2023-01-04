@@ -21,17 +21,17 @@ pub fn generate_http_input(fields: &InputFields) -> Result<TokenStream, syn::Err
 fn generate_http_input_parameter(input_field: &InputField) -> Result<TokenStream, syn::Error> {
     let field = if input_field.src_is_body() {
         if let Some(body_type) = input_field.get_body_type() {
-            let body_type = body_type.get_value_as_str();
+            let body_type = body_type.as_str();
 
             crate::types::compile_http_field_with_object(
-                input_field.name().get_value_as_str(),
+                input_field.name().as_str(),
                 &body_type,
                 input_field.required(),
                 input_field.get_default_value(),
             )
         } else {
             crate::types::compile_http_field(
-                input_field.name().get_value_as_str(),
+                input_field.name().as_str(),
                 &input_field.property.ty,
                 input_field.required(),
                 input_field.get_default_value(),
@@ -39,7 +39,7 @@ fn generate_http_input_parameter(input_field: &InputField) -> Result<TokenStream
         }
     } else {
         crate::types::compile_http_field(
-            input_field.name().get_value_as_str(),
+            input_field.name().as_str(),
             &input_field.property.ty,
             input_field.required(),
             input_field.get_default_value(),
@@ -48,7 +48,7 @@ fn generate_http_input_parameter(input_field: &InputField) -> Result<TokenStream
 
     let http_input_parameter_type = crate::consts::get_http_input_parameter();
     let description = input_field.description()?;
-    let description = description.get_value_as_str();
+    let description = description.as_str();
 
     let source = get_input_src(input_field);
 

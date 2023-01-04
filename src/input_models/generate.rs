@@ -6,9 +6,15 @@ use quote::quote;
 pub fn generate(ast: &syn::DeriveInput) -> TokenStream {
     let struct_name = &ast.ident;
 
-    let fields = types_reader::StructProperty::read(ast);
+    let fields = match types_reader::StructProperty::read(ast) {
+        Ok(result) => result,
+        Err(err) => return err.into_compile_error().into(),
+    };
 
-    let fields = InputFields::new(fields);
+    let fields = match InputFields::new(fields) {
+        Ok(result) => result,
+        Err(err) => return err.into_compile_error().into(),
+    };
 
     let http_input_param = crate::consts::get_http_input_parameter_with_ns();
 

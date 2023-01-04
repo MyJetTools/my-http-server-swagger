@@ -49,10 +49,10 @@ fn compile_enum_case(enum_case: &EnumJson) -> Result<Option<TokenStream>, syn::E
     let id = proc_macro2::Literal::isize_unsuffixed(enum_case.get_id()?);
 
     let value = enum_case.get_value();
-    let value = value.get_value_as_str();
+    let value = value.as_str();
 
-    let description = enum_case.description();
-    let description = description.get_value_as_str();
+    let description = enum_case.description()?;
+    let description = description.as_str();
 
     Ok(quote::quote! {
         #name_space::#http_enum_case{

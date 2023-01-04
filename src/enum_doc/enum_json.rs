@@ -1,5 +1,4 @@
-use macros_utils::ParamValue;
-use types_reader::EnumCase;
+use types_reader::{attribute_params::ParamValue, EnumCase};
 
 pub struct EnumJson<'s> {
     pub src: EnumCase<'s>,
@@ -10,60 +9,42 @@ pub const HTTP_ENUM_ATTR_NAME: &str = "http_enum_case";
 
 impl<'s> EnumJson<'s> {
     pub fn new(src: EnumCase<'s>) -> Option<Self> {
-        if let Some(value) = src.attrs.get(HTTP_ENUM_ATTR_NAME) {
-            if let Some(value) = value {
-                let is_default_value = value.has_param("default");
-                return Self {
-                    src,
-                    is_default_value,
-                }
-                .into();
+        if let Ok(value) = src.attrs.get_attr(HTTP_ENUM_ATTR_NAME) {
+            let is_default_value = value.has_param("default");
+            return Self {
+                src,
+                is_default_value,
             }
+            .into();
         }
 
         return None;
     }
 
     pub fn get_id(&self) -> Result<isize, syn::Error> {
-        if let Some(value) = self.src.attrs.get(HTTP_ENUM_ATTR_NAME) {
-            if let Some(value) = value {
-                if let Some(id) = value.get_named_param("id") {
-                    return Ok(id.get_value());
-                }
-            }
+        if let Ok(value) = self.src.attrs.get_named_param(HTTP_ENUM_ATTR_NAME, "id") {
+            return Ok(value.get_value());
         }
 
-        let err = syn::Error::new_spanned(self.src.variant, "[id] is not found");
+        let err = syn::Error::new_spanned(self.src.get_name_ident(), "[id] is not found");
         Err(err)
     }
 
-    pub fn get_enum_case_value(&self) -> &str {
-        &self.src.name
+    pub fn get_enum_case_value(&self) -> String {
+        self.src.get_name_ident().to_string()
     }
 
-    pub fn get_value(&self) -> ParamValue {
-        if let Some(value) = self.src.attrs.get(HTTP_ENUM_ATTR_NAME) {
-            if let Some(value) = value {
-                if let Some(id) = value.get_named_param("value") {
-                    return id;
-                }
-            }
+    pub fn get_value(&self) -> String {
+        if let Ok(value) = self.src.attrs.get_named_param(HTTP_ENUM_ATTR_NAME, "value") {
+            return value.as_str().to_string();
         }
 
-        ParamValue {
-            value: self.src.name.as_bytes(),
-        }
+        self.src.get_name_ident().to_string()
     }
 
-    pub fn description(&self) -> ParamValue {
-        if let Some(value) = self.src.attrs.get(HTTP_ENUM_ATTR_NAME) {
-            if let Some(value) = value {
-                if let Some(id) = value.get_named_param("description") {
-                    return id;
-                }
-            }
-        }
-
-        panic!("[description] is not found for the field {}", self.src.name);
+    pub fn description(&self) -> Result<ParamValue, syn::Error> {
+        self.src
+            .attrs
+            .get_named_param(HTTP_ENUM_ATTR_NAME, "description")
     }
 }

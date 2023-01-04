@@ -80,7 +80,7 @@ pub fn generate(name: &Ident, input_fields: &InputFields) -> Result<TokenStream,
 fn read_from_body_as_single_field(input_field: &InputField) -> Result<TokenStream, syn::Error> {
     if input_field.property.ty.is_vec_of_u8() {
         if let Some(body_type) = input_field.get_body_type() {
-            if body_type.get_value_as_str() == "file" {
+            if body_type.as_str() == "file" {
                 let result = quote!(ctx.request.receive_body().await?.get_body());
                 return Ok(result);
             }
@@ -104,7 +104,7 @@ fn read_from_body_as_single_field(input_field: &InputField) -> Result<TokenStrea
     }
 
     let field_name = input_field.name();
-    let field_name = field_name.get_value_as_str();
+    let field_name = field_name.as_str();
 
     if input_field.property.ty.is_option() {
         let result = quote!({
@@ -133,7 +133,7 @@ fn read_from_form_data_as_single_field(
 ) -> Result<TokenStream, syn::Error> {
     if input_field.property.ty.is_file_content() {
         let name = input_field.name();
-        let name = name.get_value_as_str();
+        let name = name.as_str();
 
         let result = quote!({
             let body = ctx.request.receive_body().await?;
@@ -158,7 +158,7 @@ fn read_from_form_data_as_single_field(
     }
 
     let field_name = input_field.name();
-    let field_name = field_name.get_value_as_str();
+    let field_name = field_name.as_str();
 
     if input_field.property.ty.is_option() {
         let result = quote!({

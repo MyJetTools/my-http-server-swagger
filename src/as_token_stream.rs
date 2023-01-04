@@ -1,6 +1,6 @@
-use macros_utils::ParamValue;
 use proc_macro2::TokenStream;
 use quote::quote;
+use types_reader::attribute_params::ParamValue;
 
 use crate::input_models::input_fields::InputField;
 pub trait AsTokenStream {
@@ -10,7 +10,7 @@ pub trait AsTokenStream {
 impl<'s> AsTokenStream for Option<ParamValue<'s>> {
     fn as_token_stream(&self) -> TokenStream {
         if let Some(value) = self {
-            let value = value.get_value_as_str();
+            let value = value.as_str();
             quote! {
                 Some(#value)
             }

@@ -9,14 +9,17 @@ pub fn generate(ast: &syn::DeriveInput, is_string: bool) -> TokenStream {
     let struct_name = &ast.ident;
     let struct_name_as_str = struct_name.to_string();
 
-    let src_fields = EnumCase::read(ast);
+    let src_fields = match EnumCase::read(ast) {
+        Ok(result) => result,
+        Err(err) => return err.into_compile_error().into(),
+    };
 
     let mut fields = Vec::new();
 
     let mut default_case = None;
 
     for src_field in src_fields {
-        let name = src_field.name.to_string();
+        let name = src_field.get_name_ident().to_string();
         if let Some(enum_json) = EnumJson::new(src_field) {
             if enum_json.is_default_value {
                 default_case = Some(enum_json.get_enum_case_value().to_string());

@@ -24,7 +24,7 @@ pub fn generate_read_not_body(input_fields: &Vec<&InputField>) -> TokenStream {
         match &input_field.property.ty {
             PropertyType::OptionOf(_) => {
                 let input_field_name = input_field.name();
-                let input_field_name = input_field_name.get_value_as_str();
+                let input_field_name = input_field_name.as_str();
 
                 let item = quote! {
                     let #struct_field_name = if let Some(value) = #data_src.get_optional(#input_field_name){
@@ -39,7 +39,7 @@ pub fn generate_read_not_body(input_fields: &Vec<&InputField>) -> TokenStream {
             PropertyType::VecOf(sub_type) => {
                 if sub_type.is_string() {
                     let input_field_name = input_field.name();
-                    let input_field_name = input_field_name.get_value_as_str();
+                    let input_field_name = input_field_name.as_str();
 
                     let item = quote! {
                       let #struct_field_name = #data_src.get_vec_of_string(#input_field_name)?;
@@ -49,7 +49,7 @@ pub fn generate_read_not_body(input_fields: &Vec<&InputField>) -> TokenStream {
                     reading_feilds.push(item);
                 } else {
                     let input_field_name = input_field.name();
-                    let input_field_name = input_field_name.get_value_as_str();
+                    let input_field_name = input_field_name.as_str();
 
                     let item = quote! {
                        let #struct_field_name = #data_src.get_vec(#input_field_name)?;
@@ -61,7 +61,7 @@ pub fn generate_read_not_body(input_fields: &Vec<&InputField>) -> TokenStream {
             }
             PropertyType::Struct(..) => {
                 let input_field_name = input_field.name();
-                let input_field_name = input_field_name.get_value_as_str();
+                let input_field_name = input_field_name.as_str();
 
                 let prop_type = input_field.property.get_syn_type();
 
@@ -88,7 +88,7 @@ pub fn generate_read_not_body(input_fields: &Vec<&InputField>) -> TokenStream {
 
         if let Some(validator) = input_field.validator() {
             let validation_fn_name =
-                proc_macro2::TokenStream::from_str(validator.get_value_as_str()).unwrap();
+                proc_macro2::TokenStream::from_str(validator.as_str()).unwrap();
             validation.push(quote!(#validation_fn_name(ctx, &#struct_field_name)?;));
         }
     }
@@ -111,19 +111,19 @@ fn generate_reading_required(input_field: &InputField) -> TokenStream {
         InputFieldSource::Query => {
             let data_src = get_query_string_data_src();
             let input_field_name = input_field.name();
-            let input_field_name = input_field_name.get_value_as_str();
+            let input_field_name = input_field_name.as_str();
 
             quote!(let #struct_field_name = my_http_server::InputParamValue::from(#data_src.get_required(#input_field_name)?).try_into()?;)
         }
         InputFieldSource::Path => {
             let input_field_name = input_field.name();
-            let input_field_name = input_field_name.get_value_as_str();
+            let input_field_name = input_field_name.as_str();
 
             quote!(let #struct_field_name = http_route.get_value(&ctx.request.http_path, #input_field_name)?.try_into()?;)
         }
         InputFieldSource::Header => {
             let input_field_name = input_field.name();
-            let input_field_name = input_field_name.get_value_as_str();
+            let input_field_name = input_field_name.as_str();
 
             quote!(let #struct_field_name = ctx.request.get_required_header(#input_field_name)?.try_into()?;)
         }

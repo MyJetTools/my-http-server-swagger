@@ -1,6 +1,8 @@
-use macros_utils::{AttributeParams, ParamValue};
 use proc_macro2::TokenStream;
-use types_reader::{PropertyType, StructProperty};
+use types_reader::{
+    attribute_params::{AttributeParams, ParamValue},
+    PropertyType, StructProperty,
+};
 
 pub struct BodyNotBodyFields<'s> {
     pub body_fields: Option<Vec<&'s InputField<'s>>>,
@@ -51,11 +53,11 @@ impl InputFieldSource {
 pub struct InputField<'s> {
     pub property: StructProperty<'s>,
     pub src: InputFieldSource,
-    pub my_attr: AttributeParams,
+    attr_name: String,
 }
 
 fn get_attr(property: &StructProperty) -> Option<(String, InputFieldSource)> {
-    for name in property.attrs.keys() {
+    for name in property.attrs.get_attr_names() {
         let src = InputFieldSource::from_str(name);
 
         if let Some(src) = src {
@@ -66,25 +68,29 @@ fn get_attr(property: &StructProperty) -> Option<(String, InputFieldSource)> {
 }
 
 impl<'s> InputField<'s> {
-    pub fn new(mut property: StructProperty<'s>) -> Option<Self> {
-        let (attr_name, src) = get_attr(&property)?;
+    pub fn new(property: StructProperty<'s>) -> Result<Option<Self>, syn::Error> {
+        let get_attr_result = get_attr(&property);
 
-        let attr = property.attrs.remove(&attr_name).unwrap();
-
-        if attr.is_none() {
-            panic!("Attribute {} does not have any description", attr_name);
+        if get_attr_result.is_none() {
+            return Ok(None);
         }
 
-        return Self {
+        let (attr_name, src) = get_attr_result.unwrap();
+
+        return Ok(Self {
             property,
             src,
-            my_attr: attr.unwrap(),
+            attr_name,
         }
-        .into();
+        .into());
+    }
+
+    fn get_my_attr(&'s self) -> &AttributeParams<'s> {
+        self.property.attrs.get_attr(&self.attr_name).unwrap()
     }
 
     pub fn name(&self) -> ParamValue {
-        if let Some(value) = self.my_attr.get_named_param("name") {
+        if let Ok(value) = self.get_my_attr().get_named_param("name") {
             value
         } else {
             ParamValue {
@@ -102,7 +108,10 @@ impl<'s> InputField<'s> {
     }
 
     pub fn get_default_value(&self) -> Option<ParamValue> {
-        self.my_attr.get_named_param("default")
+        match self.get_my_attr().get_named_param("default") {
+            Ok(result) => Some(result),
+            Err(_) => None,
+        }
     }
 
     pub fn is_reading_from_body(&self) -> bool {
@@ -124,23 +133,21 @@ impl<'s> InputField<'s> {
     }
 
     pub fn get_body_type(&self) -> Option<ParamValue> {
-        self.my_attr.get_named_param("body_type")
+        match self.get_my_attr().get_named_param("body_type") {
+            Ok(result) => Some(result),
+            Err(_) => todo!(),
+        }
     }
 
     pub fn description(&self) -> Result<ParamValue, syn::Error> {
-        if let Some(value) = self.my_attr.get_named_param("description") {
-            return Ok(value);
-        }
-
-        let err =
-            syn::Error::new_spanned(self.property.field, "description is missing of the field");
-
-        Err(err)
+        self.get_my_attr().get_named_param("description")
     }
 
     pub fn validator(&self) -> Option<ParamValue> {
-        let result = self.my_attr.get_named_param("validator")?;
-        Some(result)
+        match self.get_my_attr().get_named_param("validator") {
+            Ok(result) => Some(result),
+            Err(_) => None,
+        }
     }
 
     pub fn get_struct_fiel_name_as_token_stream(&self) -> TokenStream {
@@ -154,16 +161,16 @@ pub struct InputFields<'s> {
 }
 
 impl<'s> InputFields<'s> {
-    pub fn new(src: Vec<StructProperty<'s>>) -> Self {
+    pub fn new(src: Vec<StructProperty<'s>>) -> Result<Self, syn::Error> {
         let mut fields = Vec::new();
 
         for prop in src {
-            if let Some(field) = InputField::new(prop) {
+            if let Some(field) = InputField::new(prop)? {
                 fields.push(field);
             }
         }
 
-        Self { fields }
+        Ok(Self { fields })
     }
 
     pub fn get_body_and_not_body_fields(&'s self) -> BodyNotBodyFields<'s> {

@@ -3,7 +3,10 @@ use types_reader::StructProperty;
 
 pub fn impl_output_types(ast: &syn::DeriveInput) -> proc_macro::TokenStream {
     let stuct_name = &ast.ident;
-    let fields = StructProperty::read(ast);
+    let fields = match StructProperty::read(ast){
+        Ok(result) => result,
+        Err(err) => return err.into_compile_error().into(),
+    };
 
     let obj_fields = render_obj_fields(&fields);
     
@@ -67,7 +70,7 @@ pub fn generate_http_object_structure(
 
     for field in json.fields {
         let line = crate::types::compile_http_field(
-            field.name().get_value_as_str(),
+            field.name().as_str(),
             &field.property.ty,
             true,
             None,

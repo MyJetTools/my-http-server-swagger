@@ -1,5 +1,4 @@
-use macros_utils::ParamValue;
-use types_reader::StructProperty;
+use types_reader::{attribute_params::ParamValue, StructProperty};
 
 pub struct OutputJson<'s> {
     pub fields: Vec<JsonField<'s>>,
@@ -27,12 +26,8 @@ impl<'s> JsonField<'s> {
     }
 
     pub fn name(&self) -> ParamValue {
-        if let Some(attr) = self.property.attrs.get("serde") {
-            if let Some(attr) = attr {
-                if let Some(value) = attr.get_named_param("rename") {
-                    return value;
-                }
-            }
+        if let Ok(value) = self.property.attrs.get_named_param("serde", "rename") {
+            return value;
         }
 
         ParamValue {

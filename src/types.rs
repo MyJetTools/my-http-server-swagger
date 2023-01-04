@@ -1,9 +1,8 @@
 use std::str::FromStr;
 
-use macros_utils::ParamValue;
 use proc_macro2::TokenStream;
 use quote::quote;
-use types_reader::PropertyType;
+use types_reader::{attribute_params::ParamValue, PropertyType};
 
 use crate::as_token_stream::AsTokenStream;
 

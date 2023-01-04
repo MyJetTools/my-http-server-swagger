@@ -26,7 +26,7 @@ pub fn generate_read_body(input_fields: &Vec<&InputField>) -> Result<TokenStream
         match &input_field.property.ty {
             PropertyType::OptionOf(sub_type) => {
                 let input_field_name = input_field.name();
-                let input_field_name = input_field_name.get_value_as_str();
+                let input_field_name = input_field_name.as_str();
 
                 let sub_type = sub_type.get_token_stream();
 
@@ -51,7 +51,7 @@ pub fn generate_read_body(input_fields: &Vec<&InputField>) -> Result<TokenStream
                     )?);
                 } else {
                     let input_field_name = input_field.name();
-                    let input_field_name = input_field_name.get_value_as_str();
+                    let input_field_name = input_field_name.as_str();
 
                     let line = quote!(let #struct_field_name = #data_src.get_required(#input_field_name)?.try_into()?;);
                     reading_feilds.push(line);
@@ -68,7 +68,7 @@ pub fn generate_read_body(input_fields: &Vec<&InputField>) -> Result<TokenStream
 
         if let Some(validator) = input_field.validator() {
             let validation_fn_name =
-                proc_macro2::TokenStream::from_str(validator.get_value_as_str()).unwrap();
+                proc_macro2::TokenStream::from_str(validator.as_str()).unwrap();
             validation.push(quote!(#validation_fn_name(ctx, &#struct_field_name)?;));
         }
     }
@@ -106,13 +106,13 @@ fn generate_reading_required(
         }
         InputFieldSource::Body => {
             let input_field_name = input_field.name();
-            let input_field_name = input_field_name.get_value_as_str();
+            let input_field_name = input_field_name.as_str();
 
             quote!(let #struct_field = #data_src.get_required(#input_field_name)?.try_into()?;)
         }
         InputFieldSource::FormData => {
             let input_field_name = input_field.name();
-            let input_field_name = input_field_name.get_value_as_str();
+            let input_field_name = input_field_name.as_str();
 
             quote!(let #struct_field = #data_src.get_required(#input_field_name)?.try_into()?;)
         }
