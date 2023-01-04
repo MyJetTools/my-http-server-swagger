@@ -3,8 +3,10 @@ use types_reader::PropertyType;
 
 pub trait PropertyTypeExt {
     fn get_swagger_simple_type(&self, is_password: bool) -> Option<TokenStream>;
-    fn is_vec_of_u8(&self) -> bool;
+
     fn is_file_content(&self) -> bool;
+
+    fn is_raw_body(&self) -> bool;
 }
 
 impl<'s> PropertyTypeExt for PropertyType<'s> {
@@ -17,12 +19,13 @@ impl<'s> PropertyTypeExt for PropertyType<'s> {
             _ => false,
         }
     }
-    fn is_vec_of_u8(&self) -> bool {
+
+    fn is_raw_body(&self) -> bool {
         match self {
-            PropertyType::VecOf(sub_type) => match sub_type.as_ref() {
-                PropertyType::U8 => true,
-                _ => false,
-            },
+            PropertyType::Struct(name, _) => {
+                println!("name: {}", name);
+                name == "RawData"
+            }
             _ => false,
         }
     }

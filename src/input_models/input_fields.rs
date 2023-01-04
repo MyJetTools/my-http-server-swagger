@@ -124,21 +124,6 @@ impl<'s> InputField<'s> {
         }
     }
 
-    pub fn src_is_body(&self) -> bool {
-        if let InputFieldSource::Body = self.src {
-            return true;
-        }
-
-        return false;
-    }
-
-    pub fn get_body_type(&self) -> Option<ParamValue> {
-        match self.get_my_attr().get_named_param("body_type") {
-            Ok(result) => Some(result),
-            Err(_) => None,
-        }
-    }
-
     pub fn description(&self) -> Result<ParamValue, syn::Error> {
         self.get_my_attr().get_named_param("description")
     }
