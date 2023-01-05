@@ -95,7 +95,7 @@ fn read_from_body_raw(input_field: &InputField) -> Result<TokenStream, syn::Erro
         });
         return Ok(result);
     }
-    let result = quote!(ctx.request.receive_body().await?.into());
+    let result = quote!(ctx.request.receive_body().await?.try_into()?);
     return Ok(result);
 }
 
