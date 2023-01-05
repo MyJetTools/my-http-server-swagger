@@ -1,4 +1,5 @@
 use proc_macro2::{Ident, TokenStream};
+use types_reader::PropertyType;
 
 use crate::{
     input_models::input_fields::{InputField, InputFieldSource, InputFields},
@@ -43,15 +44,11 @@ pub fn generate(name: &Ident, input_fields: &InputFields) -> Result<TokenStream,
             }
             InputFieldSource::Body => {
                 let body_data_to_read = has_body_data_to_read.as_ref().unwrap();
-                let struct_field_name = input_field.get_struct_fiel_name_as_token_stream();
 
                 if body_data_to_read.http_body > 1 {
                     fileds_to_return.push(input_field.get_struct_fiel_name_as_token_stream());
                 } else {
-                    fileds_to_return.push(quote!(#struct_field_name: {
-
-
-                    }));
+                    fileds_to_return.push(read_body_single_field(input_field));
                 }
             }
             InputFieldSource::BodyRaw => {
@@ -172,4 +169,14 @@ fn read_from_form_data_as_single_field(
         });
         return Ok(result);
     }
+}
+
+fn read_body_single_field(input_field: &InputField) -> proc_macro2::TokenStream {
+    let struct_field_name = input_field.get_struct_fiel_name_as_token_stream();
+
+    if let PropertyType::OptionOf(_) = &input_field.property.ty {
+        return quote!(#struct_field_name: ctx.request.get_body().await?.get_body_data_reader()?.into());
+    }
+
+    quote!(#struct_field_name: ctx.request.get_body().await?.get_body_data_reader()?.into())
 }
