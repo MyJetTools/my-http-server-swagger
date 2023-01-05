@@ -5,7 +5,7 @@ use types_reader::EnumCase;
 
 use crate::enum_doc::enum_json::{EnumJson, HTTP_ENUM_ATTR_NAME};
 
-pub fn generate(ast: &syn::DeriveInput, is_string: bool) -> TokenStream {
+pub fn generate(ast: &syn::DeriveInput) -> TokenStream {
     let struct_name = &ast.ident;
     let struct_name_as_str = struct_name.to_string();
 
@@ -52,19 +52,7 @@ pub fn generate(ast: &syn::DeriveInput, is_string: bool) -> TokenStream {
         None
     };
 
-    let name_space = crate::consts::get_name_space();
-    let http_enum_structure = crate::consts::get_http_enum_structure();
-
     let http_fail_result = crate::consts::get_http_fail_result();
-
-    let impl_get_http_data_structure = match super::http_enum_structure::generate(
-        &struct_name_as_str,
-        is_string,
-        fields.as_slice(),
-    ) {
-        Ok(impl_get_http_data_structure) => impl_get_http_data_structure,
-        Err(err) => err.to_compile_error(),
-    };
 
     let create_default_impl = if default_case.is_some() {
         quote::quote!(Ok(Self::default()))
@@ -99,10 +87,6 @@ pub fn generate(ast: &syn::DeriveInput, is_string: bool) -> TokenStream {
 
     quote::quote! {
         impl #struct_name{
-
-            pub fn get_http_data_structure()->#name_space::#http_enum_structure{
-                #impl_get_http_data_structure
-            }
 
             pub fn create_default() -> Result<Self,#http_fail_result>{
                 #create_default_impl
