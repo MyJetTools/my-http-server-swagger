@@ -90,6 +90,13 @@ pub fn generate(ast: &syn::DeriveInput, is_string: bool) -> TokenStream {
         Err(err) => vec![err.to_compile_error()],
     };
 
+    let use_documentation = crate::consts::get_use_documentation();
+
+    let enum_cases = match generate_enum_cases(&fields) {
+        Ok(result) => result,
+        Err(err) => return err.to_compile_error().into(),
+    };
+
     quote::quote! {
         impl #struct_name{
 
@@ -129,6 +136,45 @@ pub fn generate(ast: &syn::DeriveInput, is_string: bool) -> TokenStream {
 
         }
 
+
+        impl my_http_server_controllers::controllers::documentation::DataTypeProvider for #struct_name {
+            fn get_data_type() -> my_http_server_controllers::controllers::documentation::data_types::HttpDataType {
+                #use_documentation;
+
+                let mut __es = data_types::HttpObjectStructure{
+                    struct_id: #struct_name_as_str,
+                    enum_type: EnumType::Integer,
+                    cases: vec![],
+                };
+
+                #(#enum_cases)*
+
+                __es.into_http_data_type_object()
+            }
+        }
+
+
+
     }
     .into()
+}
+
+fn generate_enum_cases(cases: &[EnumJson]) -> Result<Vec<proc_macro2::TokenStream>, syn::Error> {
+    let mut result = Vec::with_capacity(cases.len());
+    for case in cases {
+        let id = proc_macro2::Literal::isize_unsuffixed(case.get_id()?);
+        let value = case.get_enum_case_value();
+        let description = case.description()?;
+        let description = description.as_str();
+
+        result.push(quote::quote! {
+            __es.cases.push(data_types::HttpEnumCase{
+                case_id: #id,
+                value: #value,
+                description: #description
+            });
+        });
+    }
+
+    Ok(result)
 }
