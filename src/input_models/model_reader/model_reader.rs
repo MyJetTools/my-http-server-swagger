@@ -177,7 +177,18 @@ fn read_body_single_field(input_field: &InputField) -> proc_macro2::TokenStream 
     let field_name = field_name.as_str();
 
     if let PropertyType::OptionOf(_) = &input_field.property.ty {
-        return quote!(#struct_field_name: ctx.request.get_body().await?.get_body_data_reader()?.into());
+        return quote!(
+            #struct_field_name: {
+                let data_reader = ctx.request.get_body().await?.get_body_data_reader()?;
+                if let Some(value) =data_reader.get_optional(#field_name){
+                    Some(value.try_into()?)
+                }
+                else{
+                    None
+                }
+            }
+
+        );
     }
 
     quote!(#struct_field_name: {
