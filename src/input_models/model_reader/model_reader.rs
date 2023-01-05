@@ -42,13 +42,16 @@ pub fn generate(name: &Ident, input_fields: &InputFields) -> Result<TokenStream,
                 fileds_to_return.push(input_field.get_struct_fiel_name_as_token_stream());
             }
             InputFieldSource::Body => {
+                fileds_to_return.push(input_field.get_struct_fiel_name_as_token_stream());
+            }
+            InputFieldSource::BodyRaw => {
                 let body_data_to_read = has_body_data_to_read.as_ref().unwrap();
 
                 if body_data_to_read.http_body > 1 {
                     fileds_to_return.push(input_field.get_struct_fiel_name_as_token_stream());
                 } else {
                     let struct_field_name = input_field.get_struct_fiel_name_as_token_stream();
-                    let read_value = read_from_body_as_single_field(input_field)?;
+                    let read_value = read_from_body_raw(input_field)?;
                     fileds_to_return.push(quote!(#struct_field_name: #read_value));
                 }
             }
@@ -77,9 +80,9 @@ pub fn generate(name: &Ident, input_fields: &InputFields) -> Result<TokenStream,
     Ok(result)
 }
 
-fn read_from_body_as_single_field(input_field: &InputField) -> Result<TokenStream, syn::Error> {
+fn read_from_body_raw(input_field: &InputField) -> Result<TokenStream, syn::Error> {
     if input_field.property.ty.is_raw_body() {
-        let result = quote!(ctx.request.receive_body().await?.get_body());
+        let result = quote!(ctx.request.receive_body().await?.into());
         return Ok(result);
     }
 

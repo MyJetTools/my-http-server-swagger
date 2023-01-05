@@ -128,10 +128,13 @@ fn generate_reading_required(input_field: &InputField) -> TokenStream {
             quote!(let #struct_field_name = ctx.request.get_required_header(#input_field_name)?.try_into()?;)
         }
         InputFieldSource::Body => {
-            panic!("Bug. Should not read from Body at generate_reading_required");
+            panic!("Bug. Should not read from Body at read_not_body part of script");
         }
         InputFieldSource::FormData => {
-            panic!("Bug. Should not read from FormData at generate_reading_required");
+            panic!("Bug. Should not read from FormData at read_not_body part of script");
+        }
+        InputFieldSource::BodyRaw => {
+            panic!("Bug. Should not read from BodyRaw at read_not_body part of script");
         }
     }
 }

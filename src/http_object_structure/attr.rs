@@ -16,8 +16,6 @@ pub fn impl_output_types(ast: &syn::DeriveInput) -> proc_macro::TokenStream {
 
     let struct_name_as_str = stuct_name.to_string();
 
-    let http_fail_result = crate::consts::get_http_fail_result();
-
 
 
     quote! {

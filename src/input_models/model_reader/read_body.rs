@@ -96,19 +96,22 @@ fn generate_reading_required(
 ) -> Result<TokenStream, syn::Error> {
     let result = match input_field.src {
         InputFieldSource::Query => {
-            panic!("Bug. Query is not supported for read body model");
+            panic!("Bug. Query is not supported for reading body model");
         }
         InputFieldSource::Path => {
-            panic!("Bug. Path is not supported for read body model");
+            panic!("Bug. Path is not supported for reading body model");
         }
         InputFieldSource::Header => {
-            panic!("Bug. Path is not supported for read body model");
+            panic!("Bug. Path is not supported for reading body model");
         }
         InputFieldSource::Body => {
             let input_field_name = input_field.name();
             let input_field_name = input_field_name.as_str();
 
             quote!(let #struct_field = #data_src.get_required(#input_field_name)?.try_into()?;)
+        }
+        InputFieldSource::BodyRaw => {
+            panic!("Bug. BodyRaw is not supported for reading body model");
         }
         InputFieldSource::FormData => {
             let input_field_name = input_field.name();

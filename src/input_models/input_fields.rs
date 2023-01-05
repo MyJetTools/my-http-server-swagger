@@ -12,6 +12,7 @@ pub struct BodyNotBodyFields<'s> {
 pub struct BodyDataToReader {
     pub http_form: usize,
     pub http_body: usize,
+    pub http_body_raw: usize,
 }
 
 impl BodyDataToReader {
@@ -20,6 +21,10 @@ impl BodyDataToReader {
     }
 
     pub fn has_body_data(&self) -> bool {
+        self.http_body > 0
+    }
+
+    pub fn has_body_raw_data(&self) -> bool {
         self.http_body > 0
     }
 
@@ -35,6 +40,7 @@ pub enum InputFieldSource {
     Header,
     Body,
     FormData,
+    BodyRaw,
 }
 
 impl InputFieldSource {
@@ -45,6 +51,7 @@ impl InputFieldSource {
             "http_path" => Some(Self::Path),
             "http_form_data" => Some(Self::FormData),
             "http_body" => Some(Self::Body),
+            "http_body_raw" => Some(Self::BodyRaw),
             _ => None,
         }
     }
@@ -121,6 +128,7 @@ impl<'s> InputField<'s> {
             InputFieldSource::Header => false,
             InputFieldSource::Body => true,
             InputFieldSource::FormData => true,
+            InputFieldSource::BodyRaw => true,
         }
     }
 
@@ -180,6 +188,7 @@ impl<'s> InputFields<'s> {
         let mut body_data_reader = BodyDataToReader {
             http_form: 0,
             http_body: 0,
+            http_body_raw: 0,
         };
 
         for field in &self.fields {
@@ -189,6 +198,14 @@ impl<'s> InputFields<'s> {
                         let err = syn::Error::new_spanned(
                             field.property.field,
                             "Form data and body data can not be mixed",
+                        );
+                        return Err(err);
+                    };
+
+                    if body_data_reader.has_body_raw_data() {
+                        let err = syn::Error::new_spanned(
+                            field.property.field,
+                            "Body data and 'body raw' data can not be mixed",
                         );
                         return Err(err);
                     };
@@ -204,7 +221,43 @@ impl<'s> InputFields<'s> {
                         return Err(err);
                     };
 
+                    if body_data_reader.has_body_raw_data() {
+                        let err = syn::Error::new_spanned(
+                            field.property.field,
+                            "Form data and 'body raw' data can not be mixed",
+                        );
+                        return Err(err);
+                    };
+
                     body_data_reader.http_form += 1;
+                }
+
+                InputFieldSource::BodyRaw => {
+                    if body_data_reader.has_form_data() {
+                        let err = syn::Error::new_spanned(
+                            field.property.field,
+                            "Form data and body data can not be mixed",
+                        );
+                        return Err(err);
+                    };
+
+                    if body_data_reader.has_body_data() {
+                        let err = syn::Error::new_spanned(
+                            field.property.field,
+                            "Body data and 'body raw' data can not be mixed",
+                        );
+                        return Err(err);
+                    };
+
+                    body_data_reader.http_body_raw += 1;
+
+                    if body_data_reader.http_body_raw > 1 {
+                        let err = syn::Error::new_spanned(
+                            field.property.field,
+                            "Body raw data can be only once",
+                        );
+                        return Err(err);
+                    };
                 }
 
                 _ => {}
