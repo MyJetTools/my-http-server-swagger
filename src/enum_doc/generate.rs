@@ -141,9 +141,10 @@ pub fn generate(ast: &syn::DeriveInput, is_string: bool) -> TokenStream {
             fn get_data_type() -> my_http_server_controllers::controllers::documentation::data_types::HttpDataType {
                 #use_documentation;
 
-                let mut __es = data_types::HttpObjectStructure{
+                let mut __es = data_types::HttpEnumStructure{
                     struct_id: #struct_name_as_str,
-                    fields: vec![],
+                    enum_type: EnumType::Integer,
+                    cases: vec![],
                 };
 
                 #(#enum_cases)*
