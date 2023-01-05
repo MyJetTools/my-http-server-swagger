@@ -42,18 +42,22 @@ pub fn generate(name: &Ident, input_fields: &InputFields) -> Result<TokenStream,
                 fileds_to_return.push(input_field.get_struct_fiel_name_as_token_stream());
             }
             InputFieldSource::Body => {
-                fileds_to_return.push(input_field.get_struct_fiel_name_as_token_stream());
-            }
-            InputFieldSource::BodyRaw => {
                 let body_data_to_read = has_body_data_to_read.as_ref().unwrap();
+                let struct_field_name = input_field.get_struct_fiel_name_as_token_stream();
 
                 if body_data_to_read.http_body > 1 {
                     fileds_to_return.push(input_field.get_struct_fiel_name_as_token_stream());
                 } else {
-                    let struct_field_name = input_field.get_struct_fiel_name_as_token_stream();
-                    let read_value = read_from_body_raw(input_field)?;
-                    fileds_to_return.push(quote!(#struct_field_name: #read_value));
+                    fileds_to_return.push(quote!(#struct_field_name: {
+
+
+                    }));
                 }
+            }
+            InputFieldSource::BodyRaw => {
+                let struct_field_name = input_field.get_struct_fiel_name_as_token_stream();
+                let read_value = read_from_body_raw(input_field)?;
+                fileds_to_return.push(quote!(#struct_field_name: #read_value));
             }
             InputFieldSource::FormData => {
                 let body_data_to_read = has_body_data_to_read.as_ref().unwrap();

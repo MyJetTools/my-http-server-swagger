@@ -25,7 +25,7 @@ impl BodyDataToReader {
     }
 
     pub fn has_body_raw_data(&self) -> bool {
-        self.http_body > 0
+        self.http_body_raw > 0
     }
 
     pub fn is_empty(&self) -> bool {
