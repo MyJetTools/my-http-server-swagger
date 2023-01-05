@@ -19,10 +19,6 @@ pub fn get_use_documentation() -> TokenStream {
     )
 }
 
-pub fn get_name_space() -> TokenStream {
-    quote!(my_http_server_controllers::controllers::documentation)
-}
-
 pub fn get_http_input_parameter() -> TokenStream {
     quote!(in_parameters::HttpInputParameter)
 }
@@ -35,18 +31,6 @@ pub fn get_http_input_parameter_with_ns() -> TokenStream {
 
 pub fn get_http_parameter_input_src() -> TokenStream {
     quote!(in_parameters::HttpParameterInputSource)
-}
-
-pub fn get_http_enum_structure() -> TokenStream {
-    quote!(data_types::HttpEnumStructure)
-}
-
-pub fn get_enum_type() -> TokenStream {
-    quote!(data_types::EnumType)
-}
-
-pub fn get_http_enum_case() -> TokenStream {
-    quote!(data_types::HttpEnumCase)
 }
 
 pub fn get_http_context() -> TokenStream {
