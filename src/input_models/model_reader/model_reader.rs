@@ -173,10 +173,12 @@ fn read_from_form_data_as_single_field(
 
 fn read_body_single_field(input_field: &InputField) -> proc_macro2::TokenStream {
     let struct_field_name = input_field.get_struct_fiel_name_as_token_stream();
+    let field_name = input_field.name();
+    let field_name = field_name.as_str();
 
     if let PropertyType::OptionOf(_) = &input_field.property.ty {
         return quote!(#struct_field_name: ctx.request.get_body().await?.get_body_data_reader()?.into());
     }
 
-    quote!(#struct_field_name: ctx.request.get_body().await?.get_body_data_reader()?.into())
+    quote!(#struct_field_name: ctx.request.get_body().await?.get_body_data_reader()?.get_required(#field_name)?.into())
 }
