@@ -143,8 +143,7 @@ pub fn generate(ast: &syn::DeriveInput, is_string: bool) -> TokenStream {
 
                 let mut __es = data_types::HttpObjectStructure{
                     struct_id: #struct_name_as_str,
-                    enum_type: EnumType::Integer,
-                    cases: vec![],
+                    fields: vec![],
                 };
 
                 #(#enum_cases)*
