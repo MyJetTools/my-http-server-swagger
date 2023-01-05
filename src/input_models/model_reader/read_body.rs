@@ -4,11 +4,7 @@ use proc_macro2::{Ident, TokenStream};
 use quote::quote;
 use types_reader::PropertyType;
 
-use crate::{
-    as_token_stream::AsTokenStream,
-    input_models::input_fields::{InputField, InputFieldSource},
-    proprety_type_ext::PropertyTypeExt,
-};
+use crate::{as_token_stream::AsTokenStream, input_models::input_fields::InputField};
 
 pub fn get_body_data_src() -> TokenStream {
     quote!(__reader)
@@ -40,22 +36,6 @@ pub fn generate_read_body(input_fields: &Vec<&InputField>) -> Result<TokenStream
                 };
 
                 reading_feilds.push(line);
-            }
-            PropertyType::VecOf(_) => {}
-            PropertyType::Struct(..) => {
-                if input_field.property.ty.is_file_content() {
-                    reading_feilds.push(generate_reading_required(
-                        input_field,
-                        &data_src,
-                        &struct_field_name,
-                    )?);
-                } else {
-                    let input_field_name = input_field.name();
-                    let input_field_name = input_field_name.as_str();
-
-                    let line = quote!(let #struct_field_name = #data_src.get_required(#input_field_name)?.try_into()?;);
-                    reading_feilds.push(line);
-                }
             }
             _ => {
                 reading_feilds.push(generate_reading_required(
@@ -94,32 +74,8 @@ fn generate_reading_required(
     data_src: &TokenStream,
     struct_field: &Ident,
 ) -> Result<TokenStream, syn::Error> {
-    let result = match input_field.src {
-        InputFieldSource::Query => {
-            panic!("Bug. Query is not supported for reading body model");
-        }
-        InputFieldSource::Path => {
-            panic!("Bug. Path is not supported for reading body model");
-        }
-        InputFieldSource::Header => {
-            panic!("Bug. Path is not supported for reading body model");
-        }
-        InputFieldSource::Body => {
-            let input_field_name = input_field.name();
-            let input_field_name = input_field_name.as_str();
+    let input_field_name = input_field.name();
+    let input_field_name = input_field_name.as_str();
 
-            quote!(let #struct_field = #data_src.get_required(#input_field_name)?.try_into()?;)
-        }
-        InputFieldSource::BodyRaw => {
-            panic!("Bug. BodyRaw is not supported for reading body model");
-        }
-        InputFieldSource::FormData => {
-            let input_field_name = input_field.name();
-            let input_field_name = input_field_name.as_str();
-
-            quote!(let #struct_field = #data_src.get_required(#input_field_name)?.try_into()?;)
-        }
-    };
-
-    Ok(result)
+    Ok(quote!(let #struct_field = #data_src.get_required(#input_field_name)?.try_into()?;))
 }

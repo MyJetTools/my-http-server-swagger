@@ -1,10 +1,7 @@
 use proc_macro2::{Ident, TokenStream};
 use types_reader::PropertyType;
 
-use crate::{
-    input_models::input_fields::{InputField, InputFieldSource, InputFields},
-    proprety_type_ext::PropertyTypeExt,
-};
+use crate::input_models::input_fields::{InputField, InputFieldSource, InputFields};
 use quote::quote;
 
 pub fn generate(name: &Ident, input_fields: &InputFields) -> Result<TokenStream, syn::Error> {
@@ -82,20 +79,10 @@ pub fn generate(name: &Ident, input_fields: &InputFields) -> Result<TokenStream,
 }
 
 fn read_from_body_raw(input_field: &InputField) -> Result<TokenStream, syn::Error> {
-    if input_field.property.ty.is_raw_body() {
-        let result = quote!(ctx.request.receive_body().await?.into());
-        return Ok(result);
-    }
-
-    if input_field.property.ty.is_struct() {
-        let result = quote!((ctx.request.receive_body().await?.into()?));
-        return Ok(result);
-    }
-
-    let field_name = input_field.name();
-    let field_name = field_name.as_str();
-
     if input_field.property.ty.is_option() {
+        let field_name = input_field.name();
+        let field_name = field_name.as_str();
+
         let result = quote!({
             let body = ctx.request.receive_body().await?;
             let body_reader = body.get_body_data_reader()?;
@@ -107,45 +94,14 @@ fn read_from_body_raw(input_field: &InputField) -> Result<TokenStream, syn::Erro
             }
         });
         return Ok(result);
-    } else {
-        let result = quote!({
-            let body = ctx.request.receive_body().await?;
-            let body_reader = body.get_body_data_reader()?;
-            body_reader.get_required(#field_name)?.try_into()?
-        });
-        return Ok(result);
     }
+    let result = quote!(ctx.request.receive_body().await?.into());
+    return Ok(result);
 }
 
 fn read_from_form_data_as_single_field(
     input_field: &InputField,
 ) -> Result<TokenStream, syn::Error> {
-    if input_field.property.ty.is_file_content() {
-        let name = input_field.name();
-        let name = name.as_str();
-
-        let result = quote!({
-            let body = ctx.request.receive_body().await?;
-            let data_reader = body.get_body_data_reader()?;
-            data_reader.get_required(#name)?.try_into()?
-        });
-        return Ok(result);
-    }
-
-    if input_field.property.ty.is_struct() {
-        let result = quote!({
-            let result = quote!({
-                let body = ctx.request.receive_body().await?;
-                let bytes = body.get_body();
-                serde_json::from_slice(bytes.as_slice()).unwrap()
-            });
-
-            return Ok(result);
-        });
-
-        return Ok(result);
-    }
-
     let field_name = input_field.name();
     let field_name = field_name.as_str();
 
@@ -161,14 +117,13 @@ fn read_from_form_data_as_single_field(
             }
         });
         return Ok(result);
-    } else {
-        let result = quote!({
-            let body = ctx.request.receive_body().await?;
-            let body_reader = body.get_body_data_reader()?;
-            body_reader.get_required(#field_name)?.try_into()?
-        });
-        return Ok(result);
     }
+    let result = quote!({
+        let body = ctx.request.receive_body().await?;
+        let body_reader = body.get_body_data_reader()?;
+        body_reader.get_required(#field_name)?.try_into()?
+    });
+    return Ok(result);
 }
 
 fn read_body_single_field(input_field: &InputField) -> proc_macro2::TokenStream {
