@@ -180,5 +180,5 @@ fn read_body_single_field(input_field: &InputField) -> proc_macro2::TokenStream 
         return quote!(#struct_field_name: ctx.request.get_body().await?.get_body_data_reader()?.into());
     }
 
-    quote!(#struct_field_name: ctx.request.get_body().await?.get_body_data_reader()?.get_required(#field_name)?.into())
+    quote!(#struct_field_name: ctx.request.get_body().await?.get_body_data_reader()?.get_required(#field_name)?.try_into()?)
 }
