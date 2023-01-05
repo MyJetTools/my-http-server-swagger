@@ -6,7 +6,10 @@ use quote::quote;
 pub fn generate_http_input(fields: &InputFields) -> Result<TokenStream, syn::Error> {
     let mut doc_fields = Vec::new();
     for input_field in &fields.fields {
-        doc_fields.push(generate_http_input_parameter(input_field)?);
+        match generate_http_input_parameter(input_field) {
+            Ok(field) => doc_fields.push(field),
+            Err(e) => doc_fields.push(e.to_compile_error().into()),
+        }
     }
 
     let use_documentation = crate::consts::get_use_documentation();

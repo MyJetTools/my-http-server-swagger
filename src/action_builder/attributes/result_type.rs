@@ -35,7 +35,7 @@ fn is_simple_type(src: &str) -> bool {
         "Float" => true,
         "Double" => true,
         "Byte" => true,
-        "Binary" => true,
+        "Binary" => false,
         "Boolean" => true,
         "Date" => true,
         "DateTime" => true,
