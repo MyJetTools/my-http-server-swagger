@@ -115,10 +115,7 @@ impl<'s> InputField<'s> {
     }
 
     pub fn get_default_value(&self) -> Option<ParamValue> {
-        match self.get_my_attr().get_named_param("default") {
-            Ok(result) => Some(result),
-            Err(_) => None,
-        }
+        self.get_my_attr().get_named_param("default").ok()
     }
 
     pub fn is_reading_from_body(&self) -> bool {
@@ -137,10 +134,7 @@ impl<'s> InputField<'s> {
     }
 
     pub fn validator(&self) -> Option<ParamValue> {
-        match self.get_my_attr().get_named_param("validator") {
-            Ok(result) => Some(result),
-            Err(_) => None,
-        }
+        self.get_my_attr().get_named_param("validator").ok()
     }
 
     pub fn get_struct_fiel_name_as_token_stream(&self) -> TokenStream {
