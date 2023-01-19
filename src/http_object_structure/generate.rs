@@ -1,6 +1,8 @@
 use quote::quote;
 use types_reader::StructProperty;
 
+use super::struct_prop_ext::SturctPropertyExt;
+
 pub fn impl_output_types(ast: &syn::DeriveInput) -> proc_macro::TokenStream {
     let stuct_name = &ast.ident;
     let fields = match StructProperty::read(ast){
@@ -55,14 +57,13 @@ pub fn impl_output_types(ast: &syn::DeriveInput) -> proc_macro::TokenStream {
 pub fn generate_http_object_structure(
     fields: Vec<StructProperty>,
 ) -> Vec<proc_macro2::TokenStream> {
-    let json = super::out_json::OutputJson::new(fields);
 
     let mut result = Vec::new();
 
-    for field in json.fields {
+    for field in fields {
         let line = crate::types::compile_http_field(
-            field.name().as_str(),
-            &field.property.ty,
+            field.get_name().as_str(),
+            &field.ty,
             true,
             None,
         );

@@ -8,6 +8,14 @@ pub enum ResultType {
 impl ResultType {
     pub fn new(model: Option<String>, model_as_array: Option<String>) -> Option<Self> {
         if let Some(model_as_object) = model {
+            if let Some(vec_model) = is_model_vec(&model_as_object) {
+                if is_simple_type(vec_model) {
+                    return ResultType::ArrayOfSimpleType(vec_model.to_string()).into();
+                }
+
+                return ResultType::Array(vec_model.to_string()).into();
+            }
+
             if is_simple_type(model_as_object.as_str()) {
                 return ResultType::SimpleType(model_as_object).into();
             }
@@ -42,4 +50,12 @@ fn is_simple_type(src: &str) -> bool {
         "Password" => true,
         _ => false,
     }
+}
+
+fn is_model_vec(model_as_string: &str) -> Option<&str> {
+    if model_as_string.starts_with("Vec<") {
+        return Some(&model_as_string[4..model_as_string.len() - 1]);
+    }
+
+    None
 }
