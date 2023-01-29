@@ -53,8 +53,8 @@ fn get_input_src(field: &InputField) -> TokenStream {
         InputFieldSource::Query => quote!(#http_parameter_input_src::Query),
         InputFieldSource::Path => quote!(#http_parameter_input_src::Path),
         InputFieldSource::Header => quote!(#http_parameter_input_src::Header),
-        InputFieldSource::Body => quote!(#http_parameter_input_src::Body),
+        InputFieldSource::Body => quote!(#http_parameter_input_src::BodyModel),
         InputFieldSource::FormData => quote!(#http_parameter_input_src::FormData),
-        InputFieldSource::BodyRaw => quote!(#http_parameter_input_src::Body),
+        InputFieldSource::BodyRaw => quote!(#http_parameter_input_src::BodyRaw),
     }
 }
