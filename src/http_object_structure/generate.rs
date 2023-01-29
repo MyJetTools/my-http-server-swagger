@@ -50,7 +50,7 @@ pub fn generate(ast: &syn::DeriveInput) -> proc_macro::TokenStream {
             }
         }
 
-        impl TryFrom<HttpRequestBody> for #stuct_name {
+        impl TryFrom<my_http_server::HttpRequestBody> for #stuct_name {
             type Error = my_http_server::HttpFailResult;
         
             fn try_from(value: my_http_server::HttpRequestBody) -> Result<Self, Self::Error> {
