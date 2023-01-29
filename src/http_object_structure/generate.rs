@@ -3,7 +3,7 @@ use types_reader::StructProperty;
 
 use super::struct_prop_ext::SturctPropertyExt;
 
-pub fn impl_output_types(ast: &syn::DeriveInput) -> proc_macro::TokenStream {
+pub fn generate(ast: &syn::DeriveInput) -> proc_macro::TokenStream {
     let stuct_name = &ast.ident;
     let fields = match StructProperty::read(ast){
         Ok(result) => result,
@@ -47,6 +47,14 @@ pub fn impl_output_types(ast: &syn::DeriveInput) -> proc_macro::TokenStream {
                 let mut __hos = data_types::HttpObjectStructure::new(#struct_name_as_str);
                 #(#obj_fields)*
                 __hos.into_http_data_type_object()
+            }
+        }
+
+        impl TryFrom<HttpRequestBody> for #stuct_name {
+            type Error = my_http_server::HttpFailResult;
+        
+            fn try_from(value: my_http_server::HttpRequestBody) -> Result<Self, Self::Error> {
+                value.get_body_as_json()
             }
         }
 

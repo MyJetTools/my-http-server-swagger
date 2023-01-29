@@ -30,7 +30,7 @@ pub fn my_http_input_doc_derive(input: TokenStream) -> TokenStream {
 #[proc_macro_derive(MyHttpObjectStructure)]
 pub fn my_http_input_process_derive(input: TokenStream) -> TokenStream {
     let ast = syn::parse(input).unwrap();
-    crate::http_object_structure::generate::impl_output_types(&ast)
+    crate::http_object_structure::generate(&ast)
 }
 
 #[proc_macro_derive(MyHttpStringEnum, attributes(http_enum_case))]

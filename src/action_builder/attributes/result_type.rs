@@ -59,3 +59,13 @@ fn is_model_vec(model_as_string: &str) -> Option<&str> {
 
     None
 }
+
+#[cfg(test)]
+mod tests {
+
+    #[test]
+    fn test_detecting_vec() {
+        let src = "Vec<String>";
+        assert_eq!(super::is_model_vec(src), Some("String"));
+    }
+}
