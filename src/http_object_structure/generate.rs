@@ -88,7 +88,7 @@ fn render_obj_fields(fields: &[StructProperty])->Vec<proc_macro2::TokenStream>{
     let mut result = Vec::with_capacity(fields.len());
     for field in fields {
         let line = crate::types::compile_http_field(
-            &field.name,
+            field.get_name().as_str(),
             &field.ty,
             true,
             None,
