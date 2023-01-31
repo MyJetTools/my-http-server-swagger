@@ -11,10 +11,11 @@ pub fn compile_http_field(
     default: Option<ParamValue>,
 ) -> TokenStream {
     let data_type = compile_data_type(pt);
+    let required = pt.required();
 
     let default = default.as_token_stream();
     let http_field_type = crate::consts::get_http_field_type();
-    let required = pt.required();
+
     quote! {
         #http_field_type::new(#name, #data_type, #required, #default)
     }
