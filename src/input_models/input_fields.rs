@@ -108,11 +108,10 @@ impl<'s> InputField<'s> {
 
     pub fn required(&self) -> bool {
         match &self.property.ty {
-            PropertyType::VecOf(_) => return false,
-            PropertyType::OptionOf(_) => return false,
-            _ => {}
+            PropertyType::VecOf(_) => false,
+            PropertyType::OptionOf(_) => false,
+            _ => true,
         }
-        !self.property.ty.is_option()
     }
 
     pub fn get_default_value(&self) -> Option<ParamValue> {
