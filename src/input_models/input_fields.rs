@@ -109,6 +109,7 @@ impl<'s> InputField<'s> {
     pub fn required(&self) -> bool {
         match &self.property.ty {
             PropertyType::VecOf(_) => return false,
+            PropertyType::OptionOf(_) => return false,
             _ => {}
         }
         !self.property.ty.is_option()
