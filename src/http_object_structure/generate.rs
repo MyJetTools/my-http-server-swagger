@@ -72,7 +72,6 @@ pub fn generate_http_object_structure(
         let line = crate::types::compile_http_field(
             field.get_name().as_str(),
             &field.ty,
-            true,
             None,
         );
 
@@ -90,7 +89,6 @@ fn render_obj_fields(fields: &[StructProperty])->Vec<proc_macro2::TokenStream>{
         let line = crate::types::compile_http_field(
             field.get_name().as_str(),
             &field.ty,
-            true,
             None,
         );
 

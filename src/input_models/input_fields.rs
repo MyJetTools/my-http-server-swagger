@@ -1,7 +1,7 @@
 use proc_macro2::TokenStream;
 use types_reader::{
     attribute_params::{AttributeParams, ParamValue},
-    PropertyType, StructProperty,
+    StructProperty,
 };
 
 pub struct BodyNotBodyFields<'s> {
@@ -103,14 +103,6 @@ impl<'s> InputField<'s> {
             ParamValue {
                 value: self.property.name.as_bytes(),
             }
-        }
-    }
-
-    pub fn required(&self) -> bool {
-        match &self.property.ty {
-            PropertyType::VecOf(_) => false,
-            PropertyType::OptionOf(_) => false,
-            _ => true,
         }
     }
 

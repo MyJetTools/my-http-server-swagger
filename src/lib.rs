@@ -9,6 +9,7 @@ mod consts;
 mod enum_doc;
 mod http_object_structure;
 mod input_models;
+mod proprety_type_ext;
 mod types;
 
 #[proc_macro_derive(

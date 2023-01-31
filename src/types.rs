@@ -3,17 +3,18 @@ use quote::quote;
 use types_reader::{attribute_params::ParamValue, PropertyType};
 
 use crate::as_token_stream::AsTokenStream;
+use crate::proprety_type_ext::PropertyTypeExt;
 
 pub fn compile_http_field(
     name: &str,
     pt: &PropertyType,
-    required: bool,
     default: Option<ParamValue>,
 ) -> TokenStream {
     let data_type = compile_data_type(pt);
 
     let default = default.as_token_stream();
     let http_field_type = crate::consts::get_http_field_type();
+    let required = pt.required();
     quote! {
         #http_field_type::new(#name, #data_type, #required, #default)
     }
