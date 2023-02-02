@@ -167,8 +167,7 @@ impl<'s> InputFields<'s> {
         for field in &self.fields {
             if field.is_reading_from_body() {
                 body_fields.add(field);
-            }
-            if field.src.is_path() {
+            } else if field.src.is_path() {
                 path_fields.add(field);
             } else {
                 not_body_fields.add(field);
