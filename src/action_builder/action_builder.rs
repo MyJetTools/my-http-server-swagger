@@ -1,4 +1,7 @@
+use std::str::FromStr;
+
 use proc_macro::TokenStream;
+use proc_macro2::TokenStream;
 
 use super::attributes::AttributeModel;
 
@@ -6,17 +9,17 @@ pub fn build_action(attr: TokenStream, input: TokenStream) -> TokenStream {
 
     let ast: syn::DeriveInput = syn::parse(input).unwrap();
 
-    let attrs = AttributeModel::parse(attr);
+    let action_model = AttributeModel::parse(attr);
 
     let struct_name = &ast.ident;
 
-    let trait_name = attrs.method.get_trait_name();
+    let trait_name = action_model.method.get_trait_name();
 
-    let route = attrs.route.as_str();
+    let route = action_model.route.as_str();
 
     let http_action_description = crate::consts::get_http_action_description_with_ns();
 
-    let description = super::generate_http_action_description_fn(&attrs);
+    let description = super::generate_http_action_description_fn(&action_model);
 
     let http_route = crate::consts::get_http_route();
 
@@ -26,7 +29,14 @@ pub fn build_action(attr: TokenStream, input: TokenStream) -> TokenStream {
 
     let http_fail_result = crate::consts::get_http_fail_result();
 
-    let handle_request = super::generate_handle_request_fn(&attrs.input_data);
+    let handle_request = super::generate_handle_request_fn(&action_model.input_data);
+
+    let model_routes: proc_macro2::TokenStream = if let Some(input_data) = &action_model.input_data{
+        let input_data = proc_macro2::TokenStream::from_str(input_data).unwrap();
+        quote::quote!(input_data::get_model_routes())
+    }else{
+        quote::quote!(None)
+    };
 
     quote::quote! {
         #ast
