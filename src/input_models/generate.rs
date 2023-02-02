@@ -69,8 +69,9 @@ fn http_routes(fields: &InputFields) -> Option<proc_macro2::TokenStream> {
     }
     let mut result = Vec::new();
 
-    for route in routes {
-        let name = route.property.name.as_str();
+    for field in routes {
+        let name = field.name();
+        let name = name.as_str();
         result.push(quote! {
             #name
         });
