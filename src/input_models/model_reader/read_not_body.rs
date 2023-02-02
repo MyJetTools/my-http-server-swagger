@@ -116,10 +116,7 @@ fn generate_reading_required(input_field: &InputField) -> TokenStream {
             quote!(let #struct_field_name = my_http_server::InputParamValue::from(#data_src.get_required(#input_field_name)?).try_into()?;)
         }
         InputFieldSource::Path => {
-            let input_field_name = input_field.name();
-            let input_field_name = input_field_name.as_str();
-
-            quote!(let #struct_field_name = http_route.get_value(&ctx.request.http_path, #input_field_name)?.try_into()?;)
+            panic!("Bug. Should not read from Path at read_not_body part of script");
         }
         InputFieldSource::Header => {
             let input_field_name = input_field.name();

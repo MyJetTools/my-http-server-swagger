@@ -31,25 +31,30 @@ pub fn generate(name: &Ident, input_fields: &InputFields) -> Result<TokenStream,
     for input_field in &input_fields.fields {
         match &input_field.src {
             InputFieldSource::Query => {
-                fileds_to_return.push(input_field.get_struct_fiel_name_as_token_stream());
+                fileds_to_return.push(input_field.get_struct_field_name_as_token_stream());
             }
             InputFieldSource::Path => {
-                fileds_to_return.push(input_field.get_struct_fiel_name_as_token_stream());
+                let input_field_name = input_field.name();
+                let input_field_name = input_field_name.as_str();
+                //          quote!(let #struct_field_name = http_route.get_value(&ctx.request.http_path, #input_field_name)?.try_into()?;)
+
+                let struct_field_name = input_field.get_struct_field_name_as_token_stream();
+                fileds_to_return.push(quote!(#struct_field_name: http_route.get_value(&ctx.request.http_path, #input_field_name)?.try_into()?;));
             }
             InputFieldSource::Header => {
-                fileds_to_return.push(input_field.get_struct_fiel_name_as_token_stream());
+                fileds_to_return.push(input_field.get_struct_field_name_as_token_stream());
             }
             InputFieldSource::Body => {
                 let body_data_to_read = has_body_data_to_read.as_ref().unwrap();
 
                 if body_data_to_read.http_body > 1 {
-                    fileds_to_return.push(input_field.get_struct_fiel_name_as_token_stream());
+                    fileds_to_return.push(input_field.get_struct_field_name_as_token_stream());
                 } else {
                     fileds_to_return.push(read_body_single_field(input_field));
                 }
             }
             InputFieldSource::BodyRaw => {
-                let struct_field_name = input_field.get_struct_fiel_name_as_token_stream();
+                let struct_field_name = input_field.get_struct_field_name_as_token_stream();
                 let read_value = read_from_body_raw(input_field)?;
                 fileds_to_return.push(quote!(#struct_field_name: #read_value));
             }
@@ -57,9 +62,9 @@ pub fn generate(name: &Ident, input_fields: &InputFields) -> Result<TokenStream,
                 let body_data_to_read = has_body_data_to_read.as_ref().unwrap();
 
                 if body_data_to_read.http_form > 1 {
-                    fileds_to_return.push(input_field.get_struct_fiel_name_as_token_stream());
+                    fileds_to_return.push(input_field.get_struct_field_name_as_token_stream());
                 } else {
-                    let struct_field_name = input_field.get_struct_fiel_name_as_token_stream();
+                    let struct_field_name = input_field.get_struct_field_name_as_token_stream();
                     let read_value = read_from_form_data_as_single_field(input_field)?;
                     fileds_to_return.push(quote!(#struct_field_name: #read_value));
                 }
@@ -127,7 +132,7 @@ fn read_from_form_data_as_single_field(
 }
 
 fn read_body_single_field(input_field: &InputField) -> proc_macro2::TokenStream {
-    let struct_field_name = input_field.get_struct_fiel_name_as_token_stream();
+    let struct_field_name = input_field.get_struct_field_name_as_token_stream();
     let field_name = input_field.name();
     let field_name = field_name.as_str();
 

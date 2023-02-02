@@ -8,6 +8,7 @@ use types_reader::{
 pub struct BodyNotBodyFields<'s> {
     pub body_fields: Option<Vec<&'s InputField<'s>>>,
     pub not_body_fields: Option<Vec<&'s InputField<'s>>>,
+    pub path_fields: Option<Vec<&'s InputField<'s>>>,
 }
 
 pub struct BodyDataToReader {
@@ -134,7 +135,7 @@ impl<'s> InputField<'s> {
         self.get_my_attr().get_named_param("validator").ok()
     }
 
-    pub fn get_struct_fiel_name_as_token_stream(&self) -> TokenStream {
+    pub fn get_struct_field_name_as_token_stream(&self) -> TokenStream {
         let name = self.property.get_field_name_ident();
         quote::quote!(#name)
     }
@@ -161,9 +162,14 @@ impl<'s> InputFields<'s> {
         let mut body_fields = rust_extensions::lazy::LazyVec::with_capacity(self.fields.len());
         let mut not_body_fields = rust_extensions::lazy::LazyVec::with_capacity(self.fields.len());
 
+        let mut path_fields = rust_extensions::lazy::LazyVec::with_capacity(self.fields.len());
+
         for field in &self.fields {
             if field.is_reading_from_body() {
                 body_fields.add(field);
+            }
+            if field.src.is_path() {
+                path_fields.add(field);
             } else {
                 not_body_fields.add(field);
             }
@@ -172,6 +178,7 @@ impl<'s> InputFields<'s> {
         BodyNotBodyFields {
             body_fields: body_fields.get_result(),
             not_body_fields: not_body_fields.get_result(),
+            path_fields: path_fields.get_result(),
         }
     }
 
