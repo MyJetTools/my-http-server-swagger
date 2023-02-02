@@ -39,7 +39,7 @@ pub fn generate(name: &Ident, input_fields: &InputFields) -> Result<TokenStream,
                 //          quote!(let #struct_field_name = http_route.get_value(&ctx.request.http_path, #input_field_name)?.try_into()?;)
 
                 let struct_field_name = input_field.get_struct_field_name_as_token_stream();
-                fileds_to_return.push(quote!(#struct_field_name: http_route.get_value(&ctx.request.http_path, #input_field_name)?.try_into()?,));
+                fileds_to_return.push(quote!(#struct_field_name: http_route.get_value(&ctx.request.http_path, #input_field_name)?.try_into()?));
             }
             InputFieldSource::Header => {
                 fileds_to_return.push(input_field.get_struct_field_name_as_token_stream());
