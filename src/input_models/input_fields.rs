@@ -55,6 +55,10 @@ impl InputFieldSource {
             _ => None,
         }
     }
+
+    pub fn is_path(&self) -> bool {
+        matches!(self, Self::Path)
+    }
 }
 
 pub struct InputField<'s> {

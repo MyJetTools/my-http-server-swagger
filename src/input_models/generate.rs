@@ -32,6 +32,12 @@ pub fn generate(ast: &syn::DeriveInput) -> TokenStream {
         Err(err) => err.to_compile_error(),
     };
 
+    let http_routes = if let Some(http_routes) = http_routes(&fields) {
+        http_routes
+    } else {
+        quote!(None)
+    };
+
     quote!{
         impl #struct_name{
             pub fn get_input_params()->Vec<#http_input_param>{
@@ -41,6 +47,38 @@ pub fn generate(ast: &syn::DeriveInput) -> TokenStream {
             pub async fn parse_http_input(http_route: &my_http_server_controllers::controllers::HttpRoute, ctx: &mut #http_ctx)->Result<Self,#http_fail_result>{
                 #parse_http_input
             }
+
+            pub fn get_http_routes()->Option<Vec<&'static str>>{
+                #http_routes
+            }
         }
     }.into()
+}
+
+fn http_routes(fields: &InputFields) -> Option<proc_macro2::TokenStream> {
+    let mut routes = Vec::new();
+
+    for field in &fields.fields {
+        if field.src.is_path() {
+            routes.push(field);
+        }
+    }
+
+    if routes.is_empty() {
+        return None;
+    }
+    let mut result = Vec::new();
+
+    for route in routes {
+        let name = route.property.name.as_str();
+        result.push(quote! {
+            #name
+        });
+    }
+
+    Some(quote! {
+        Some(vec![
+            #(#result),*
+        ])
+    })
 }
