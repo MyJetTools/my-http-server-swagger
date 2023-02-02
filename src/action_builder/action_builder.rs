@@ -1,7 +1,6 @@
 use std::str::FromStr;
 
 use proc_macro::TokenStream;
-use proc_macro2::TokenStream;
 
 use super::attributes::AttributeModel;
 
@@ -33,7 +32,7 @@ pub fn build_action(attr: TokenStream, input: TokenStream) -> TokenStream {
 
     let model_routes: proc_macro2::TokenStream = if let Some(input_data) = &action_model.input_data{
         let input_data = proc_macro2::TokenStream::from_str(input_data).unwrap();
-        quote::quote!(input_data::get_model_routes())
+        quote::quote!(#input_data::get_model_routes())
     }else{
         quote::quote!(None)
     };
@@ -47,7 +46,7 @@ pub fn build_action(attr: TokenStream, input: TokenStream) -> TokenStream {
             }
 
             fn get_model_routes(&self) -> Option<Vec<&'static str>>{
-                None
+                #model_routes
             }
         }
 
