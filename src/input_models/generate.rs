@@ -48,7 +48,7 @@ pub fn generate(ast: &syn::DeriveInput) -> TokenStream {
                 #parse_http_input
             }
 
-            pub fn get_http_routes()->Option<Vec<&'static str>>{
+            pub fn get_model_routes()->Option<Vec<&'static str>>{
                 #http_routes
             }
         }
