@@ -10,6 +10,7 @@ pub fn generate(ast: &syn::DeriveInput) -> proc_macro::TokenStream {
         Err(err) => return err.into_compile_error().into(),
     };
 
+
     let obj_fields = render_obj_fields(&fields);
     
     let fields = generate_http_object_structure(fields);

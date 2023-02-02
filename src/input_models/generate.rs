@@ -56,19 +56,9 @@ pub fn generate(ast: &syn::DeriveInput) -> TokenStream {
 }
 
 fn http_routes(fields: &InputFields) -> Option<proc_macro2::TokenStream> {
-    let mut routes = Vec::new();
+    let routes = fields.get_routes()?;
 
-    for field in &fields.fields {
-        if field.src.is_path() {
-            routes.push(field);
-        }
-    }
-
-    if routes.is_empty() {
-        return None;
-    }
     let mut result = Vec::new();
-
     for field in routes {
         let name = field.name();
         let name = name.as_str();

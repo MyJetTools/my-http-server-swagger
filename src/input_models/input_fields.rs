@@ -1,4 +1,5 @@
 use proc_macro2::TokenStream;
+use rust_extensions::lazy::LazyVec;
 use types_reader::{
     attribute_params::{AttributeParams, ParamValue},
     StructProperty,
@@ -259,5 +260,17 @@ impl<'s> InputFields<'s> {
         } else {
             Ok(Some(body_data_reader))
         }
+    }
+
+    pub fn get_routes(&self) -> Option<Vec<&InputField>> {
+        let mut result = LazyVec::new();
+
+        for field in &self.fields {
+            if field.src.is_path() {
+                result.add(field);
+            }
+        }
+
+        result.get_result()
     }
 }

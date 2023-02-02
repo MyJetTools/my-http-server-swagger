@@ -35,6 +35,10 @@ pub fn build_action(attr: TokenStream, input: TokenStream) -> TokenStream {
             fn get_route(&self) -> &str {
                 #route
             }
+
+            fn get_model_routes(&self) -> Option<Vec<&'static str>>{
+                None
+            }
         }
 
         impl my_http_server_controllers::controllers::actions::GetDescription for #struct_name{
@@ -49,6 +53,8 @@ pub fn build_action(attr: TokenStream, input: TokenStream) -> TokenStream {
                 #handle_request
             }
         }
+
+    
   
     }
     .into()
