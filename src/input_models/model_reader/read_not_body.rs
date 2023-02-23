@@ -67,26 +67,37 @@ pub fn generate_read_not_body(input_fields: &Vec<&InputField>) -> TokenStream {
 
                 let default_value = if let Some(default_value) = input_field.get_default_value() {
                     let value = default_value.as_str();
-                    quote!(<#prop_type as std::str::FromStr>::from_str(#value)?)
+                    if value == "" {
+                        Some(quote!(<#prop_type as std::str::FromStr>::from_str(#value)?))
+                    } else {
+                        Some(quote!(#prop_type::create_default()?))
+                    }
                 } else {
-                    quote!(#prop_type::create_default()?)
+                    None
                 };
 
-                let item = quote! {
-                   let #struct_field_name = match #data_src.get_optional(#input_field_name){
-                    Some(value) =>{
-                        let value = my_http_server::InputParamValue::from(value);
-                        value.try_into()?
-                    },
-                    None => {
-                        #default_value
+                match default_value {
+                    Some(default_value) => {
+                        let item = quote! {
+                           let #struct_field_name = match #data_src.get_optional(#input_field_name){
+                            Some(value) =>{
+                                let value = my_http_server::InputParamValue::from(value);
+                                value.try_into()?
+                            },
+                            None => {
+                                #default_value
+                            }
+                           };
+
+                        }
+                        .into();
+
+                        reading_feilds.push(item);
                     }
-                   };
-
+                    None => {
+                        reading_feilds.push(generate_reading_required(input_field));
+                    }
                 }
-                .into();
-
-                reading_feilds.push(item);
             }
             _ => {
                 reading_feilds.push(generate_reading_required(input_field));
