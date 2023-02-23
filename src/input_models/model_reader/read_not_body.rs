@@ -68,9 +68,9 @@ pub fn generate_read_not_body(input_fields: &Vec<&InputField>) -> TokenStream {
                 let default_value = if let Some(default_value) = input_field.get_default_value() {
                     let value = default_value.as_str();
                     if value == "" {
-                        Some(quote!(<#prop_type as std::str::FromStr>::from_str(#value)?))
-                    } else {
                         Some(quote!(#prop_type::create_default()?))
+                    } else {
+                        Some(quote!(<#prop_type as std::str::FromStr>::from_str(#value)?))
                     }
                 } else {
                     None
