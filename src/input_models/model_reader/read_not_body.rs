@@ -65,6 +65,13 @@ pub fn generate_read_not_body(input_fields: &Vec<&InputField>) -> TokenStream {
 
                 let prop_type = input_field.property.get_syn_type();
 
+                let default_value = if let Some(default_value) = input_field.get_default_value() {
+                    let value = default_value.as_str();
+                    quote!(#prop_type::from_str(#value)?)
+                } else {
+                    quote!(#prop_type::create_default()?)
+                };
+
                 let item = quote! {
                    let #struct_field_name = match #data_src.get_optional(#input_field_name){
                     Some(value) =>{
@@ -72,7 +79,7 @@ pub fn generate_read_not_body(input_fields: &Vec<&InputField>) -> TokenStream {
                         value.try_into()?
                     },
                     None => {
-                        #prop_type::create_default()?
+                        #default_value
                     }
                    };
 
