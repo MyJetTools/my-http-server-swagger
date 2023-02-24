@@ -150,7 +150,7 @@ fn generate_reading_required(input_field: &InputField) -> Result<TokenStream, sy
                         my_http_server::InputParamValue::from(#data_src.get_required(value)?).try_into()?
                     }else{
                         #else_data
-                    }
+                    };
                 };
 
                 return Ok(result);
