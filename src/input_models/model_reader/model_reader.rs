@@ -8,7 +8,7 @@ pub fn generate(name: &Ident, input_fields: &InputFields) -> Result<TokenStream,
     let fileds = input_fields.get_body_and_not_body_fields();
 
     let reading_no_body = if let Some(not_body_fields) = fileds.not_body_fields {
-        Some(super::generate_read_not_body(&not_body_fields))
+        Some(super::generate_read_not_body(&not_body_fields)?)
     } else {
         None
     };
