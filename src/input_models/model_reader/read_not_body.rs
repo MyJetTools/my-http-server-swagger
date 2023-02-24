@@ -146,7 +146,7 @@ fn generate_reading_required(input_field: &InputField) -> Result<TokenStream, sy
                 let else_data = else_data.unwrap();
 
                 let result = quote! {
-                    let #struct_field_name = if let Some(value) = #data_src.get_required(#input_field_name){
+                    let #struct_field_name = if let Some(value) = #data_src.get_optional(#input_field_name){
                         my_http_server::InputParamValue::from(value).try_into()?
                     }else{
                         #else_data
