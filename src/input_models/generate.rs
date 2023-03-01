@@ -6,10 +6,6 @@ use quote::quote;
 pub fn generate(ast: &syn::DeriveInput) -> TokenStream {
     let struct_name = &ast.ident;
 
-    let generic = &ast.generics;
-
-    println!("generic: {:#?}", generic);
-
     let fields = match types_reader::StructProperty::read(ast) {
         Ok(result) => result,
         Err(err) => return err.into_compile_error().into(),
@@ -43,7 +39,7 @@ pub fn generate(ast: &syn::DeriveInput) -> TokenStream {
     };
 
     quote!{
-        impl #generic #struct_name{
+        impl #struct_name{
             pub fn get_input_params()->Vec<#http_input_param>{
                 #http_input
             }

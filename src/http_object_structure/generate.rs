@@ -5,6 +5,10 @@ use super::struct_prop_ext::SturctPropertyExt;
 
 pub fn generate(ast: &syn::DeriveInput) -> proc_macro::TokenStream {
     let stuct_name = &ast.ident;
+    let generic = &ast.generics;
+
+    println!("generic: {:#?}", generic);
+    
     let fields = match StructProperty::read(ast){
         Ok(result) => result,
         Err(err) => return err.into_compile_error().into(),
