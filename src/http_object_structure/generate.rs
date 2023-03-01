@@ -1,6 +1,6 @@
 use std::str::FromStr;
 
-use quote::quote;
+use quote::{quote, ToTokens};
 use types_reader::StructProperty;
 
 use super::struct_prop_ext::SturctPropertyExt;
@@ -14,8 +14,8 @@ pub fn generate(ast: &syn::DeriveInput) -> proc_macro::TokenStream {
     let (generic, generic_ident) = if generic.params.is_empty() {
        (None, None)
     } else {
-        let generic_ident = format!("{:?}",generic.params.first().unwrap()) ;
-        println!("generic_ident: {}", generic_ident);
+        let generic_ident = generic.params.to_token_stream().to_string();
+        println!("generic_ident: {}", generic_ident.to_string());
 
         let generic_ident = proc_macro2::TokenStream::from_str(&generic_ident).unwrap();
         (Some(quote!(#generic)),   Some(generic_ident))
