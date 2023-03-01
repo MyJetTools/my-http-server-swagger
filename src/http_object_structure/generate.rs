@@ -9,11 +9,11 @@ pub fn generate(ast: &syn::DeriveInput) -> proc_macro::TokenStream {
 
     println!("generic: {:#?}", generic);
 
-    let generic_ident = if generic.params.is_empty() {
-        None
+    let (generic, generic_ident) = if generic.params.is_empty() {
+       (None, None)
     } else {
         let generic_ident = generic.params.first().unwrap();
-        Some(quote! {#generic_ident})
+        (Some(quote!(#generic)),   Some(quote! {#generic_ident}))
     };
 
     let fields = match StructProperty::read(ast){
