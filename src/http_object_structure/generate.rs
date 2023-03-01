@@ -63,7 +63,7 @@ pub fn generate(ast: &syn::DeriveInput) -> proc_macro::TokenStream {
             }
         }
 
-        impl my_http_server_controllers::controllers::documentation::DataTypeProvider for #stuct_name {
+        impl #generic my_http_server_controllers::controllers::documentation::DataTypeProvider for #stuct_name #generic_ident {
             fn get_data_type() -> my_http_server_controllers::controllers::documentation::data_types::HttpDataType {
                 #use_documentation;
 
@@ -73,7 +73,7 @@ pub fn generate(ast: &syn::DeriveInput) -> proc_macro::TokenStream {
             }
         }
 
-        impl TryFrom<my_http_server::HttpRequestBody> for #stuct_name {
+        impl #generic TryFrom<my_http_server::HttpRequestBody> for #stuct_name #generic_ident {
             type Error = my_http_server::HttpFailResult;
         
             fn try_from(value: my_http_server::HttpRequestBody) -> Result<Self, Self::Error> {
