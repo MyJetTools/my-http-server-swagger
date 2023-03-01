@@ -8,7 +8,13 @@ pub fn generate(ast: &syn::DeriveInput) -> proc_macro::TokenStream {
     let generic = &ast.generics;
 
     println!("generic: {:#?}", generic);
-    
+
+    let generic_ident = if generic.params.is_empty() {
+        None
+    } else {
+        Some(quote! {<#generic>})
+    };
+
     let fields = match StructProperty::read(ast){
         Ok(result) => result,
         Err(err) => return err.into_compile_error().into(),
@@ -26,7 +32,7 @@ pub fn generate(ast: &syn::DeriveInput) -> proc_macro::TokenStream {
 
 
     quote! {
-        impl #stuct_name{
+        impl #generic #stuct_name #generic_ident {
             pub fn get_http_data_structure()->my_http_server_controllers::controllers::documentation::data_types::HttpObjectStructure{
                 #use_documentation;
 
