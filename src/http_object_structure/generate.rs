@@ -39,7 +39,7 @@ pub fn generate(ast: &syn::DeriveInput) -> proc_macro::TokenStream {
 
     let impl_traits = if generic.is_none() {
         quote! {
-            impl TryFrom<my_http_server::InputParamValue<'s>> for #stuct_name {
+            impl<'s> TryFrom<my_http_server::InputParamValue<'s>> for #stuct_name {
                 type Error = my_http_server::HttpFailResult;
 
                 fn try_from(value: my_http_server::InputParamValue) -> Result<Self, Self::Error> {
