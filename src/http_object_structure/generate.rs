@@ -15,9 +15,15 @@ pub fn generate(ast: &syn::DeriveInput) -> proc_macro::TokenStream {
        (None, None)
     } else {
         let generic_ident = generic.params.to_token_stream().to_string();
-        println!("generic_ident: {}", generic_ident.to_string());
+        let generic_ident_pos = generic_ident.find(':').unwrap();
 
-        let generic_ident = proc_macro2::TokenStream::from_str(&generic_ident).unwrap();
+        let gen = &generic_ident.as_bytes()[..generic_ident_pos];
+        let gen = std::str::from_utf8(gen).unwrap();
+        println!("generic_ident: {}", gen);
+
+
+
+        let generic_ident = proc_macro2::TokenStream::from_str(gen).unwrap();
         (Some(quote!(#generic)),   Some(generic_ident))
     };
 
