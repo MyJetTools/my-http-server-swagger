@@ -11,8 +11,8 @@ pub fn generate(ast: &syn::DeriveInput) -> proc_macro::TokenStream {
 
 
 
-    let (generic, generic_ident, generic_with_life_time) = if generic.params.is_empty() {
-       (None, None, Some(quote!(<'s)))
+    let (generic, generic_ident, generic_with_life_time, generic_ident_with_life_time) = if generic.params.is_empty() {
+       (None, None, Some(quote!(<'s>)))
     } else {
         let generic_ident = generic.params.to_token_stream().to_string();
         let generic_ident_pos = generic_ident.find(':').unwrap();
@@ -55,7 +55,7 @@ pub fn generate(ast: &syn::DeriveInput) -> proc_macro::TokenStream {
             }
         }
 
-        impl #generic_with_life_time TryFrom<my_http_server::InputParamValue<'s>> for #stuct_name {
+        impl #generic_with_life_time TryFrom<my_http_server::InputParamValue<'s>> for #stuct_name #generic_ident {
             type Error = my_http_server::HttpFailResult;
         
             fn try_from(value: my_http_server::InputParamValue) -> Result<Self, Self::Error> {
