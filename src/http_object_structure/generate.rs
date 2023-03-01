@@ -24,7 +24,15 @@ pub fn generate(ast: &syn::DeriveInput) -> proc_macro::TokenStream {
 
 
         let generic_ident = proc_macro2::TokenStream::from_str(gen).unwrap();
-        (Some(quote!(#generic)),   Some(quote!(<#generic_ident>)), Some(quote!(<'s, #generic>)))
+
+        let generic_with_lifetime = generic.to_token_stream().to_string();
+
+        let as_bytes = &generic_with_lifetime.as_bytes()[1..generic_with_lifetime.len()-1];
+
+        let generics_with_lifetime = proc_macro2::TokenStream::from_str(std::str::from_utf8(as_bytes).unwrap()).unwrap();
+
+        
+        (Some(quote!(#generic)),   Some(quote!(<#generic_ident>)), Some(quote!(<'s, #generics_with_lifetime>)))
     };
 
     let fields = match StructProperty::read(ast){
