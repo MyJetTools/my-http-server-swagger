@@ -8,6 +8,8 @@ pub fn generate(ast: &syn::DeriveInput) -> TokenStream {
 
     let generic = &ast.generics;
 
+    println!("generic: {:#?}", generic);
+
     let fields = match types_reader::StructProperty::read(ast) {
         Ok(result) => result,
         Err(err) => return err.into_compile_error().into(),
