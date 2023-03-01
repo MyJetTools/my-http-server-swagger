@@ -11,8 +11,8 @@ pub fn generate(ast: &syn::DeriveInput) -> proc_macro::TokenStream {
 
 
 
-    let (generic, generic_ident) = if generic.params.is_empty() {
-       (None, None)
+    let (generic, generic_ident, generic_with_life_time) = if generic.params.is_empty() {
+       (None, None, Some(quote!(<'s)))
     } else {
         let generic_ident = generic.params.to_token_stream().to_string();
         let generic_ident_pos = generic_ident.find(':').unwrap();
@@ -24,7 +24,7 @@ pub fn generate(ast: &syn::DeriveInput) -> proc_macro::TokenStream {
 
 
         let generic_ident = proc_macro2::TokenStream::from_str(gen).unwrap();
-        (Some(quote!(#generic)),   Some(quote!(<#generic_ident>)))
+        (Some(quote!(#generic)),   Some(quote!(<#generic_ident>)), Some(quote!(<'s, #generic>)))
     };
 
     let fields = match StructProperty::read(ast){
@@ -55,7 +55,7 @@ pub fn generate(ast: &syn::DeriveInput) -> proc_macro::TokenStream {
             }
         }
 
-        impl<'s> TryFrom<my_http_server::InputParamValue<'s>> for #stuct_name {
+        impl #generic_with_life_time TryFrom<my_http_server::InputParamValue<'s>> for #stuct_name {
             type Error = my_http_server::HttpFailResult;
         
             fn try_from(value: my_http_server::InputParamValue) -> Result<Self, Self::Error> {
