@@ -11,7 +11,7 @@ pub fn generate(ast: &syn::DeriveInput) -> proc_macro::TokenStream {
 
 
 
-    let (generic, generic_ident, generic_with_life_time, generic_ident_with_life_time) = if generic.params.is_empty() {
+    let (generic, generic_ident, generic_with_life_time) = if generic.params.is_empty() {
        (None, None, Some(quote!(<'s>)))
     } else {
         let generic_ident = generic.params.to_token_stream().to_string();
