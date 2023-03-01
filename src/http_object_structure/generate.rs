@@ -12,7 +12,8 @@ pub fn generate(ast: &syn::DeriveInput) -> proc_macro::TokenStream {
     let generic_ident = if generic.params.is_empty() {
         None
     } else {
-        Some(quote! {<#generic>})
+        let generic_ident = generic.params.first().unwrap();
+        Some(quote! {#generic_ident})
     };
 
     let fields = match StructProperty::read(ast){
