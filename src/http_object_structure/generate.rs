@@ -1,3 +1,5 @@
+use std::str::FromStr;
+
 use quote::quote;
 use types_reader::StructProperty;
 
@@ -7,13 +9,16 @@ pub fn generate(ast: &syn::DeriveInput) -> proc_macro::TokenStream {
     let stuct_name = &ast.ident;
     let generic = &ast.generics;
 
-    println!("generic: {:#?}", generic);
+
 
     let (generic, generic_ident) = if generic.params.is_empty() {
        (None, None)
     } else {
-        let generic_ident = generic.params.first().unwrap();
-        (Some(quote!(#generic)),   Some(quote! {#generic_ident}))
+        let generic_ident = format!("{:?}",generic.params.first().unwrap()) ;
+        println!("generic_ident: {}", generic_ident);
+
+        let generic_ident = proc_macro2::TokenStream::from_str(&generic_ident).unwrap();
+        (Some(quote!(#generic)),   Some(generic_ident))
     };
 
     let fields = match StructProperty::read(ast){
