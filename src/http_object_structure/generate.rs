@@ -24,7 +24,7 @@ pub fn generate(ast: &syn::DeriveInput) -> proc_macro::TokenStream {
 
 
         let generic_ident = proc_macro2::TokenStream::from_str(gen).unwrap();
-        (Some(quote!(#generic)),   Some(generic_ident))
+        (Some(quote!(#generic)),   Some(quote!(<#generic_ident>)))
     };
 
     let fields = match StructProperty::read(ast){
