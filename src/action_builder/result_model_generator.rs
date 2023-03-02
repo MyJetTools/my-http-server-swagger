@@ -30,8 +30,19 @@ pub fn generate(results: &[HttpResult]) -> TokenStream {
 }
 
 fn generate_as_object_or_array(object_name: &str, into_structure: TokenStream) -> TokenStream {
-    let object_name = TokenStream::from_str(object_name).unwrap();
-    quote::quote!(#object_name::get_http_data_structure().#into_structure())
+    if let Some(index) = object_name.find('<') {
+        let mut result_obj_name = String::new();
+
+        result_obj_name.push_str(&object_name[..index]);
+        result_obj_name.push_str("::");
+        result_obj_name.push_str(&object_name[index..]);
+
+        let object_name = TokenStream::from_str(result_obj_name.as_str()).unwrap();
+        quote::quote!(#object_name::get_http_data_structure().#into_structure())
+    } else {
+        let object_name = TokenStream::from_str(object_name).unwrap();
+        quote::quote!(#object_name::get_http_data_structure().#into_structure())
+    }
 }
 
 fn compile_data_type(http_result: &HttpResult) -> TokenStream {
