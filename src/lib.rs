@@ -29,13 +29,13 @@ pub fn my_http_input_doc_derive(input: TokenStream) -> TokenStream {
     crate::input_models::generate(&ast)
 }
 
-#[proc_macro_derive(MyHttpObjectStructure)]
+#[proc_macro_derive(MyHttpInputObjectStructure)]
 pub fn my_http_input_object_derive(input: TokenStream) -> TokenStream {
     let ast = syn::parse(input).unwrap();
     crate::http_input_object_structure::generate(&ast)
 }
 
-#[proc_macro_derive(MyHttpInputObjectStructure)]
+#[proc_macro_derive(MyHttpObjectStructure)]
 pub fn my_http_output_object_derive(input: TokenStream) -> TokenStream {
     let ast = syn::parse(input).unwrap();
     crate::http_object_structure::generate(&ast)
