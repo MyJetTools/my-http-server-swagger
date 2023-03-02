@@ -15,11 +15,13 @@ pub fn generate(name: &str, enum_cases: &[EnumJson]) -> Result<Vec<TokenStream>,
         let value = enum_case.get_value();
         let value = value.as_str();
 
+        let enum_id = enum_case.get_enum_case_value();
+
         let id = enum_case.get_id()?.to_string();
         let enum_value = &enum_case.src.get_name_ident();
 
         result.push(quote::quote! {
-            if src == #value || src == #id{
+            if src == #value || src == #id || src == #enum_id {
                 return Ok(Self::#enum_value)
             }
         });
