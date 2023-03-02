@@ -37,6 +37,30 @@ pub fn generate(ast: &syn::DeriveInput) -> proc_macro::TokenStream {
 
     let struct_name_as_str = stuct_name.to_string();
 
+    let impl_traits = if generic.is_none() {
+        quote! {
+            impl<'s> TryFrom<my_http_server::InputParamValue<'s>> for #stuct_name {
+                type Error = my_http_server::HttpFailResult;
+
+                fn try_from(value: my_http_server::InputParamValue) -> Result<Self, Self::Error> {
+                    value.from_json()
+                }
+            }
+
+            impl TryFrom<my_http_server::HttpRequestBody> for #stuct_name {
+                type Error = my_http_server::HttpFailResult;
+
+                fn try_from(value: my_http_server::HttpRequestBody) -> Result<Self, Self::Error> {
+                    value.get_body_as_json()
+                }
+            }
+
+        }
+        .into()
+    } else {
+        None
+    };
+
     quote! {
         impl #generic #stuct_name #generic_ident {
             pub fn get_http_data_structure()->my_http_server_controllers::controllers::documentation::data_types::HttpObjectStructure{
@@ -58,6 +82,11 @@ pub fn generate(ast: &syn::DeriveInput) -> proc_macro::TokenStream {
                 __hos.into_http_data_type_object()
             }
         }
+
+        #impl_traits
+
+
+
     }
     .into()
 }
