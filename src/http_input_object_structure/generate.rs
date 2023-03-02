@@ -1,92 +1,27 @@
-use std::str::FromStr;
-
-use quote::{quote, ToTokens};
+use quote::quote;
 use types_reader::StructProperty;
 
 use super::struct_prop_ext::SturctPropertyExt;
 
 pub fn generate(ast: &syn::DeriveInput) -> proc_macro::TokenStream {
     let stuct_name = &ast.ident;
-    let generic = &ast.generics;
-
-    let (generic, generic_ident) = if generic.params.is_empty() {
-        (None, None)
-    } else {
-        let generic_ident = generic.params.to_token_stream().to_string();
-        let generic_ident_pos = generic_ident.find(':').unwrap();
-
-        let gen = &generic_ident.as_bytes()[..generic_ident_pos];
-        let gen = std::str::from_utf8(gen).unwrap();
-        println!("generic_ident: {}", gen);
-
-        let generic_ident = proc_macro2::TokenStream::from_str(gen).unwrap();
-
-        (Some(quote!(#generic)), Some(quote!(<#generic_ident>)))
-    };
-
-    let fields = match StructProperty::read(ast) {
-        Ok(result) => result,
-        Err(err) => return err.into_compile_error().into(),
-    };
-
-    let obj_fields = render_obj_fields(&fields);
-
-    let fields = generate_http_object_structure(fields);
-
-    let use_documentation = crate::consts::get_use_documentation();
-
-    let struct_name_as_str = stuct_name.to_string();
-
-    let impl_traits = if generic.is_none() {
-        quote! {
-            impl<'s> TryFrom<my_http_server::InputParamValue<'s>> for #stuct_name {
-                type Error = my_http_server::HttpFailResult;
-
-                fn try_from(value: my_http_server::InputParamValue) -> Result<Self, Self::Error> {
-                    value.from_json()
-                }
-            }
-
-            impl TryFrom<my_http_server::HttpRequestBody> for #stuct_name {
-                type Error = my_http_server::HttpFailResult;
-
-                fn try_from(value: my_http_server::HttpRequestBody) -> Result<Self, Self::Error> {
-                    value.get_body_as_json()
-                }
-            }
-
-        }
-        .into()
-    } else {
-        None
-    };
 
     quote! {
-        impl #generic #stuct_name #generic_ident {
-            pub fn get_http_data_structure()->my_http_server_controllers::controllers::documentation::data_types::HttpObjectStructure{
-                #use_documentation;
+        impl<'s> TryFrom<my_http_server::InputParamValue<'s>> for #stuct_name {
+            type Error = my_http_server::HttpFailResult;
 
-                data_types::HttpObjectStructure{
-                    struct_id: #struct_name_as_str,
-                    fields: vec![#(#fields),*]
-                }
+            fn try_from(value: my_http_server::InputParamValue) -> Result<Self, Self::Error> {
+                value.from_json()
             }
         }
 
-        impl #generic my_http_server_controllers::controllers::documentation::DataTypeProvider for #stuct_name #generic_ident {
-            fn get_data_type() -> my_http_server_controllers::controllers::documentation::data_types::HttpDataType {
-                #use_documentation;
+        impl TryFrom<my_http_server::HttpRequestBody> for #stuct_name {
+            type Error = my_http_server::HttpFailResult;
 
-                let mut __hos = data_types::HttpObjectStructure::new(#struct_name_as_str);
-                #(#obj_fields)*
-                __hos.into_http_data_type_object()
+            fn try_from(value: my_http_server::HttpRequestBody) -> Result<Self, Self::Error> {
+                value.get_body_as_json()
             }
         }
-
-        #impl_traits
-
-
-
     }
     .into()
 }
