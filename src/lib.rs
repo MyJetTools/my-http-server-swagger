@@ -7,6 +7,7 @@ mod action_builder;
 mod as_token_stream;
 mod consts;
 mod enum_doc;
+mod generic_utils;
 mod http_input_object_structure;
 mod http_object_structure;
 mod input_models;
