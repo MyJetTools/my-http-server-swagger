@@ -16,7 +16,7 @@ pub fn generate_read_not_body(input_fields: &Vec<&InputField>) -> Result<TokenSt
     let mut validation = Vec::with_capacity(input_fields.len());
     let data_src = get_query_string_data_src();
 
-    let mut reading_feilds: Vec<TokenStream> = Vec::with_capacity(input_fields.len());
+    let mut reading_fields: Vec<TokenStream> = Vec::with_capacity(input_fields.len());
 
     for input_field in input_fields {
         let struct_field_name = input_field.property.get_field_name_ident();
@@ -35,7 +35,7 @@ pub fn generate_read_not_body(input_fields: &Vec<&InputField>) -> Result<TokenSt
                     };
                 }.into();
 
-                reading_feilds.push(item);
+                reading_fields.push(item);
             }
             PropertyType::VecOf(sub_type) => {
                 if sub_type.is_string() {
@@ -47,7 +47,7 @@ pub fn generate_read_not_body(input_fields: &Vec<&InputField>) -> Result<TokenSt
                     }
                     .into();
 
-                    reading_feilds.push(item);
+                    reading_fields.push(item);
                 } else {
                     let input_field_name = input_field.name();
                     let input_field_name = input_field_name.as_str();
@@ -57,7 +57,7 @@ pub fn generate_read_not_body(input_fields: &Vec<&InputField>) -> Result<TokenSt
                     }
                     .into();
 
-                    reading_feilds.push(item);
+                    reading_fields.push(item);
                 }
             }
             PropertyType::Struct(..) => {
@@ -93,15 +93,15 @@ pub fn generate_read_not_body(input_fields: &Vec<&InputField>) -> Result<TokenSt
                         }
                         .into();
 
-                        reading_feilds.push(item);
+                        reading_fields.push(item);
                     }
                     None => {
-                        reading_feilds.push(generate_reading_required(input_field)?);
+                        reading_fields.push(generate_reading_required(input_field)?);
                     }
                 }
             }
             _ => {
-                reading_feilds.push(generate_reading_required(input_field)?);
+                reading_fields.push(generate_reading_required(input_field)?);
             }
         }
 
@@ -117,7 +117,7 @@ pub fn generate_read_not_body(input_fields: &Vec<&InputField>) -> Result<TokenSt
     let result = quote! {
         let #init_fields = {
             let #data_src = ctx.request.get_query_string()?;
-            #(#reading_feilds)*
+            #(#reading_fields)*
             #init_fields
         };
         #(#validation)*

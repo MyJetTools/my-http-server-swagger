@@ -3,7 +3,7 @@ use quote::quote;
 use types_reader::{attribute_params::ParamValue, PropertyType};
 
 use crate::as_token_stream::AsTokenStream;
-use crate::proprety_type_ext::PropertyTypeExt;
+use crate::property_type_ext::PropertyTypeExt;
 
 pub fn compile_http_field(
     name: &str,

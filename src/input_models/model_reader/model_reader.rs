@@ -5,9 +5,9 @@ use crate::input_models::input_fields::{InputField, InputFieldSource, InputField
 use quote::quote;
 
 pub fn generate(name: &Ident, input_fields: &InputFields) -> Result<TokenStream, syn::Error> {
-    let fileds = input_fields.get_body_and_not_body_fields();
+    let fields = input_fields.get_body_and_not_body_fields();
 
-    let reading_no_body = if let Some(not_body_fields) = fileds.not_body_fields {
+    let reading_no_body = if let Some(not_body_fields) = fields.not_body_fields {
         Some(super::generate_read_not_body(&not_body_fields)?)
     } else {
         None
@@ -16,7 +16,7 @@ pub fn generate(name: &Ident, input_fields: &InputFields) -> Result<TokenStream,
     let has_body_data_to_read = input_fields.has_body_data_to_read()?;
 
     let read_body = if let Some(body_data_to_read) = &has_body_data_to_read {
-        let body_fields = fileds.body_fields.as_ref().unwrap();
+        let body_fields = fields.body_fields.as_ref().unwrap();
         if body_data_to_read.http_form > 1 || body_data_to_read.http_body > 1 {
             Some(super::generate_read_body(body_fields)?)
         } else {
@@ -26,12 +26,12 @@ pub fn generate(name: &Ident, input_fields: &InputFields) -> Result<TokenStream,
         None
     };
 
-    let mut fileds_to_return = Vec::new();
+    let mut fields_to_return = Vec::new();
 
     for input_field in &input_fields.fields {
         match &input_field.src {
             InputFieldSource::Query => {
-                fileds_to_return.push(input_field.get_struct_field_name_as_token_stream());
+                fields_to_return.push(input_field.get_struct_field_name_as_token_stream());
             }
             InputFieldSource::Path => {
                 let input_field_name = input_field.name();
@@ -39,34 +39,34 @@ pub fn generate(name: &Ident, input_fields: &InputFields) -> Result<TokenStream,
                 //          quote!(let #struct_field_name = http_route.get_value(&ctx.request.http_path, #input_field_name)?.try_into()?;)
 
                 let struct_field_name = input_field.get_struct_field_name_as_token_stream();
-                fileds_to_return.push(quote!(#struct_field_name: http_route.get_value(&ctx.request.http_path, #input_field_name)?.try_into()?));
+                fields_to_return.push(quote!(#struct_field_name: http_route.get_value(&ctx.request.http_path, #input_field_name)?.try_into()?));
             }
             InputFieldSource::Header => {
-                fileds_to_return.push(input_field.get_struct_field_name_as_token_stream());
+                fields_to_return.push(input_field.get_struct_field_name_as_token_stream());
             }
             InputFieldSource::Body => {
                 let body_data_to_read = has_body_data_to_read.as_ref().unwrap();
 
                 if body_data_to_read.http_body > 1 {
-                    fileds_to_return.push(input_field.get_struct_field_name_as_token_stream());
+                    fields_to_return.push(input_field.get_struct_field_name_as_token_stream());
                 } else {
-                    fileds_to_return.push(read_body_single_field(input_field));
+                    fields_to_return.push(read_body_single_field(input_field));
                 }
             }
             InputFieldSource::BodyRaw => {
                 let struct_field_name = input_field.get_struct_field_name_as_token_stream();
                 let read_value = read_from_body_raw(input_field)?;
-                fileds_to_return.push(quote!(#struct_field_name: #read_value));
+                fields_to_return.push(quote!(#struct_field_name: #read_value));
             }
             InputFieldSource::FormData => {
                 let body_data_to_read = has_body_data_to_read.as_ref().unwrap();
 
                 if body_data_to_read.http_form > 1 {
-                    fileds_to_return.push(input_field.get_struct_field_name_as_token_stream());
+                    fields_to_return.push(input_field.get_struct_field_name_as_token_stream());
                 } else {
                     let struct_field_name = input_field.get_struct_field_name_as_token_stream();
                     let read_value = read_from_form_data_as_single_field(input_field)?;
-                    fileds_to_return.push(quote!(#struct_field_name: #read_value));
+                    fields_to_return.push(quote!(#struct_field_name: #read_value));
                 }
             }
         }
@@ -76,7 +76,7 @@ pub fn generate(name: &Ident, input_fields: &InputFields) -> Result<TokenStream,
         #reading_no_body
         #read_body
         Ok(#name{
-            #(#fileds_to_return),*
+            #(#fields_to_return),*
         })
     };
 

@@ -14,7 +14,7 @@ pub fn generate_read_body(input_fields: &Vec<&InputField>) -> Result<TokenStream
 
     let mut validation = Vec::with_capacity(input_fields.len());
 
-    let mut reading_feilds = Vec::with_capacity(input_fields.len());
+    let mut reading_fields = Vec::with_capacity(input_fields.len());
 
     for input_field in input_fields {
         let struct_field_name = input_field.property.get_field_name_ident();
@@ -35,10 +35,10 @@ pub fn generate_read_body(input_fields: &Vec<&InputField>) -> Result<TokenStream
                     };
                 };
 
-                reading_feilds.push(line);
+                reading_fields.push(line);
             }
             _ => {
-                reading_feilds.push(generate_reading_required(
+                reading_fields.push(generate_reading_required(
                     input_field,
                     &data_src,
                     &struct_field_name,
@@ -59,7 +59,7 @@ pub fn generate_read_body(input_fields: &Vec<&InputField>) -> Result<TokenStream
         let #init_fields ={
             let __body = ctx.request.get_body().await?;
             let __reader = __body.get_body_data_reader()?;
-            #(#reading_feilds)*
+            #(#reading_fields)*
             #init_fields
         };
 

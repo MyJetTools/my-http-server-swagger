@@ -3,10 +3,10 @@ use types_reader::StructProperty;
 
 use crate::generic_utils::GenericData;
 
-use super::struct_prop_ext::SturctPropertyExt;
+use super::struct_prop_ext::StructPropertyExt;
 
 pub fn generate(ast: &syn::DeriveInput) -> proc_macro::TokenStream {
-    let stuct_name = &ast.ident;
+    let struct_name = &ast.ident;
 
     let (generic, generic_ident) = if let Some(generic) = GenericData::new(ast) {
         let generic_token_stream = generic.generic;
@@ -30,10 +30,10 @@ pub fn generate(ast: &syn::DeriveInput) -> proc_macro::TokenStream {
 
     let use_documentation = crate::consts::get_use_documentation();
 
-    let struct_name_as_str = stuct_name.to_string();
+    let struct_name_as_str = struct_name.to_string();
 
     quote! {
-        impl #generic #stuct_name #generic_ident {
+        impl #generic #struct_name #generic_ident {
             pub fn get_http_data_structure()->my_http_server_controllers::controllers::documentation::data_types::HttpObjectStructure{
                 #use_documentation;
 
@@ -44,7 +44,7 @@ pub fn generate(ast: &syn::DeriveInput) -> proc_macro::TokenStream {
             }
         }
 
-        impl #generic my_http_server_controllers::controllers::documentation::DataTypeProvider for #stuct_name #generic_ident {
+        impl #generic my_http_server_controllers::controllers::documentation::DataTypeProvider for #struct_name #generic_ident {
             fn get_data_type() -> my_http_server_controllers::controllers::documentation::data_types::HttpDataType {
                 #use_documentation;
 

@@ -11,7 +11,7 @@ mod generic_utils;
 mod http_input_object_structure;
 mod http_object_structure;
 mod input_models;
-mod proprety_type_ext;
+mod property_type_ext;
 mod types;
 
 #[proc_macro_derive(
