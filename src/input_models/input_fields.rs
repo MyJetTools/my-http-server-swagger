@@ -98,7 +98,7 @@ impl<'s> InputField<'s> {
         .into());
     }
 
-    fn get_my_attr(&'s self) -> &AttributeParams<'s> {
+    fn get_my_attr(&'s self) -> &AttributeParams {
         self.property.attrs.get_attr(&self.attr_name).unwrap()
     }
 
