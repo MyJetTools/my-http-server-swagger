@@ -12,6 +12,8 @@ impl<'s> StructPropertyExt for StructProperty<'s> {
 
         ParamValue {
             value: self.name.as_bytes(),
+            token: None,
+            ident: Some(self.get_field_name_ident()),
         }
     }
 }

@@ -108,6 +108,8 @@ impl<'s> InputField<'s> {
         } else {
             ParamValue {
                 value: self.property.name.as_bytes(),
+                token: None,
+                ident: Some(self.property.get_field_name_ident()),
             }
         }
     }
