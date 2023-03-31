@@ -62,6 +62,16 @@ pub fn generate(ast: &syn::DeriveInput) -> (proc_macro::TokenStream, bool) {
             }
         }
 
+
+        
+    }
+    .into();
+
+  (result, debug)
+}
+
+
+/*
         impl<'s, #generic> TryInto<#struct_name> for my_http_server::InputParamValue<'s, #generic_ident> {
             type Error = my_http_server::HttpFailResult;
         
@@ -76,13 +86,7 @@ pub fn generate(ast: &syn::DeriveInput) -> (proc_macro::TokenStream, bool) {
                 self.get_body_as_json()
             }
         }
-        
-    }
-    .into();
-
-  (result, debug)
-}
-
+ */
 pub fn generate_http_object_structure(
     fields: Vec<StructProperty>,
 ) -> Vec<proc_macro2::TokenStream> {
