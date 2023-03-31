@@ -30,18 +30,4 @@ impl GenericData {
         }
         .into()
     }
-
-    pub fn get_generic_no_brackets(&self) -> TokenStream {
-        let generic = self.generic.to_string();
-        let generic = generic.replace("<", "");
-        let generic = generic.replace(">", "");
-        generic.parse().unwrap()
-    }
-
-    pub fn get_generic_ident_no_brackets(&self) -> TokenStream {
-        let generic = self.generic_ident.to_string();
-        let generic = generic.replace("<", "");
-        let generic = generic.replace(">", "");
-        generic.parse().unwrap()
-    }
 }
