@@ -61,6 +61,13 @@ pub fn generate(ast: &syn::DeriveInput) -> proc_macro::TokenStream {
                 self.from_json()
             }
         }
+
+        impl TryInto<#struct_name> for my_http_server::HttpRequestBody {
+            type Error = my_http_server::HttpFailResult;
+            fn try_into(self) -> Result<#struct_name, my_http_server::HttpFailResult> {
+                self.get_body_as_json()
+            }
+        }
         
     }
     .into()
