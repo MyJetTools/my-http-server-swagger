@@ -30,7 +30,7 @@ impl<'s> InputModelStructPropertyExt for StructProperty<'s> {
         }
         return Err(syn::Error::new(
             self.get_field_name_ident().span(),
-            "Please specify http_query, http_header, http_path, http_form_data or http_body.",
+            format!("Please specify http_query, http_header, http_path, http_form_data or http_body for {}", self.name),
         ));
     }
 
