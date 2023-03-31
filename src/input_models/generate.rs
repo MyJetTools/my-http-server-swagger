@@ -30,7 +30,12 @@ pub fn generate(ast: &syn::DeriveInput) -> TokenStream {
     };
 
     let http_routes = match http_routes(&fields) {
-        Ok(result) => result,
+        Ok(mut result) => {
+            if result.is_empty() {
+                result.push(quote! {None})
+            }
+            result
+        }
         Err(err) => vec![err.to_compile_error()],
     };
 

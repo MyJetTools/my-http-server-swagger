@@ -31,9 +31,8 @@ pub fn build_action(attr: TokenStream, input: TokenStream) -> TokenStream {
     let handle_request = super::generate_handle_request_fn(&action_model.input_data);
 
     let model_routes: proc_macro2::TokenStream = if let Some(input_data) = &action_model.input_data{
-       // let input_data = proc_macro2::TokenStream::from_str(input_data).unwrap();
-       // quote::quote!(#input_data::get_model_routes())
-       quote::quote!(None)
+        let input_data = proc_macro2::TokenStream::from_str(input_data).unwrap();
+        quote::quote!(#input_data::get_model_routes())    
     }else{
         quote::quote!(None)
     };
