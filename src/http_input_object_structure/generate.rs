@@ -3,13 +3,21 @@ use types_reader::StructProperty;
 
 use crate::generic_utils::GenericData;
 
-pub fn generate(ast: &syn::DeriveInput) -> proc_macro::TokenStream {
+pub fn generate(ast: &syn::DeriveInput) -> (proc_macro::TokenStream, bool) {
     let struct_name = &ast.ident;
+
+    let mut debug = false;
 
     let fields = match StructProperty::read(ast) {
         Ok(result) => result,
-        Err(err) => return err.into_compile_error().into(),
+        Err(err) => return (err.into_compile_error().into(), debug),
     };
+
+    for field in &fields {
+        if field.attrs.has_attr("debug") {
+            debug = true;
+        }
+    }
 
     let data_structure_provider =
         crate::http_object_structure::generate_data_structure_provider(ast, struct_name, &fields);
@@ -59,5 +67,5 @@ pub fn generate(ast: &syn::DeriveInput) -> proc_macro::TokenStream {
         }
     };
 
-    result.into()
+    (result.into(), debug)
 }

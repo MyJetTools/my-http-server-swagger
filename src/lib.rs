@@ -40,7 +40,13 @@ pub fn my_http_input_doc_derive(input: TokenStream) -> TokenStream {
 #[proc_macro_derive(MyHttpInputObjectStructure)]
 pub fn my_http_input_object_derive(input: TokenStream) -> TokenStream {
     let ast = syn::parse(input).unwrap();
-    crate::http_input_object_structure::generate(&ast)
+    let (result, debug) = crate::http_input_object_structure::generate(&ast);
+
+    if debug {
+        println!("{}", result);
+    }
+
+    result
 }
 
 #[proc_macro_derive(MyHttpObjectStructure, attributes(debug))]
