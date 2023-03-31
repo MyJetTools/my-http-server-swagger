@@ -28,10 +28,13 @@ impl<'s> InputModelStructPropertyExt for StructProperty<'s> {
                 _ => {}
             }
         }
-        return Err(syn::Error::new(
+        return {
+            let attrs: Vec<&String> = self.attrs.get_attr_names().collect();
+            Err(syn::Error::new(
             self.get_field_name_ident().span(),
-            format!("Please specify http_query, http_header, http_path, http_form_data or http_body for {}", self.name),
-        ));
+            format!("Please specify http_query, http_header, http_path, http_form_data or http_body for {}. Found attrs: {:?}", self.name, attrs),
+        ))
+        };
     }
 
     fn try_into_input_path_field(&self) -> Result<Option<InputField>, syn::Error> {
