@@ -11,17 +11,11 @@ pub fn generate(ast: &syn::DeriveInput) -> (proc_macro::TokenStream, bool) {
     let mut debug = false;
 
     let (generic, generic_ident) = if let Some(generic) = GenericData::new(ast) {
-
         let generic_token_stream = generic.generic;
         let generic_ident = generic.generic_ident;
-        (
-            generic_token_stream,
-
-            generic_ident,
-
-        )
+        (generic_token_stream, generic_ident)
     } else {
-        (quote!{}, quote!{})
+        (quote! {}, quote! {})
     };
 
     let fields = match StructProperty::read(ast) {
@@ -29,13 +23,14 @@ pub fn generate(ast: &syn::DeriveInput) -> (proc_macro::TokenStream, bool) {
         Err(err) => return (err.into_compile_error().into(), debug),
     };
 
-    for prop in &fields{
-        if prop.attrs.has_attr("debug"){
+    for prop in &fields {
+        if prop.attrs.has_attr("debug") {
             debug = true;
         }
     }
 
-   let data_structure_provider = super::generate_data_structure_provider(ast, struct_name, &fields);
+    let data_structure_provider =
+        super::generate_data_structure_provider(ast, struct_name, &fields);
 
     let fields = generate_http_object_structure(fields);
 
@@ -43,7 +38,9 @@ pub fn generate(ast: &syn::DeriveInput) -> (proc_macro::TokenStream, bool) {
 
     let struct_name_as_str = struct_name.to_string();
 
-   let result = quote! {
+    let result = quote! {
+       #data_structure_provider
+
         impl #generic #struct_name #generic_ident {
             pub fn get_http_data_structure()->my_http_server_controllers::controllers::documentation::data_types::HttpObjectStructure{
                 #use_documentation;
@@ -53,19 +50,13 @@ pub fn generate(ast: &syn::DeriveInput) -> (proc_macro::TokenStream, bool) {
                     fields: vec![#(#fields),*]
                 }
             }
-
-            #data_structure_provider
         }
 
-
-  
     }
     .into();
 
-  (result, debug)
+    (result, debug)
 }
-
-
 
 pub fn generate_http_object_structure(
     fields: Vec<StructProperty>,
@@ -80,4 +71,3 @@ pub fn generate_http_object_structure(
 
     result
 }
-
