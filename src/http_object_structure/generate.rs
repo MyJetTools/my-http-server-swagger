@@ -5,8 +5,10 @@ use crate::generic_utils::GenericData;
 
 use super::struct_prop_ext::StructPropertyExt;
 
-pub fn generate(ast: &syn::DeriveInput) -> proc_macro::TokenStream {
+pub fn generate(ast: &syn::DeriveInput) -> (proc_macro::TokenStream, bool) {
     let struct_name = &ast.ident;
+
+    let mut debug = false;
 
     let (generic, generic_ident) = if let Some(generic) = GenericData::new(ast) {
         let generic_token_stream = generic.generic;
@@ -21,8 +23,14 @@ pub fn generate(ast: &syn::DeriveInput) -> proc_macro::TokenStream {
 
     let fields = match StructProperty::read(ast) {
         Ok(result) => result,
-        Err(err) => return err.into_compile_error().into(),
+        Err(err) => return (err.into_compile_error().into(), debug),
     };
+
+    for prop in &fields{
+        if prop.attrs.has_attr("debug"){
+            debug = true;
+        }
+    }
 
     let obj_fields = render_obj_fields(&fields);
 
@@ -32,7 +40,7 @@ pub fn generate(ast: &syn::DeriveInput) -> proc_macro::TokenStream {
 
     let struct_name_as_str = struct_name.to_string();
 
-    quote! {
+   let result = quote! {
         impl #generic #struct_name #generic_ident {
             pub fn get_http_data_structure()->my_http_server_controllers::controllers::documentation::data_types::HttpObjectStructure{
                 #use_documentation;
@@ -54,7 +62,7 @@ pub fn generate(ast: &syn::DeriveInput) -> proc_macro::TokenStream {
             }
         }
 
-        impl<'s> TryInto<#struct_name> for my_http_server::InputParamValue<'s> {
+        impl<'s, #generic> TryInto<#struct_name> for my_http_server::InputParamValue<'s, #generic> {
             type Error = my_http_server::HttpFailResult;
         
             fn try_into(self) -> Result<#struct_name, Self::Error> {
@@ -62,7 +70,7 @@ pub fn generate(ast: &syn::DeriveInput) -> proc_macro::TokenStream {
             }
         }
 
-        impl TryInto<#struct_name> for my_http_server::HttpRequestBody {
+        impl #generic TryInto<#generic #struct_name> for my_http_server::HttpRequestBody {
             type Error = my_http_server::HttpFailResult;
             fn try_into(self) -> Result<#struct_name, my_http_server::HttpFailResult> {
                 self.get_body_as_json()
@@ -70,7 +78,9 @@ pub fn generate(ast: &syn::DeriveInput) -> proc_macro::TokenStream {
         }
         
     }
-    .into()
+    .into();
+
+  (result, debug)
 }
 
 pub fn generate_http_object_structure(
