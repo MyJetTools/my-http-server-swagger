@@ -10,15 +10,17 @@ pub fn generate(ast: &syn::DeriveInput) -> (proc_macro::TokenStream, bool) {
 
     let mut debug = false;
 
-    let (generic, generic_ident) = if let Some(generic) = GenericData::new(ast) {
+    let (generic, generic_no_brackets,  generic_ident) = if let Some(generic) = GenericData::new(ast) {
+        let generic_no_brackets = generic.get_generic_no_brackets();
         let generic_token_stream = generic.generic;
         let generic_ident = generic.generic_ident;
         (
-            Some(quote!(#generic_token_stream)),
-            Some(quote!(#generic_ident)),
+            generic_token_stream,
+            generic_no_brackets,
+            generic_ident,
         )
     } else {
-        (None, None)
+        (quote!{}, quote!{}, quote!{})
     };
 
     let fields = match StructProperty::read(ast) {
@@ -62,6 +64,15 @@ pub fn generate(ast: &syn::DeriveInput) -> (proc_macro::TokenStream, bool) {
             }
         }
 
+        impl<'s, #generic_no_brackets> TryInto<#struct_name> for my_http_server::InputParamValue<'s, #generic_ident> {
+            type Error = my_http_server::HttpFailResult;
+        
+            fn try_into(self) -> Result<#struct_name, Self::Error> {
+                self.from_json()
+            }
+        }
+
+
   
     }
     .into();
@@ -69,15 +80,7 @@ pub fn generate(ast: &syn::DeriveInput) -> (proc_macro::TokenStream, bool) {
   (result, debug)
 }
 
-
 /*
-        impl<'s, #generic> TryInto<#struct_name> for my_http_server::InputParamValue<'s, #generic_ident> {
-            type Error = my_http_server::HttpFailResult;
-        
-            fn try_into(self) -> Result<#struct_name, Self::Error> {
-                self.from_json()
-            }
-        }
 
         impl #generic TryInto<#generic #generic_ident> for my_http_server::HttpRequestBody {
             type Error = my_http_server::HttpFailResult;
@@ -86,6 +89,7 @@ pub fn generate(ast: &syn::DeriveInput) -> (proc_macro::TokenStream, bool) {
             }
         }
  */
+
 pub fn generate_http_object_structure(
     fields: Vec<StructProperty>,
 ) -> Vec<proc_macro2::TokenStream> {
