@@ -10,17 +10,19 @@ pub fn generate(ast: &syn::DeriveInput) -> (proc_macro::TokenStream, bool) {
 
     let mut debug = false;
 
-    let (generic, generic_no_brackets,  generic_ident) = if let Some(generic) = GenericData::new(ast) {
+    let (generic, generic_no_brackets,  generic_ident, generic_ident_no_brackets) = if let Some(generic) = GenericData::new(ast) {
         let generic_no_brackets = generic.get_generic_no_brackets();
+        let generic_ident_no_brackets = generic.get_generic_no_brackets();
         let generic_token_stream = generic.generic;
         let generic_ident = generic.generic_ident;
         (
             generic_token_stream,
             generic_no_brackets,
             generic_ident,
+            generic_ident_no_brackets,
         )
     } else {
-        (quote!{}, quote!{}, quote!{})
+        (quote!{}, quote!{}, quote!{}, quote!{})
     };
 
     let fields = match StructProperty::read(ast) {
@@ -64,7 +66,7 @@ pub fn generate(ast: &syn::DeriveInput) -> (proc_macro::TokenStream, bool) {
             }
         }
 
-        impl<'s, #generic_no_brackets> TryInto<#struct_name> for my_http_server::InputParamValue<'s, #generic_ident> {
+        impl<'s, #generic_no_brackets> TryInto<#struct_name> for my_http_server::InputParamValue<'s, #generic_ident_no_brackets> {
             type Error = my_http_server::HttpFailResult;
         
             fn try_into(self) -> Result<#struct_name, Self::Error> {
