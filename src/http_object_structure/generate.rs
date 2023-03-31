@@ -66,10 +66,10 @@ pub fn generate(ast: &syn::DeriveInput) -> (proc_macro::TokenStream, bool) {
             }
         }
 
-        impl<'s, #generic_no_brackets> TryInto<#struct_name #generic_ident> for my_http_server::InputParamValue<'s, #generic_ident_no_brackets> {
+        impl<'s, #generic_no_brackets> TryInto<#struct_name #generic_ident> for my_http_server::InputParamValue<'s> {
             type Error = my_http_server::HttpFailResult;
         
-            fn try_into(self) -> Result<#struct_name, Self::Error> {
+            fn try_into(self) -> Result<#struct_name #generic_ident, Self::Error> {
                 self.from_json()
             }
         }
