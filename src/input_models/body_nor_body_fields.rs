@@ -10,26 +10,39 @@ pub struct BodyNotBodyFields<'s> {
 
 impl<'s> BodyNotBodyFields<'s> {
     pub fn new(props: &'s [StructProperty]) -> Result<Self, syn::Error> {
-        let mut body_fields = rust_extensions::lazy::LazyVec::with_capacity(props.len());
-        let mut not_body_fields = rust_extensions::lazy::LazyVec::with_capacity(props.len());
+        let mut body_fields = Vec::with_capacity(props.len());
+        let mut not_body_fields = Vec::with_capacity(props.len());
 
-        let mut path_fields = rust_extensions::lazy::LazyVec::with_capacity(props.len());
+        let mut path_fields = Vec::with_capacity(props.len());
 
         for struct_property in props {
             let http_input = struct_property.get_input_field()?;
             if http_input.is_body() {
-                body_fields.add(struct_property);
+                body_fields.push(struct_property);
             } else if http_input.is_path() {
-                path_fields.add(struct_property);
+                path_fields.push(struct_property);
             } else {
-                not_body_fields.add(struct_property);
+                not_body_fields.push(struct_property);
             }
         }
 
         Ok(Self {
-            body_fields: body_fields.get_result(),
-            not_body_fields: not_body_fields.get_result(),
-            path_fields: path_fields.get_result(),
+            body_fields: if body_fields.len() == 0 {
+                None
+            } else {
+                Some(body_fields)
+            },
+
+            not_body_fields: if not_body_fields.len() == 0 {
+                None
+            } else {
+                Some(not_body_fields)
+            },
+            path_fields: if path_fields.len() == 0 {
+                None
+            } else {
+                Some(path_fields)
+            },
         })
     }
 
