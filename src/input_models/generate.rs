@@ -30,13 +30,14 @@ pub fn generate(ast: &syn::DeriveInput) -> TokenStream {
     };
 
     let http_routes = match http_routes(&fields) {
-        Ok(mut result) => {
+        Ok(result) => {
             if result.is_empty() {
-                result.push(quote! {None})
+                quote! {None}
+            } else {
+                quote!(Some(vec![#(#result),*]))
             }
-            result
         }
-        Err(err) => vec![err.to_compile_error()],
+        Err(err) => err.to_compile_error(),
     };
 
     quote!{
@@ -50,7 +51,7 @@ pub fn generate(ast: &syn::DeriveInput) -> TokenStream {
             }
 
             pub fn get_model_routes()->Option<Vec<&'static str>>{
-                #(#http_routes,)*
+                #http_routes
             }
         }
     }.into()
