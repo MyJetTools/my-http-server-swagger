@@ -47,7 +47,7 @@ pub fn generate(ast: &syn::DeriveInput) -> (proc_macro::TokenStream, bool) {
     } else {
         quote! {
 
-            data_structure_provider
+            #data_structure_provider
 
             impl<'s> TryFrom<my_http_server::InputParamValue<'s>> for #struct_name {
                 type Error = my_http_server::HttpFailResult;
