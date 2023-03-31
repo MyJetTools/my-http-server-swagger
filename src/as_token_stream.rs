@@ -1,8 +1,7 @@
 use proc_macro2::TokenStream;
 use quote::quote;
-use types_reader::attribute_params::ParamValue;
+use types_reader::{attribute_params::ParamValue, StructProperty};
 
-use crate::input_models::input_fields::InputField;
 pub trait AsTokenStream {
     fn as_token_stream(&self) -> TokenStream;
 }
@@ -22,10 +21,10 @@ impl<'s> AsTokenStream for Option<ParamValue<'s>> {
     }
 }
 
-impl<'s> AsTokenStream for Vec<&'s InputField<'s>> {
+impl<'s> AsTokenStream for Vec<&'s StructProperty<'s>> {
     fn as_token_stream(&self) -> TokenStream {
         if self.len() == 1 {
-            let name = self.get(0).unwrap().property.get_field_name_ident();
+            let name = self.get(0).unwrap().get_field_name_ident();
             return quote!(#name);
         }
 
@@ -38,7 +37,7 @@ impl<'s> AsTokenStream for Vec<&'s InputField<'s>> {
                 result.push(quote!(,));
             }
 
-            let ident = input_field.property.get_field_name_ident();
+            let ident = input_field.get_field_name_ident();
             result.push(quote!(#ident));
             no += 1;
         }

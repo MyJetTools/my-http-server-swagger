@@ -1,17 +1,14 @@
 use proc_macro::TokenStream;
 
-use super::input_fields::InputFields;
 use quote::quote;
+use types_reader::StructProperty;
+
+use super::input_model_struct_property_ext::InputModelStructPropertyExt;
 
 pub fn generate(ast: &syn::DeriveInput) -> TokenStream {
     let struct_name = &ast.ident;
 
     let fields = match types_reader::StructProperty::read(ast) {
-        Ok(result) => result,
-        Err(err) => return err.into_compile_error().into(),
-    };
-
-    let fields = match InputFields::new(fields) {
         Ok(result) => result,
         Err(err) => return err.into_compile_error().into(),
     };
@@ -32,10 +29,9 @@ pub fn generate(ast: &syn::DeriveInput) -> TokenStream {
         Err(err) => err.to_compile_error(),
     };
 
-    let http_routes = if let Some(http_routes) = http_routes(&fields) {
-        http_routes
-    } else {
-        quote!(None)
+    let http_routes = match http_routes(&fields) {
+        Ok(result) => result,
+        Err(err) => vec![err.to_compile_error()],
     };
 
     quote!{
@@ -49,27 +45,26 @@ pub fn generate(ast: &syn::DeriveInput) -> TokenStream {
             }
 
             pub fn get_model_routes()->Option<Vec<&'static str>>{
-                #http_routes
+                #(#http_routes,)*
             }
         }
     }.into()
 }
 
-fn http_routes(fields: &InputFields) -> Option<proc_macro2::TokenStream> {
-    let routes = fields.get_routes()?;
-
+fn http_routes(props: &[StructProperty]) -> Result<Vec<proc_macro2::TokenStream>, syn::Error> {
     let mut result = Vec::new();
-    for field in routes {
-        let name = field.name();
-        let name = name.as_str();
-        result.push(quote! {
-            #name
-        });
+
+    for struct_property in props {
+        if let Some(input_field) = struct_property.try_into_input_path_field()? {
+            let input_field_data = input_field.get_input_data();
+
+            let name = input_field_data.get_input_field_name();
+            let name = name.as_str();
+            result.push(quote! {
+                #name
+            });
+        }
     }
 
-    Some(quote! {
-        Some(vec![
-            #(#result),*
-        ])
-    })
+    Ok(result)
 }
