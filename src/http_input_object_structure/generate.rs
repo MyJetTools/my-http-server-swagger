@@ -1,14 +1,25 @@
 use quote::quote;
+use types_reader::StructProperty;
 
 use crate::generic_utils::GenericData;
 
 pub fn generate(ast: &syn::DeriveInput) -> proc_macro::TokenStream {
     let struct_name = &ast.ident;
 
+    let fields = match StructProperty::read(ast) {
+        Ok(result) => result,
+        Err(err) => return err.into_compile_error().into(),
+    };
+
+    let data_structure_provider =
+        crate::http_object_structure::generate_data_structure_provider(ast, struct_name, &fields);
+
     let result = if let Some(generic) = GenericData::new(ast) {
         let generic_token_stream = generic.generic;
         let generic_ident = generic.generic_ident;
         quote! {
+            #data_structure_provider
+
             impl<'s, #generic_token_stream> TryFrom<my_http_server::InputParamValue<'s>> for #struct_name #generic_ident {
                 type Error = my_http_server::HttpFailResult;
 
@@ -27,6 +38,9 @@ pub fn generate(ast: &syn::DeriveInput) -> proc_macro::TokenStream {
         }
     } else {
         quote! {
+
+            data_structure_provider
+
             impl<'s> TryFrom<my_http_server::InputParamValue<'s>> for #struct_name {
                 type Error = my_http_server::HttpFailResult;
 

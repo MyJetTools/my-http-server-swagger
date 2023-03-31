@@ -35,7 +35,7 @@ pub fn generate(ast: &syn::DeriveInput) -> (proc_macro::TokenStream, bool) {
         }
     }
 
-    let obj_fields = render_obj_fields(&fields);
+   let data_structure_provider = super::generate_data_structure_provider(ast, struct_name, &fields);
 
     let fields = generate_http_object_structure(fields);
 
@@ -53,18 +53,9 @@ pub fn generate(ast: &syn::DeriveInput) -> (proc_macro::TokenStream, bool) {
                     fields: vec![#(#fields),*]
                 }
             }
+
+            #data_structure_provider
         }
-
-        impl #generic my_http_server_controllers::controllers::documentation::DataTypeProvider for #struct_name #generic_ident {
-            fn get_data_type() -> my_http_server_controllers::controllers::documentation::data_types::HttpDataType {
-                #use_documentation;
-
-                let mut __hos = data_types::HttpObjectStructure::new(#struct_name_as_str);
-                #(#obj_fields)*
-                __hos.into_http_data_type_object()
-            }
-        }
-
 
 
   
@@ -90,13 +81,3 @@ pub fn generate_http_object_structure(
     result
 }
 
-fn render_obj_fields(fields: &[StructProperty]) -> Vec<proc_macro2::TokenStream> {
-    let mut result = Vec::with_capacity(fields.len());
-    for field in fields {
-        let line = crate::types::compile_http_field(field.get_name().as_str(), &field.ty, None);
-
-        result.push(quote!(__hos.fields.push(#line);));
-    }
-
-    result
-}
