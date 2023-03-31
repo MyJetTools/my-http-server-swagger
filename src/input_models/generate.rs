@@ -5,13 +5,21 @@ use types_reader::StructProperty;
 
 use super::input_model_struct_property_ext::InputModelStructPropertyExt;
 
-pub fn generate(ast: &syn::DeriveInput) -> TokenStream {
+pub fn generate(ast: &syn::DeriveInput) -> (TokenStream, bool) {
     let struct_name = &ast.ident;
+
+    let mut debug = false;
 
     let fields = match types_reader::StructProperty::read(ast) {
         Ok(result) => result,
-        Err(err) => return err.into_compile_error().into(),
+        Err(err) => return (err.into_compile_error().into(), false),
     };
+
+    for prop in &fields {
+        if prop.attrs.has_attr("debug") {
+            debug = true;
+        }
+    }
 
     let http_input_param = crate::consts::get_http_input_parameter_with_ns();
 
@@ -40,7 +48,7 @@ pub fn generate(ast: &syn::DeriveInput) -> TokenStream {
         Err(err) => err.to_compile_error(),
     };
 
-    quote!{
+    (quote!{
         impl #struct_name{
             pub fn get_input_params()->Vec<#http_input_param>{
                 #http_input
@@ -54,7 +62,7 @@ pub fn generate(ast: &syn::DeriveInput) -> TokenStream {
                 #http_routes
             }
         }
-    }.into()
+    }.into(), debug)
 }
 
 fn http_routes(props: &[StructProperty]) -> Result<Vec<proc_macro2::TokenStream>, syn::Error> {
