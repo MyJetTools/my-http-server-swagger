@@ -62,8 +62,7 @@ pub fn generate(ast: &syn::DeriveInput) -> (proc_macro::TokenStream, bool) {
             }
         }
 
-
-        
+  
     }
     .into();
 
