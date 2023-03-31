@@ -27,7 +27,9 @@ mod types;
 )]
 pub fn my_http_input_doc_derive(input: TokenStream) -> TokenStream {
     let ast = syn::parse(input).unwrap();
-    crate::input_models::generate(&ast)
+    let result = crate::input_models::generate(&ast);
+    println!("{}", result);
+    result
 }
 
 #[proc_macro_derive(MyHttpInputObjectStructure)]
