@@ -55,8 +55,8 @@ pub struct AttributeModel {
 }
 
 impl AttributeModel {
-    pub fn parse(attr: proc_macro::TokenStream) -> Self {
-        let attr = attr.to_string();
+    pub fn parse(attr_src: proc_macro::TokenStream) -> Result<Self, syn::Error> {
+        let attr = attr_src.to_string();
 
         let str = attr.into_bytes();
 
@@ -150,6 +150,7 @@ impl AttributeModel {
                         should_be_authorized = Some("ShouldBeAuthorized::No".to_string());
                     }
                     _ => {
+                        super::validate_authorized_attribute_value(&attr_src, value)?;
                         should_be_authorized =
                         Some(format!("ShouldBeAuthorized::YesWithClaims(my_http_server_controllers::controllers::RequiredClaims::from_slice_of_str(&[{}]))", value));
                     }
@@ -182,7 +183,7 @@ impl AttributeModel {
             should_be_authorized = Some("ShouldBeAuthorized::UseGlobal".to_string());
         }
 
-        Self {
+        Ok(Self {
             method: HttpMethod::parse(method.as_ref().unwrap()),
             route: route.unwrap(),
             input_data,
@@ -193,7 +194,7 @@ impl AttributeModel {
                 should_be_authorized.unwrap(),
                 HttpResult::new(result),
             ),
-        }
+        })
     }
 }
 

@@ -7,8 +7,13 @@ use super::attributes::AttributeModel;
 pub fn build_action(attr: TokenStream, input: TokenStream) -> TokenStream {
 
     let ast: syn::DeriveInput = syn::parse(input).unwrap();
-
-    let action_model = AttributeModel::parse(attr);
+    
+    let action_model = match AttributeModel::parse(attr){
+        Ok(result)=>result,
+        Err(err)=>{
+          return err.into_compile_error().into();
+        }
+    };
 
     let struct_name = &ast.ident;
 
