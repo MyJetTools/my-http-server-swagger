@@ -27,8 +27,7 @@ pub fn generate_read_body(properties: &Vec<&StructProperty>) -> Result<TokenStre
 
         match &prop_structure.ty {
             PropertyType::OptionOf(sub_type) => {
-                let input_field_name = input_field_data.get_input_field_name();
-                let input_field_name = input_field_name.as_str();
+                let input_field_name = input_field_data.get_input_field_name()?;
 
                 let sub_type = sub_type.get_token_stream();
 
@@ -52,14 +51,13 @@ pub fn generate_read_body(properties: &Vec<&StructProperty>) -> Result<TokenStre
             }
         }
 
-        if let Some(validator) = input_field.validator() {
-            let validation_fn_name =
-                proc_macro2::TokenStream::from_str(validator.as_str()).unwrap();
+        if let Some(validator) = input_field.validator()? {
+            let validation_fn_name = proc_macro2::TokenStream::from_str(validator).unwrap();
             validation.push(quote!(#validation_fn_name(ctx, &#struct_field_name)?;));
         }
     }
 
-    let init_fields = properties.as_token_stream();
+    let init_fields = properties.as_token_stream()?;
 
     let result = quote! {
         let #init_fields ={
@@ -80,8 +78,7 @@ fn generate_reading_required(
     data_src: &TokenStream,
     struct_field: &Ident,
 ) -> Result<TokenStream, syn::Error> {
-    let input_field_name = input_field.get_input_field_name();
-    let input_field_name = input_field_name.as_str();
+    let input_field_name = input_field.get_input_field_name()?;
 
     Ok(quote!(let #struct_field = #data_src.get_required(#input_field_name)?.try_into()?;))
 }

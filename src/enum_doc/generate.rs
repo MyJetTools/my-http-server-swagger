@@ -149,7 +149,6 @@ fn generate_enum_cases(cases: &[EnumJson]) -> Result<Vec<proc_macro2::TokenStrea
         let id = proc_macro2::Literal::isize_unsuffixed(case.get_id()?);
         let value = case.get_enum_case_value();
         let description = case.description()?;
-        let description = description.as_str();
 
         result.push(quote::quote! {
             __es.cases.push(data_types::HttpEnumCase{

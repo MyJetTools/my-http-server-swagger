@@ -39,8 +39,8 @@ pub fn generate(name: &Ident, properties: &[StructProperty]) -> Result<TokenStre
                 fields_to_return.push(struct_property.get_struct_field_name_as_token_stream());
             }
             InputField::Path(field_data) => {
-                let input_field_name = field_data.get_input_field_name();
-                let input_field_name = input_field_name.as_str();
+                let input_field_name = field_data.get_input_field_name()?;
+
                 //          quote!(let #struct_field_name = http_route.get_value(&ctx.request.http_path, #input_field_name)?.try_into()?;)
 
                 let struct_field_name = struct_property.get_struct_field_name_as_token_stream();
@@ -55,7 +55,7 @@ pub fn generate(name: &Ident, properties: &[StructProperty]) -> Result<TokenStre
                 if body_data_to_read.http_body > 1 {
                     fields_to_return.push(struct_property.get_struct_field_name_as_token_stream());
                 } else {
-                    fields_to_return.push(read_body_single_field(struct_property, field_data));
+                    fields_to_return.push(read_body_single_field(struct_property, field_data)?);
                 }
             }
             InputField::BodyRaw(field_data) => {
@@ -94,8 +94,7 @@ fn read_from_body_raw(
     input_field_data: &InputFieldData,
 ) -> Result<TokenStream, syn::Error> {
     if struct_property.ty.is_option() {
-        let field_name = input_field_data.get_input_field_name();
-        let field_name = field_name.as_str();
+        let field_name = input_field_data.get_input_field_name()?;
 
         let result = quote!({
             let body = ctx.request.receive_body().await?;
@@ -117,8 +116,7 @@ fn read_from_form_data_as_single_field(
     struct_property: &StructProperty,
     input_field_data: &InputFieldData,
 ) -> Result<TokenStream, syn::Error> {
-    let field_name = input_field_data.get_input_field_name();
-    let field_name = field_name.as_str();
+    let field_name = input_field_data.get_input_field_name()?;
 
     if struct_property.ty.is_option() {
         let result = quote!({
@@ -144,13 +142,12 @@ fn read_from_form_data_as_single_field(
 fn read_body_single_field(
     struct_property: &StructProperty,
     input_field_data: &InputFieldData,
-) -> proc_macro2::TokenStream {
+) -> Result<proc_macro2::TokenStream, syn::Error> {
     let struct_field_name = struct_property.get_struct_field_name_as_token_stream();
-    let field_name = input_field_data.get_input_field_name();
-    let field_name = field_name.as_str();
+    let field_name = input_field_data.get_input_field_name()?;
 
     if let PropertyType::OptionOf(_) = &struct_property.ty {
-        return quote!(
+        let result = quote!(
             #struct_field_name: {
                 let data_reader = ctx.request.get_body().await?.get_body_data_reader()?;
                 if let Some(value) =data_reader.get_optional(#field_name){
@@ -162,11 +159,15 @@ fn read_body_single_field(
             }
 
         );
+
+        return Ok(result);
     }
 
-    quote!(#struct_field_name: {
+    let result = quote!(#struct_field_name: {
         let data_reader = ctx.request.get_body().await?.get_body_data_reader()?;
         let value = data_reader.get_required(#field_name)?;
         value.try_into()?
-    })
+    });
+
+    Ok(result)
 }

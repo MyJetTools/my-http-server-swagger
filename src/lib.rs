@@ -74,5 +74,8 @@ pub fn my_http_integer_enum_derive(input: TokenStream) -> TokenStream {
 
 #[proc_macro_attribute]
 pub fn http_route(attr: TokenStream, item: TokenStream) -> TokenStream {
-    crate::action_builder::build_action(attr, item)
+    match crate::action_builder::build_action(attr, item) {
+        Ok(result) => result,
+        Err(err) => err.to_compile_error().into(),
+    }
 }

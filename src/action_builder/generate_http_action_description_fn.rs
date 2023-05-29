@@ -2,9 +2,9 @@ use std::str::FromStr;
 
 use proc_macro2::TokenStream;
 
-use super::attributes::AttributeModel;
+use super::attributes::HttpRouteModel;
 
-pub fn generate_http_action_description_fn(attrs: &AttributeModel) -> TokenStream {
+pub fn generate_http_action_description_fn(attrs: &HttpRouteModel) -> TokenStream {
     if attrs.api_data.is_none() {
         return quote::quote!(None);
     }
@@ -15,14 +15,14 @@ pub fn generate_http_action_description_fn(attrs: &AttributeModel) -> TokenStrea
 
     let http_action_description = crate::consts::get_http_action_description();
 
-    let controller_name = api_data.controller.as_str();
-    let summary = api_data.summary.as_str();
-    let description = api_data.description.as_str();
+    let controller_name = api_data.controller;
+    let summary = api_data.summary;
+    let description = api_data.description;
     let should_be_authorized = api_data.get_should_be_authorized();
 
-    let input_params = generate_get_input_params(&attrs.input_data);
+    let input_params = generate_get_input_params(attrs.input_data);
 
-    let results = super::result_model_generator::generate(&api_data.result);
+    let results = super::result_model_generator::generate(&api_data.results);
 
     quote::quote! {
         #use_documentation;
@@ -39,7 +39,7 @@ pub fn generate_http_action_description_fn(attrs: &AttributeModel) -> TokenStrea
     }
 }
 
-fn generate_get_input_params(input_data: &Option<String>) -> TokenStream {
+fn generate_get_input_params(input_data: Option<&str>) -> TokenStream {
     if let Some(input_data) = input_data {
         let input_data = TokenStream::from_str(input_data).unwrap();
         quote::quote!(#input_data::get_input_params().into())

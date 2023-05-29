@@ -28,8 +28,7 @@ pub fn generate_read_not_body(
 
         match &struct_property.ty {
             PropertyType::OptionOf(_) => {
-                let input_field_name = input_field.get_input_field_name();
-                let input_field_name = input_field_name.as_str();
+                let input_field_name = input_field.get_input_field_name()?;
 
                 let item = quote! {
                     let #struct_field_name = if let Some(value) = #data_src.get_optional(#input_field_name){
@@ -44,8 +43,7 @@ pub fn generate_read_not_body(
             }
             PropertyType::VecOf(sub_type) => {
                 if sub_type.is_string() {
-                    let input_field_name = input_field.get_input_field_name();
-                    let input_field_name = input_field_name.as_str();
+                    let input_field_name = input_field.get_input_field_name()?;
 
                     let item = quote! {
                       let #struct_field_name = #data_src.get_vec_of_string(#input_field_name)?;
@@ -54,8 +52,7 @@ pub fn generate_read_not_body(
 
                     reading_fields.push(item);
                 } else {
-                    let input_field_name = input_field.get_input_field_name();
-                    let input_field_name = input_field_name.as_str();
+                    let input_field_name = input_field.get_input_field_name()?;
 
                     let item = quote! {
                        let #struct_field_name = #data_src.get_vec(#input_field_name)?;
@@ -66,17 +63,15 @@ pub fn generate_read_not_body(
                 }
             }
             PropertyType::Struct(..) => {
-                let input_field_name = input_field.get_input_field_name();
-                let input_field_name = input_field_name.as_str();
+                let input_field_name = input_field.get_input_field_name()?;
 
                 let prop_type = struct_property.get_syn_type();
 
-                let default_value = if let Some(default_value) = input_field.get_default_value() {
-                    let value = default_value.as_str();
-                    if value == "" {
+                let default_value = if let Some(default_value) = input_field.get_default_value()? {
+                    if default_value == "" {
                         Some(quote!(#prop_type::create_default()?))
                     } else {
-                        Some(quote!(<#prop_type as std::str::FromStr>::from_str(#value)?))
+                        Some(quote!(<#prop_type as std::str::FromStr>::from_str(#default_value)?))
                     }
                 } else {
                     None
@@ -110,14 +105,13 @@ pub fn generate_read_not_body(
             }
         }
 
-        if let Some(validator) = input_field.validator() {
-            let validation_fn_name =
-                proc_macro2::TokenStream::from_str(validator.as_str()).unwrap();
+        if let Some(validator) = input_field.validator()? {
+            let validation_fn_name = proc_macro2::TokenStream::from_str(validator).unwrap();
             validation.push(quote!(#validation_fn_name(ctx, &#struct_field_name)?;));
         }
     }
 
-    let init_fields = properties.as_token_stream();
+    let init_fields = properties.as_token_stream()?;
 
     let result = quote! {
         let #init_fields = {
@@ -137,10 +131,9 @@ fn generate_reading_required(struct_property: &StructProperty) -> Result<TokenSt
     match input_field {
         InputField::Query(_) => {
             let data_src = get_query_string_data_src();
-            let input_field_name = input_field.get_input_field_name();
-            let input_field_name = input_field_name.as_str();
-            if let Some(default) = input_field.get_default_value() {
-                let else_data = proc_macro2::TokenStream::from_str(default.as_str());
+            let input_field_name = input_field.get_input_field_name()?;
+            if let Some(default) = input_field.get_default_value()? {
+                let else_data = proc_macro2::TokenStream::from_str(default);
 
                 if let Err(err) = else_data {
                     return Err(syn::Error::new_spanned(
@@ -170,8 +163,7 @@ fn generate_reading_required(struct_property: &StructProperty) -> Result<TokenSt
             panic!("Bug. Should not read from Path at read_not_body part of script");
         }
         InputField::Header(_) => {
-            let input_field_name = input_field.get_input_field_name();
-            let input_field_name = input_field_name.as_str();
+            let input_field_name = input_field.get_input_field_name()?;
 
             let result = quote!(let #struct_field_name = ctx.request.get_required_header(#input_field_name)?.try_into()?;);
 

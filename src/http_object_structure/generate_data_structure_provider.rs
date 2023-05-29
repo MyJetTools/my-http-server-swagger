@@ -8,7 +8,7 @@ pub fn generate_data_structure_provider(
     ast: &syn::DeriveInput,
     struct_name: &syn::Ident,
     fields: &[StructProperty],
-) -> proc_macro2::TokenStream {
+) -> Result<proc_macro2::TokenStream, syn::Error> {
     let use_documentation = crate::consts::get_use_documentation();
 
     let (generic, generic_ident) = if let Some(generic) = GenericData::new(ast) {
@@ -21,8 +21,8 @@ pub fn generate_data_structure_provider(
 
     let struct_name_as_str = struct_name.to_string();
 
-    let obj_fields = render_obj_fields(&fields);
-    quote::quote! {
+    let obj_fields = render_obj_fields(&fields)?;
+    let result = quote::quote! {
 
         impl #generic my_http_server_controllers::controllers::documentation::DataTypeProvider for #struct_name #generic_ident {
             fn get_data_type() -> my_http_server_controllers::controllers::documentation::data_types::HttpDataType {
@@ -33,16 +33,20 @@ pub fn generate_data_structure_provider(
                 __hos.into_http_data_type_object()
             }
         }
-    }
+    };
+
+    Ok(result)
 }
 
-fn render_obj_fields(fields: &[StructProperty]) -> Vec<proc_macro2::TokenStream> {
+fn render_obj_fields(
+    fields: &[StructProperty],
+) -> Result<Vec<proc_macro2::TokenStream>, syn::Error> {
     let mut result = Vec::with_capacity(fields.len());
     for field in fields {
-        let line = crate::types::compile_http_field(field.get_name().as_str(), &field.ty, None);
+        let line = crate::types::compile_http_field(field.get_name()?, &field.ty, None)?;
 
         result.push(quote::quote!(__hos.fields.push(#line);));
     }
 
-    result
+    Ok(result)
 }

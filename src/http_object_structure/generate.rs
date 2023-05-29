@@ -30,9 +30,15 @@ pub fn generate(ast: &syn::DeriveInput) -> (proc_macro::TokenStream, bool) {
     }
 
     let data_structure_provider =
-        super::generate_data_structure_provider(ast, struct_name, &fields);
+        match super::generate_data_structure_provider(ast, struct_name, &fields) {
+            Ok(result) => result,
+            Err(err) => return (err.into_compile_error().into(), debug),
+        };
 
-    let fields = generate_http_object_structure(fields);
+    let fields = match generate_http_object_structure(fields) {
+        Ok(result) => result,
+        Err(err) => return (err.into_compile_error().into(), debug),
+    };
 
     let use_documentation = crate::consts::get_use_documentation();
 
@@ -60,14 +66,14 @@ pub fn generate(ast: &syn::DeriveInput) -> (proc_macro::TokenStream, bool) {
 
 pub fn generate_http_object_structure(
     fields: Vec<StructProperty>,
-) -> Vec<proc_macro2::TokenStream> {
+) -> Result<Vec<proc_macro2::TokenStream>, syn::Error> {
     let mut result = Vec::new();
 
     for field in fields {
-        let line = crate::types::compile_http_field(field.get_name().as_str(), &field.ty, None);
+        let line = crate::types::compile_http_field(field.get_name()?, &field.ty, None)?;
 
         result.push(line);
     }
 
-    result
+    Ok(result)
 }

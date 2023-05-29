@@ -1,61 +1,45 @@
-use std::str::FromStr;
+use super::{http_method::HttpMethod, ApiData};
 
-use proc_macro2::TokenStream;
-
-use super::{http_method::HttpMethod, HttpResult};
-
-pub struct ApiData {
-    pub controller: String,
-    pub description: String,
-    pub summary: String,
-    pub should_be_authorized: String,
-    pub result: Vec<HttpResult>,
-}
-
-impl ApiData {
-    pub fn new(
-        controller: Option<String>,
-        description: Option<String>,
-        summary: Option<String>,
-        should_be_authorized: String,
-        result: Vec<HttpResult>,
-    ) -> Option<Self> {
-        if controller.is_none() {
-            return None;
-        }
-
-        if description.is_none() {
-            panic!("Description is not found");
-        }
-
-        if summary.is_none() {
-            panic!("Summary is not found");
-        }
-
-        Self {
-            controller: controller.unwrap(),
-            description: description.unwrap(),
-            summary: summary.unwrap(),
-            result,
-            should_be_authorized,
-        }
-        .into()
-    }
-
-    pub fn get_should_be_authorized(&self) -> TokenStream {
-        TokenStream::from_str(&self.should_be_authorized).unwrap()
-    }
-}
-
-pub struct AttributeModel {
+pub struct HttpRouteModel<'s> {
     pub method: HttpMethod,
-    pub route: String,
-    pub input_data: Option<String>,
-    pub api_data: Option<ApiData>,
+    pub route: &'s str,
+    pub input_data: Option<&'s str>,
+    pub api_data: Option<ApiData<'s>>,
 }
 
-impl AttributeModel {
-    pub fn parse(attr_src: proc_macro::TokenStream) -> Result<Self, syn::Error> {
+impl<'s> HttpRouteModel<'s> {
+    pub fn parse(attrs: &'s types_reader::ParamsList) -> Result<Self, syn::Error> {
+        let method = attrs.get_named_param("method")?.get_str_value()?;
+
+        let route = attrs.get_named_param("route")?.get_str_value()?;
+
+        let input_data = if let Some(input_data) = attrs.try_get_named_param("input_data") {
+            Some(input_data.get_str_value()?)
+        } else {
+            None
+        };
+
+        let result = if let Some(controller) = attrs.try_get_named_param("controller") {
+            let controller = controller.get_str_value()?;
+
+            Ok(Self {
+                method: HttpMethod::parse(method),
+                route,
+                input_data,
+                api_data: Some(ApiData::new(controller, attrs)?),
+            })
+        } else {
+            Ok(Self {
+                method: HttpMethod::parse(method),
+                route,
+                input_data,
+                api_data: None,
+            })
+        };
+
+        result
+
+        /*
         let attr = attr_src.to_string();
 
         let str = attr.into_bytes();
@@ -195,27 +179,6 @@ impl AttributeModel {
                 HttpResult::new(result),
             ),
         })
+         */
     }
-}
-
-pub fn find(src: &[u8], symbol: u8) -> Option<usize> {
-    for i in 0..src.len() {
-        if src[i] == symbol {
-            return Some(i);
-        }
-    }
-
-    None
-}
-
-pub fn find_one_of_these(src: &[u8], symbols: &[u8]) -> Option<usize> {
-    for i in 0..src.len() {
-        for s in symbols {
-            if src[i] == *s {
-                return Some(i);
-            }
-        }
-    }
-
-    None
 }

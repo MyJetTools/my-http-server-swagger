@@ -1,4 +1,4 @@
-use types_reader::{attribute_params::ParamValue, EnumCase};
+use types_reader::EnumCase;
 
 pub struct EnumJson<'s> {
     pub src: EnumCase<'s>,
@@ -34,17 +34,22 @@ impl<'s> EnumJson<'s> {
         self.src.get_name_ident().to_string()
     }
 
-    pub fn get_value(&self) -> String {
+    pub fn get_value(&self) -> Result<String, syn::Error> {
         if let Ok(value) = self.src.attrs.get_named_param(HTTP_ENUM_ATTR_NAME, "value") {
-            return value.as_str().to_string();
+            let result = value.get_str_value()?;
+
+            return Ok(result.to_string());
         }
 
-        self.src.get_name_ident().to_string()
+        Ok(self.src.get_name_ident().to_string())
     }
 
-    pub fn description(&self) -> Result<ParamValue, syn::Error> {
-        self.src
+    pub fn description(&self) -> Result<&str, syn::Error> {
+        let result = self
+            .src
             .attrs
-            .get_named_param(HTTP_ENUM_ATTR_NAME, "description")
+            .get_named_param(HTTP_ENUM_ATTR_NAME, "description")?;
+
+        result.get_str_value()
     }
 }

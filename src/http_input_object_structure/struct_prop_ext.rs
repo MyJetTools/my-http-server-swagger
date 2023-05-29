@@ -1,19 +1,15 @@
-use types_reader::{attribute_params::ParamValue, StructProperty};
+use types_reader::StructProperty;
 
 pub trait StructPropertyExt {
-    fn get_name(&self) -> ParamValue;
+    fn get_name(&self) -> Result<&str, syn::Error>;
 }
 
 impl<'s> StructPropertyExt for StructProperty<'s> {
-    fn get_name(&self) -> ParamValue {
+    fn get_name(&self) -> Result<&str, syn::Error> {
         if let Ok(value) = self.attrs.get_named_param("serde", "rename") {
-            return value;
+            return value.get_str_value();
         }
 
-        ParamValue {
-            value: self.name.as_bytes(),
-            token: None,
-            ident: Some(self.get_field_name_ident()),
-        }
+        Ok(self.name.as_str())
     }
 }

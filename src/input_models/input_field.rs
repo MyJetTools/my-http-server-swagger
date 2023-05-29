@@ -1,44 +1,46 @@
 use proc_macro2::TokenStream;
-use types_reader::{
-    attribute_params::{AttributeParams, ParamValue},
-    StructProperty,
-};
+use types_reader::{ParamsList, StructProperty};
 
 pub struct InputFieldData<'s> {
     pub property: &'s StructProperty<'s>,
-    pub attr_params: &'s AttributeParams,
+    pub attr_params: &'s ParamsList,
 }
 
 impl<'s> InputFieldData<'s> {
-    pub fn new(property: &'s StructProperty<'s>, attr_params: &'s AttributeParams) -> Self {
+    pub fn new(property: &'s StructProperty<'s>, attr_params: &'s ParamsList) -> Self {
         Self {
             property,
             attr_params,
         }
     }
 
-    pub fn get_input_field_name(&self) -> ParamValue {
+    pub fn get_input_field_name(&self) -> Result<&str, syn::Error> {
         if let Some(value) = self.attr_params.try_get_named_param("name") {
-            value
+            Ok(value.get_str_value()?)
         } else {
-            ParamValue {
-                value: self.property.name.as_bytes(),
-                token: None,
-                ident: Some(self.property.get_field_name_ident()),
-            }
+            Ok(&self.property.name)
         }
     }
 
-    pub fn get_default_value(&self) -> Option<ParamValue> {
-        self.attr_params.try_get_named_param("default")
+    pub fn get_default_value(&self) -> Result<Option<&str>, syn::Error> {
+        match self.attr_params.try_get_named_param("default") {
+            Some(value) => Ok(Some(value.get_str_value()?)),
+            None => Ok(None),
+        }
     }
 
-    pub fn get_description(&self) -> Result<ParamValue, syn::Error> {
-        self.attr_params.get_named_param("description")
+    pub fn get_description(&self) -> Result<&str, syn::Error> {
+        let result = self.attr_params.get_named_param("description")?;
+        result.get_str_value()
     }
 
-    pub fn validator(&self) -> Option<ParamValue> {
-        self.attr_params.try_get_named_param("validator")
+    pub fn validator(&self) -> Result<Option<&str>, syn::Error> {
+        let result = self.attr_params.try_get_named_param("validator");
+
+        match result {
+            Some(value) => Ok(Some(value.get_str_value()?)),
+            _ => Ok(None),
+        }
     }
 }
 
@@ -104,17 +106,17 @@ impl<'s> InputField<'s> {
         }
     }
 
-    pub fn get_input_field_name(&self) -> ParamValue {
+    pub fn get_input_field_name(&self) -> Result<&str, syn::Error> {
         let data = self.get_input_data();
         data.get_input_field_name()
     }
 
-    pub fn get_default_value(&self) -> Option<ParamValue> {
+    pub fn get_default_value(&self) -> Result<Option<&str>, syn::Error> {
         let data = self.get_input_data();
         data.get_default_value()
     }
 
-    pub fn validator(&self) -> Option<ParamValue> {
+    pub fn validator(&self) -> Result<Option<&str>, syn::Error> {
         let data = self.get_input_data();
         data.validator()
     }

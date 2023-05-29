@@ -72,8 +72,7 @@ fn http_routes(props: &[StructProperty]) -> Result<Vec<proc_macro2::TokenStream>
         if let Some(input_field) = struct_property.try_into_input_path_field()? {
             let input_field_data = input_field.get_input_data();
 
-            let name = input_field_data.get_input_field_name();
-            let name = name.as_str();
+            let name = input_field_data.get_input_field_name()?;
             result.push(quote! {
                 #name
             });

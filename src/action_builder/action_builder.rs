@@ -1,25 +1,26 @@
 use std::str::FromStr;
 
 use proc_macro::TokenStream;
+use types_reader::ParamsList;
 
-use super::attributes::AttributeModel;
+use super::attributes::HttpRouteModel;
 
-pub fn build_action(attr: TokenStream, input: TokenStream) -> TokenStream {
+
+pub fn build_action(attr: TokenStream, input: TokenStream) -> Result<TokenStream, syn::Error> {
 
     let ast: syn::DeriveInput = syn::parse(input).unwrap();
-    
-    let action_model = match AttributeModel::parse(attr){
-        Ok(result)=>result,
-        Err(err)=>{
-          return err.into_compile_error().into();
-        }
-    };
+
+
+    let params_list = ParamsList::new(attr.into())?;
+
+    let action_model = HttpRouteModel::parse(&params_list)?;
+
 
     let struct_name = &ast.ident;
 
     let trait_name = action_model.method.get_trait_name();
 
-    let route = action_model.route.as_str();
+    let route = action_model.route;
 
     let http_action_description = crate::consts::get_http_action_description_with_ns();
 
@@ -33,7 +34,7 @@ pub fn build_action(attr: TokenStream, input: TokenStream) -> TokenStream {
 
     let http_fail_result = crate::consts::get_http_fail_result();
 
-    let handle_request = super::generate_handle_request_fn(&action_model.input_data);
+    let handle_request = super::generate_handle_request_fn(action_model.input_data);
 
     let model_routes: proc_macro2::TokenStream = if let Some(input_data) = &action_model.input_data{
         let input_data = proc_macro2::TokenStream::from_str(input_data).unwrap();
@@ -42,7 +43,7 @@ pub fn build_action(attr: TokenStream, input: TokenStream) -> TokenStream {
         quote::quote!(None)
     };
 
-    quote::quote! {
+    let result = quote::quote! {
         #ast
 
         impl #trait_name for #struct_name{
@@ -71,5 +72,7 @@ pub fn build_action(attr: TokenStream, input: TokenStream) -> TokenStream {
     
   
     }
-    .into()
+    .into();
+
+   Ok(result)
 }

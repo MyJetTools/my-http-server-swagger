@@ -1,31 +1,45 @@
 use proc_macro2::TokenStream;
 use quote::quote;
-use types_reader::{attribute_params::ParamValue, StructProperty};
+use types_reader::{ParamValue, StructProperty};
 
 pub trait AsTokenStream {
-    fn as_token_stream(&self) -> TokenStream;
+    fn as_token_stream(&self) -> Result<TokenStream, syn::Error>;
 }
 
-impl<'s> AsTokenStream for Option<ParamValue<'s>> {
-    fn as_token_stream(&self) -> TokenStream {
+impl<'s> AsTokenStream for Option<&'s ParamValue> {
+    fn as_token_stream(&self) -> Result<TokenStream, syn::Error> {
         if let Some(value) = self {
-            let value = value.as_str();
-            quote! {
+            let value = value.get_str_value()?;
+            Ok(quote! {
                 Some(#value)
-            }
+            })
         } else {
-            quote! {
+            Ok(quote! {
                 None
-            }
+            })
+        }
+    }
+}
+
+impl<'s> AsTokenStream for Option<&'s str> {
+    fn as_token_stream(&self) -> Result<TokenStream, syn::Error> {
+        if let Some(value) = self {
+            Ok(quote! {
+                Some(#value)
+            })
+        } else {
+            Ok(quote! {
+                None
+            })
         }
     }
 }
 
 impl<'s> AsTokenStream for Vec<&'s StructProperty<'s>> {
-    fn as_token_stream(&self) -> TokenStream {
+    fn as_token_stream(&self) -> Result<TokenStream, syn::Error> {
         if self.len() == 1 {
             let name = self.get(0).unwrap().get_field_name_ident();
-            return quote!(#name);
+            return Ok(quote!(#name));
         }
 
         let mut no = 0;
@@ -42,6 +56,6 @@ impl<'s> AsTokenStream for Vec<&'s StructProperty<'s>> {
             no += 1;
         }
 
-        quote! {(#(#result)*)}
+        Ok(quote! {(#(#result)*)})
     }
 }

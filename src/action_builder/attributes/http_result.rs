@@ -1,13 +1,31 @@
-use super::ResultType;
+use types_reader::ParamsList;
+
+use super::HttpResultModel;
 
 pub struct HttpResult {
     pub status_code: u16,
     pub description: String,
-    pub result_type: Option<ResultType>,
+    pub result_type: Option<HttpResultModel>,
 }
 
 impl HttpResult {
-    pub fn new(src: Option<String>) -> Vec<HttpResult> {
+    pub fn new(param_list: &ParamsList) -> Result<HttpResult, syn::Error> {
+        let result = HttpResult {
+            status_code: param_list
+                .get_named_param("status_code")?
+                .get_number_value()? as u16,
+            description: param_list
+                .get_named_param("description")?
+                .get_str_value()?
+                .to_string(),
+            result_type: HttpResultModel::new(param_list)?,
+        };
+
+        Ok(result)
+    }
+
+    /*
+    pub fn new_n(src: Option<String>) -> Vec<HttpResult> {
         let mut result = vec![];
 
         if src.is_none() {
@@ -63,44 +81,6 @@ impl HttpResult {
 
         result
     }
-}
 
-fn remove_quotes(src: &str) -> String {
-    src[1..src.len() - 1].to_string()
-}
-
-pub struct JsonObjectsSimpleScanner<'s> {
-    content: &'s [u8],
-    pos: usize,
-}
-
-impl<'s> JsonObjectsSimpleScanner<'s> {
-    pub fn new(content: &'s [u8]) -> Self {
-        Self { content, pos: 0 }
-    }
-}
-
-impl<'s> Iterator for JsonObjectsSimpleScanner<'s> {
-    type Item = &'s str;
-
-    fn next(&mut self) -> Option<Self::Item> {
-        let start_pos = find(self.content, '{' as u8, self.pos)?;
-        let end_pos = find(self.content, '}' as u8, start_pos + 1);
-
-        let end_pos = end_pos?;
-
-        self.pos = end_pos + 1;
-
-        Some(std::str::from_utf8(&self.content[start_pos + 1..end_pos]).unwrap())
-    }
-}
-
-pub fn find(src: &[u8], symbol: u8, start_pos: usize) -> Option<usize> {
-    for i in start_pos..src.len() {
-        if src[i] == symbol {
-            return Some(i);
-        }
-    }
-
-    None
+     */
 }
