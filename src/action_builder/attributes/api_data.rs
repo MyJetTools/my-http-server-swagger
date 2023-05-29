@@ -50,6 +50,18 @@ impl<'s> ApiData<'s> {
     }
 
     pub fn get_should_be_authorized(&self) -> proc_macro2::TokenStream {
+        if self.should_be_authorized.is_none() {
+            return quote::quote!(ShouldBeAuthorized::UseGlobal);
+        }
+
+        let should_be_authorized = self.should_be_authorized.unwrap();
+
+        if should_be_authorized.is_empty() {
+            return quote::quote!(ShouldBeAuthorized::YesWithClaims(
+                RequiredClaims::no_claims()
+            ));
+        }
+
         let mut result = Vec::new();
 
         if let Some(should_be_authorized) = self.should_be_authorized {
@@ -58,6 +70,9 @@ impl<'s> ApiData<'s> {
             }
         }
 
-        quote::quote!([#(#result)*,]).into()
+        quote::quote!(ShouldBeAuthorized::YesWithClaims(RequiredClaims::from_vec(
+            vec![#(#result)*,]
+        )))
+        .into()
     }
 }

@@ -68,8 +68,6 @@ pub fn build_action(attr: TokenStream, input: TokenStream) -> Result<TokenStream
                 #handle_request
             }
         }
-
-    
   
     }
     .into();
