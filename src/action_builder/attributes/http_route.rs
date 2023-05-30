@@ -221,7 +221,7 @@ impl<'s> HttpRouteModel<'s> {
             let mut result = Vec::new();
 
             for itm in string_value {
-                result.push(quote::quote!(#itm.to_string()));
+                result.push(quote::quote!(#itm));
             }
 
             return Ok(
