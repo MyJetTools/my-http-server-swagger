@@ -11,6 +11,8 @@ pub fn generate_http_action_description_fn(attrs: &HttpRouteModel) -> TokenStrea
 
     let api_data = attrs.api_data.as_ref().unwrap();
 
+    let should_be_authorized = attrs.get_should_be_authorized();
+
     let use_documentation = crate::consts::get_use_documentation();
 
     let http_action_description = crate::consts::get_http_action_description();
@@ -18,7 +20,6 @@ pub fn generate_http_action_description_fn(attrs: &HttpRouteModel) -> TokenStrea
     let controller_name = api_data.controller;
     let summary = api_data.summary;
     let description = api_data.description;
-    let should_be_authorized = api_data.get_should_be_authorized();
 
     let input_params = generate_get_input_params(attrs.input_data);
 

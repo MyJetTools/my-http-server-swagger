@@ -5,6 +5,7 @@ pub struct HttpRouteModel<'s> {
     pub route: &'s str,
     pub input_data: Option<&'s str>,
     pub api_data: Option<ApiData<'s>>,
+    pub should_be_authorized: Option<&'s Vec<String>>,
 }
 
 impl<'s> HttpRouteModel<'s> {
@@ -19,6 +20,13 @@ impl<'s> HttpRouteModel<'s> {
             None
         };
 
+        let should_be_authorized =
+            if let Some(value) = attrs.try_get_named_param("should_be_authorized") {
+                Some(value.unwrap_as_vec_of_string()?)
+            } else {
+                None
+            };
+
         let result = if let Some(controller) = attrs.try_get_named_param("controller") {
             let controller = controller.get_str_value()?;
 
@@ -26,6 +34,7 @@ impl<'s> HttpRouteModel<'s> {
                 method: HttpMethod::parse(method),
                 route,
                 input_data,
+                should_be_authorized,
                 api_data: Some(ApiData::new(controller, attrs)?),
             })
         } else {
@@ -33,6 +42,7 @@ impl<'s> HttpRouteModel<'s> {
                 method: HttpMethod::parse(method),
                 route,
                 input_data,
+                should_be_authorized,
                 api_data: None,
             })
         };
@@ -180,5 +190,32 @@ impl<'s> HttpRouteModel<'s> {
             ),
         })
          */
+    }
+
+    pub fn get_should_be_authorized(&self) -> proc_macro2::TokenStream {
+        if self.should_be_authorized.is_none() {
+            return quote::quote!(ShouldBeAuthorized::UseGlobal);
+        }
+
+        let should_be_authorized = self.should_be_authorized.unwrap();
+
+        if should_be_authorized.is_empty() {
+            return quote::quote!(ShouldBeAuthorized::YesWithClaims(
+                RequiredClaims::no_claims()
+            ));
+        }
+
+        let mut result = Vec::new();
+
+        if let Some(should_be_authorized) = self.should_be_authorized {
+            for itm in should_be_authorized {
+                result.push(quote::quote!(#itm.to_string()));
+            }
+        }
+
+        quote::quote!(ShouldBeAuthorized::YesWithClaims(RequiredClaims::from_vec(
+            vec![#(#result)*,]
+        )))
+        .into()
     }
 }
