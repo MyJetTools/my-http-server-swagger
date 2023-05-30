@@ -10,7 +10,9 @@ pub enum HttpResultModel {
 impl HttpResultModel {
     pub fn new(param_list: &ParamsList) -> Result<Option<Self>, syn::Error> {
         match param_list.try_get_named_param("model") {
-            Some(result) => Ok(Some(Self::create(result.get_str_value()?))),
+            Some(result) => Ok(Some(Self::create(
+                result.unwrap_as_string_value()?.as_str(),
+            ))),
             None => Ok(None),
         }
     }

@@ -16,7 +16,7 @@ impl<'s> InputFieldData<'s> {
 
     pub fn get_input_field_name(&self) -> Result<&str, syn::Error> {
         if let Some(value) = self.attr_params.try_get_named_param("name") {
-            Ok(value.get_str_value()?)
+            Ok(value.unwrap_as_string_value()?.into())
         } else {
             Ok(&self.property.name)
         }
@@ -24,21 +24,21 @@ impl<'s> InputFieldData<'s> {
 
     pub fn get_default_value(&self) -> Result<Option<&str>, syn::Error> {
         match self.attr_params.try_get_named_param("default") {
-            Some(value) => Ok(Some(value.get_str_value()?)),
+            Some(value) => Ok(Some(value.unwrap_as_string_value()?.into())),
             None => Ok(None),
         }
     }
 
     pub fn get_description(&self) -> Result<&str, syn::Error> {
         let result = self.attr_params.get_named_param("description")?;
-        result.get_str_value()
+        Ok(result.unwrap_as_string_value()?.into())
     }
 
     pub fn validator(&self) -> Result<Option<&str>, syn::Error> {
         let result = self.attr_params.try_get_named_param("validator");
 
         match result {
-            Some(value) => Ok(Some(value.get_str_value()?)),
+            Some(value) => Ok(Some(value.unwrap_as_string_value()?.into())),
             _ => Ok(None),
         }
     }

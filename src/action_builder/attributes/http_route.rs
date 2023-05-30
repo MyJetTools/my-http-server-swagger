@@ -10,12 +10,18 @@ pub struct HttpRouteModel<'s> {
 
 impl<'s> HttpRouteModel<'s> {
     pub fn parse(attrs: &'s types_reader::ParamsList) -> Result<Self, syn::Error> {
-        let method = attrs.get_named_param("method")?.get_str_value()?;
+        let method = attrs
+            .get_named_param("method")?
+            .unwrap_as_string_value()?
+            .as_str();
 
-        let route = attrs.get_named_param("route")?.get_str_value()?;
+        let route = attrs
+            .get_named_param("route")?
+            .unwrap_as_string_value()?
+            .as_str();
 
         let input_data = if let Some(input_data) = attrs.try_get_named_param("input_data") {
-            Some(input_data.get_str_value()?)
+            Some(input_data.unwrap_as_string_value()?.as_str())
         } else {
             None
         };
@@ -27,7 +33,7 @@ impl<'s> HttpRouteModel<'s> {
         };
 
         let result = if let Some(controller) = attrs.try_get_named_param("controller") {
-            let controller = controller.get_str_value()?;
+            let controller = controller.unwrap_as_string_value()?.as_str();
 
             Ok(Self {
                 method: HttpMethod::parse(method),

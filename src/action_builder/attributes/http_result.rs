@@ -13,10 +13,11 @@ impl HttpResult {
         let result = HttpResult {
             status_code: param_list
                 .get_named_param("status_code")?
-                .get_number_value()? as u16,
+                .unwrap_as_number_value()?
+                .as_u16(),
             description: param_list
                 .get_named_param("description")?
-                .get_str_value()?
+                .unwrap_as_string_value()?
                 .to_string(),
             result_type: HttpResultModel::new(param_list)?,
         };

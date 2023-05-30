@@ -12,8 +12,14 @@ impl<'s> ApiData<'s> {
         controller: &'s str,
         attrs: &'s types_reader::ParamsList,
     ) -> Result<Self, syn::Error> {
-        let description = attrs.get_named_param("description")?.get_str_value()?;
-        let summary = attrs.get_named_param("summary")?.get_str_value()?;
+        let description = attrs
+            .get_named_param("description")?
+            .unwrap_as_string_value()?
+            .as_str();
+        let summary = attrs
+            .get_named_param("summary")?
+            .unwrap_as_string_value()?
+            .as_str();
 
         let results = if let Some(result) = attrs.try_get_named_param("result") {
             Some(result.unwrap_as_object_list()?)

@@ -9,7 +9,7 @@ pub trait AsTokenStream {
 impl<'s> AsTokenStream for Option<&'s ParamValue> {
     fn as_token_stream(&self) -> Result<TokenStream, syn::Error> {
         if let Some(value) = self {
-            let value = value.get_str_value()?;
+            let value = value.unwrap_as_string_value()?.as_str();
             Ok(quote! {
                 Some(#value)
             })
