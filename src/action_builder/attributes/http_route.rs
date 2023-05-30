@@ -227,7 +227,7 @@ impl<'s> HttpRouteModel<'s> {
 
             return Ok(
                 quote::quote!(ShouldBeAuthorized::YesWithClaims(RequiredClaims::from_vec(
-                    vec![#(#result)*,]
+                    vec![#(#result,)*]
                 )))
                 .into(),
             );
