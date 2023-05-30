@@ -225,12 +225,12 @@ impl<'s> HttpRouteModel<'s> {
                 result.push(quote::quote!(#itm));
             }
 
-            return Ok(
-                quote::quote!(ShouldBeAuthorized::YesWithClaims(RequiredClaims::from_vec(
-                    vec![#(#result,)*]
-                )))
-                .into(),
-            );
+            return Ok(quote::quote!(ShouldBeAuthorized::YesWithClaims(
+                my_http_server_controllers::controllers::RequiredClaims::from_vec(
+                    vec![#(#result.to_string(),)*]
+                )
+            ))
+            .into());
         }
 
         Err(should_be_authorized.throw_error("Unsupported data type"))
