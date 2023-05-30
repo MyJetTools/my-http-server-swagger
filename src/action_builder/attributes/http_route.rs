@@ -20,12 +20,11 @@ impl<'s> HttpRouteModel<'s> {
             None
         };
 
-        let should_be_authorized =
-            if let Some(value) = attrs.try_get_named_param("should_be_authorized") {
-                Some(value.unwrap_as_vec_of_string()?)
-            } else {
-                None
-            };
+        let should_be_authorized = if let Some(value) = attrs.try_get_named_param("authorized") {
+            Some(value.unwrap_as_vec_of_string()?)
+        } else {
+            None
+        };
 
         let result = if let Some(controller) = attrs.try_get_named_param("controller") {
             let controller = controller.get_str_value()?;
