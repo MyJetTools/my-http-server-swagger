@@ -217,10 +217,11 @@ impl<'s> HttpRouteModel<'s> {
                 .throw_error("Unsupported value. It should be Yes, No or Array of strings"));
         }
 
-        if let Some(string_value) = should_be_authorized.try_unwrap_as_vec_of_string() {
+        if let Some(values) = should_be_authorized.try_unwrap_as_vec_of_values() {
             let mut result = Vec::new();
 
-            for itm in string_value {
+            for itm in values.iter_values() {
+                let itm = itm.unwrap_as_string_value()?.as_str();
                 result.push(quote::quote!(#itm));
             }
 
