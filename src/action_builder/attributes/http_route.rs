@@ -1,3 +1,5 @@
+use types_reader::ParamValue;
+
 use super::{http_method::HttpMethod, ApiData};
 
 pub struct HttpRouteModel<'s> {
@@ -5,7 +7,7 @@ pub struct HttpRouteModel<'s> {
     pub route: &'s str,
     pub input_data: Option<&'s str>,
     pub api_data: Option<ApiData<'s>>,
-    pub should_be_authorized: Option<&'s Vec<String>>,
+    pub should_be_authorized: Option<&'s ParamValue>,
 }
 
 impl<'s> HttpRouteModel<'s> {
@@ -26,11 +28,7 @@ impl<'s> HttpRouteModel<'s> {
             None
         };
 
-        let should_be_authorized = if let Some(value) = attrs.try_get_named_param("authorized") {
-            Some(value.unwrap_as_vec_of_string()?)
-        } else {
-            None
-        };
+        let should_be_authorized = attrs.try_get_named_param("authorized");
 
         let result = if let Some(controller) = attrs.try_get_named_param("controller") {
             let controller = controller.unwrap_as_string_value()?.as_str();
@@ -197,30 +195,40 @@ impl<'s> HttpRouteModel<'s> {
          */
     }
 
-    pub fn get_should_be_authorized(&self) -> proc_macro2::TokenStream {
+    pub fn get_should_be_authorized(&self) -> Result<proc_macro2::TokenStream, syn::Error> {
         if self.should_be_authorized.is_none() {
-            return quote::quote!(ShouldBeAuthorized::UseGlobal);
+            return Ok(quote::quote!(ShouldBeAuthorized::UseGlobal));
         }
 
         let should_be_authorized = self.should_be_authorized.unwrap();
 
-        if should_be_authorized.is_empty() {
-            return quote::quote!(ShouldBeAuthorized::YesWithClaims(
-                RequiredClaims::no_claims()
-            ));
-        }
+        if let Some(string_value) = should_be_authorized.try_unwrap_as_string_value() {
+            let value = string_value.as_str();
 
-        let mut result = Vec::new();
+            if value == "Yes" {
+                return Ok(quote::quote!(ShouldBeAuthorized::Yes));
+            }
 
-        if let Some(should_be_authorized) = self.should_be_authorized {
-            for itm in should_be_authorized {
-                result.push(quote::quote!(#itm.to_string()));
+            if value == "No" {
+                return Ok(quote::quote!(ShouldBeAuthorized::No));
             }
         }
 
-        quote::quote!(ShouldBeAuthorized::YesWithClaims(RequiredClaims::from_vec(
-            vec![#(#result)*,]
-        )))
-        .into()
+        if let Some(string_value) = should_be_authorized.try_unwrap_as_vec_of_string() {
+            let mut result = Vec::new();
+
+            for itm in string_value {
+                result.push(quote::quote!(#itm.to_string()));
+            }
+
+            return Ok(
+                quote::quote!(ShouldBeAuthorized::YesWithClaims(RequiredClaims::from_vec(
+                    vec![#(#result)*,]
+                )))
+                .into(),
+            );
+        }
+
+        Err(should_be_authorized.throw_error("Unsupported data type"))
     }
 }

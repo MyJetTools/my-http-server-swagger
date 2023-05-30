@@ -24,7 +24,7 @@ pub fn build_action(attr: TokenStream, input: TokenStream) -> Result<TokenStream
 
     let http_action_description = crate::consts::get_http_action_description_with_ns();
 
-    let description = super::generate_http_action_description_fn(&action_model);
+    let description = super::generate_http_action_description_fn(&action_model)?;
 
     let http_route = crate::consts::get_http_route();
 

@@ -4,14 +4,16 @@ use proc_macro2::TokenStream;
 
 use super::attributes::HttpRouteModel;
 
-pub fn generate_http_action_description_fn(attrs: &HttpRouteModel) -> TokenStream {
+pub fn generate_http_action_description_fn(
+    attrs: &HttpRouteModel,
+) -> Result<TokenStream, syn::Error> {
     if attrs.api_data.is_none() {
-        return quote::quote!(None);
+        return Ok(quote::quote!(None));
     }
 
     let api_data = attrs.api_data.as_ref().unwrap();
 
-    let should_be_authorized = attrs.get_should_be_authorized();
+    let should_be_authorized = attrs.get_should_be_authorized()?;
 
     let use_documentation = crate::consts::get_use_documentation();
 
@@ -25,7 +27,7 @@ pub fn generate_http_action_description_fn(attrs: &HttpRouteModel) -> TokenStrea
 
     let results = super::result_model_generator::generate(&api_data.results);
 
-    quote::quote! {
+    Ok(quote::quote! {
         #use_documentation;
 
         #http_action_description{
@@ -37,7 +39,7 @@ pub fn generate_http_action_description_fn(attrs: &HttpRouteModel) -> TokenStrea
             results: #results,
         }.into()
 
-    }
+    })
 }
 
 fn generate_get_input_params(input_data: Option<&str>) -> TokenStream {
