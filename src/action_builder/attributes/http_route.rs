@@ -212,6 +212,9 @@ impl<'s> HttpRouteModel<'s> {
             if value == "No" {
                 return Ok(quote::quote!(ShouldBeAuthorized::No));
             }
+
+            return Err(should_be_authorized
+                .throw_error("Unsupported value. It should be Yes, No or Array of strings"));
         }
 
         if let Some(string_value) = should_be_authorized.try_unwrap_as_vec_of_string() {
