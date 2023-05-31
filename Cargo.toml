@@ -11,5 +11,5 @@ proc-macro = true
 [dependencies]
 syn = { version = "*", features = ["extra-traits"] }
 quote = "*"
-types-reader = { branch = "main", git = "https://github.com/MyJetTools/types-reader.git" }
+types-reader = { branch = "0.3.0", git = "https://github.com/MyJetTools/types-reader.git" }
 proc-macro2 = "*"
