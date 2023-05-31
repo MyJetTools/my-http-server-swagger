@@ -63,7 +63,7 @@ impl<'s> HttpRouteModel<'s> {
         if let Some(string_value) = should_be_authorized.try_unwrap_as_string_value() {
             let value = string_value.as_str();
 
-            if value == "Yes" {
+            if value == "Yes" || value == "[]" {
                 return Ok(quote::quote!(ShouldBeAuthorized::Yes));
             }
 
@@ -77,7 +77,7 @@ impl<'s> HttpRouteModel<'s> {
 
         if let Some(values) = should_be_authorized.try_unwrap_as_vec_of_values() {
             if values.len() == 0 {
-                return Ok(quote::quote!(ShouldBeAuthorized::UseGlobal));
+                return Ok(quote::quote!(ShouldBeAuthorized::Yes));
             }
 
             let mut result = Vec::new();
