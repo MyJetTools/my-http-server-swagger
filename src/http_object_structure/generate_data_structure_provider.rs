@@ -50,7 +50,7 @@ fn render_obj_fields(
 ) -> Result<Vec<proc_macro2::TokenStream>, syn::Error> {
     let mut result = Vec::with_capacity(fields.len());
     for field in fields {
-        let line = crate::types::compile_http_field(field.get_name()?, &field.ty, None)?;
+        let line = crate::types::compile_http_field(field.get_name()?, &field.ty, None, true)?;
 
         result.push(quote::quote!(__hos.fields.push(#line);));
     }
