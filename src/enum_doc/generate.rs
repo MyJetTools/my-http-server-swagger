@@ -135,6 +135,10 @@ pub fn generate(ast: &syn::DeriveInput) -> TokenStream {
 
                 __es.into_http_data_type_object()
             }
+
+            fn get_generic_type() -> Option<&'static str> {
+                None
+             }
         }
 
 

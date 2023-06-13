@@ -38,6 +38,10 @@ pub fn generate_data_structure_provider(
                 #(#obj_fields)*
                 __hos.into_http_data_type_object()
             }
+
+            fn get_generic_type() -> Option<&'static str> {
+               None
+            }
         }
 
     };
