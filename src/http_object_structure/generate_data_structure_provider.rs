@@ -14,8 +14,12 @@ pub fn generate_data_structure_provider(
     let (generic, generic_ident, generic_param) = if let Some(generic) = GenericData::new(ast) {
         let generic_token_stream = generic.generic;
         let generic_ident = generic.generic_ident;
-        let generic_param = quote::quote! {Some(#generic_ident)};
-        (generic_token_stream, generic_ident, generic_param)
+        let generic_param = generic_ident.to_string();
+        (
+            generic_token_stream,
+            generic_ident,
+            quote::quote! {Some(#generic_param)},
+        )
     } else {
         (quote::quote! {}, quote::quote! {}, quote::quote! {None})
     };
