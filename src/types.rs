@@ -26,10 +26,10 @@ fn compile_data_type(pt: &PropertyType) -> TokenStream {
     if let PropertyType::OptionOf(generic_type) = pt {
         let type_token = generic_type.get_token_stream_with_generics();
 
-        return quote!(#type_token::get_data_type());
+        return quote!(#type_token::get_data_type(None));
     }
 
     let type_token = pt.get_token_stream_with_generics();
 
-    return quote!(#type_token::get_data_type());
+    return quote!(#type_token::get_data_type(None));
 }
