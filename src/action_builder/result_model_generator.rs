@@ -33,9 +33,9 @@ pub fn generate(results: &Option<Vec<HttpResult>>) -> TokenStream {
 
 fn generate_as_object(object_name: &str) -> TokenStream {
     if let Some(index) = object_name.find('<') {
-        //  let end_index = object_name.find('>');
+        let end_index = object_name.find('>');
         let name = &object_name[..index];
-        let generic_name = &object_name[index + 1..];
+        let generic_name = &object_name[index + 1..end_index.unwrap()];
 
         quote::quote! {
             HttpObjectStructure {
