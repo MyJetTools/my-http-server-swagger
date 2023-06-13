@@ -8,9 +8,13 @@ pub fn generate_data_provider(
         let generic_token_stream = generic.generic.clone();
         let generic_ident = generic.generic_ident.clone();
 
-        let get_generic_type = quote::quote!(Some(#generic_ident));
+        let get_generic_type = generic.get_generic_name_as_string();
 
-        (generic_token_stream, generic_ident, get_generic_type)
+        (
+            generic_token_stream,
+            generic_ident,
+            quote::quote!(Some(#get_generic_type)),
+        )
     } else {
         (quote::quote! {}, quote::quote! {}, quote::quote!(None))
     };
