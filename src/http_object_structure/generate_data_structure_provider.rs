@@ -16,9 +16,10 @@ pub fn generate_data_structure_provider(
         let generic_ident = generic.generic_ident;
         let mut generic_param = generic_ident.to_string();
 
-        if generic_param.starts_with("<<") {
+        if generic_param.starts_with("<") {
             generic_param.remove(0);
             generic_param.remove(generic_param.len() - 1);
+            generic_param = generic_param.trim().to_string();
         }
         (
             generic_token_stream,
