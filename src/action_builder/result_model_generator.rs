@@ -42,6 +42,7 @@ fn generate_as_object(object_name: &str, into_structure: TokenStream) -> TokenSt
         let object_name = TokenStream::from_str(result_obj_name.as_str()).unwrap();
         quote::quote!(#object_name::get_http_data_structure().#into_structure())
     } else {
+        let object_name = TokenStream::from_str(object_name).unwrap();
         quote::quote!(#object_name::get_http_data_structure().#into_structure())
     }
 }
