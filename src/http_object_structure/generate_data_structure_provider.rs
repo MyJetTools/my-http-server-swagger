@@ -39,6 +39,7 @@ pub fn generate_data_structure_provider(
                 __hos.into_http_data_type_object()
             }
         }
+
     };
 
     Ok(result)

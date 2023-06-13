@@ -31,7 +31,33 @@ pub fn generate(results: &Option<Vec<HttpResult>>) -> TokenStream {
     quote::quote!(vec![#(#fields),*]).into()
 }
 
-fn generate_as_object_or_array(object_name: &str, into_structure: TokenStream) -> TokenStream {
+fn generate_as_object(object_name: &str) -> TokenStream {
+    if let Some(index) = object_name.find('<') {
+        let end_index = object_name.find('>');
+        let name = &object_name[..index];
+        let generic_name = &object_name[index + 1..end_index.unwrap()];
+
+        quote::quote! {
+            HttpObjectStructure {
+                struct_id: #name,
+                generic_struct_id: Some(#generic_name),
+                fields: vec![],
+            }
+            .into_http_data_type_object()
+        }
+    } else {
+        quote::quote! {
+            HttpObjectStructure {
+                struct_id: #object_name,
+                generic_struct_id: None,
+                fields: vec![],
+            }
+            .into_http_data_type_object()
+        }
+    }
+}
+
+fn generate_as_array(object_name: &str, into_structure: TokenStream) -> TokenStream {
     if let Some(index) = object_name.find('<') {
         let mut result_obj_name = String::new();
 
@@ -53,10 +79,10 @@ fn compile_data_type(http_result: &HttpResult) -> TokenStream {
     if let Some(result_type) = &http_result.result_type {
         match result_type {
             super::attributes::HttpResultModel::Object(object_name) => {
-                generate_as_object_or_array(object_name, quote::quote!(into_http_data_type_object))
+                generate_as_object(object_name)
             }
             super::attributes::HttpResultModel::Array(object_name) => {
-                generate_as_object_or_array(object_name, quote::quote!(into_http_data_type_array))
+                generate_as_array(object_name, quote::quote!(into_http_data_type_array))
             }
             super::attributes::HttpResultModel::ArrayOfSimpleType(type_name) => {
                 let http_array_element = crate::consts::get_http_array_element();
