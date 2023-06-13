@@ -11,18 +11,13 @@ pub fn generate_data_structure_provider(
 ) -> Result<proc_macro2::TokenStream, syn::Error> {
     let use_documentation = crate::consts::get_use_documentation();
 
-    let (generic, generic_ident, generic_param) = if let Some(generic) = GenericData::new(ast) {
-        let generic_param = generic.get_generic_name_as_string();
+    let (generic, generic_ident) = if let Some(generic) = GenericData::new(ast) {
         let generic_token_stream = generic.generic;
         let generic_ident = generic.generic_ident;
 
-        (
-            generic_token_stream,
-            generic_ident,
-            quote::quote! {Some(#generic_param)},
-        )
+        (generic_token_stream, generic_ident)
     } else {
-        (quote::quote! {}, quote::quote! {}, quote::quote! {None})
+        (quote::quote! {}, quote::quote! {})
     };
 
     let struct_name_as_str = struct_name.to_string();
@@ -34,7 +29,7 @@ pub fn generate_data_structure_provider(
             fn get_data_type() -> my_http_server_controllers::controllers::documentation::data_types::HttpDataType {
                 #use_documentation;
 
-                let mut __hos = data_types::HttpObjectStructure::new(#struct_name_as_str, #generic_param);
+                let mut __hos = data_types::HttpObjectStructure::new(#struct_name_as_str, #generic::get_generic_type());
                 #(#obj_fields)*
                 __hos.into_http_data_type_object()
             }
