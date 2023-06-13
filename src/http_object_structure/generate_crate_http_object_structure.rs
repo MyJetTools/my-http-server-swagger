@@ -42,7 +42,7 @@ fn render_obj_fields(
     for field in fields {
         let line = crate::types::compile_http_field(field.get_name()?, &field.ty, None)?;
 
-        result.push(quote::quote!(__hos.fields.push(#line);));
+        result.push(quote::quote!(__hos.main.fields.push(#line);));
     }
 
     Ok(result)
