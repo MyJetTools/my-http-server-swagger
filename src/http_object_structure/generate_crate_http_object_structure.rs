@@ -16,8 +16,8 @@ pub fn generate_get_http_data_structure(
     let fields = render_obj_fields(fields)?;
 
     let generic_name = if let Some(generic) = generic_data {
-        let generic_param = generic.get_generic_name_as_string();
-        quote:: quote!(Some(#generic_param))
+        let ident = &generic.generic_ident;
+        quote::quote!(#ident::get_generic_type())
     } else {
         quote::quote!(None)
     };
