@@ -31,7 +31,7 @@ pub fn generate_data_structure_provider(
     let result = quote::quote! {
 
         impl #generic my_http_server_controllers::controllers::documentation::DataTypeProvider for #struct_name #generic_ident {
-            fn get_data_type(generic_type: Option<&static str>) -> my_http_server_controllers::controllers::documentation::data_types::HttpDataType {
+            fn get_data_type(generic_type: Option<&'static str>) -> my_http_server_controllers::controllers::documentation::data_types::HttpDataType {
                 #use_documentation;
 
                 let mut __hos = data_types::HttpObjectStructure::new(#struct_name_as_str, #generic_param);
