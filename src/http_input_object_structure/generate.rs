@@ -19,11 +19,12 @@ pub fn generate(ast: &syn::DeriveInput) -> (proc_macro::TokenStream, bool) {
         }
     }
 
+    let generic_data = GenericData::new(ast);
+
     let data_structure_provider =
         match crate::http_object_structure::generate_data_structure_provider(
-            ast,
             struct_name,
-            &fields,
+            generic_data.as_ref(),
         ) {
             Ok(result) => result,
             Err(err) => return (err.into_compile_error().into(), debug),
