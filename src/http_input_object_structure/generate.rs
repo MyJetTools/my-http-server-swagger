@@ -29,6 +29,16 @@ pub fn generate(ast: &syn::DeriveInput) -> (proc_macro::TokenStream, bool) {
         Err(err) => return (err.into_compile_error().into(), debug),
     };
 
+    let get_http_data_structure =
+        match crate::http_object_structure::generate_get_http_data_structure(
+            struct_name,
+            generic_data.as_ref(),
+            &fields,
+        ) {
+            Ok(result) => result,
+            Err(err) => return (err.into_compile_error().into(), debug),
+        };
+
     let result = if let Some(generic) = GenericData::new(ast) {
         let generic_token_stream = generic.generic;
         let generic_ident = generic.generic_ident;
@@ -43,13 +53,19 @@ pub fn generate(ast: &syn::DeriveInput) -> (proc_macro::TokenStream, bool) {
                 }
             }
 
-            impl #generic_token_stream TryFrom<my_http_server::HttpRequestBody> for #struct_name #struct_name #generic_ident {
+            impl #generic_token_stream TryFrom<my_http_server::HttpRequestBody> for #struct_name #generic_ident {
                 type Error = my_http_server::HttpFailResult;
 
                 fn try_from(value: my_http_server::HttpRequestBody) -> Result<Self, Self::Error> {
                     value.get_body_as_json()
                 }
             }
+
+            impl #generic_token_stream #struct_name #generic_ident {
+                #get_http_data_structure
+            }
+
+
         }
     } else {
         quote! {
@@ -71,6 +87,12 @@ pub fn generate(ast: &syn::DeriveInput) -> (proc_macro::TokenStream, bool) {
                     value.get_body_as_json()
                 }
             }
+
+            impl #struct_name {
+                #get_http_data_structure
+            }
+
+
         }
     };
 

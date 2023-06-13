@@ -4,7 +4,6 @@ use crate::generic_utils::GenericData;
 
 use super::struct_prop_ext::StructPropertyExt;
 
-//TODO - Delete
 pub fn generate_get_http_data_structure(
     struct_name: &syn::Ident,
     generic_data: Option<&GenericData>,
