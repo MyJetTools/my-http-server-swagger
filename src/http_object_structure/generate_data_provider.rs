@@ -16,7 +16,12 @@ pub fn generate_data_provider(
             quote::quote!(Some(#get_generic_type)),
         )
     } else {
-        (quote::quote! {}, quote::quote! {}, quote::quote!(None))
+        let struct_name = struct_name.to_string();
+        (
+            quote::quote! {},
+            quote::quote! {},
+            quote::quote!(Some(#struct_name)),
+        )
     };
 
     let result = quote::quote! {
