@@ -40,9 +40,9 @@ fn generate_as_object(object_name: &str, into_structure: TokenStream) -> TokenSt
         result_obj_name.push_str(&object_name[index..]);
 
         let object_name = TokenStream::from_str(result_obj_name.as_str()).unwrap();
-        quote::quote!(#object_name::get_http_data_structure(None).#into_structure())
+        quote::quote!(#object_name::get_http_data_structure().#into_structure())
     } else {
-        quote::quote!(#object_name::get_http_data_structure(None).#into_structure())
+        quote::quote!(#object_name::get_http_data_structure().#into_structure())
     }
 }
 
@@ -55,10 +55,10 @@ fn generate_as_array(object_name: &str, into_structure: TokenStream) -> TokenStr
         result_obj_name.push_str(&object_name[index..]);
 
         let object_name = TokenStream::from_str(result_obj_name.as_str()).unwrap();
-        quote::quote!(#object_name::get_http_data_structure(None).#into_structure())
+        quote::quote!(#object_name::get_http_data_structure().#into_structure())
     } else {
         let object_name = TokenStream::from_str(object_name).unwrap();
-        quote::quote!(#object_name::get_http_data_structure(None).#into_structure())
+        quote::quote!(#object_name::get_http_data_structure().#into_structure())
     }
 }
 
