@@ -27,7 +27,7 @@ pub fn generate(ast: &syn::DeriveInput) -> (TokenStream, bool) {
 
     let http_fail_result = crate::consts::get_http_fail_result();
 
-    let http_input = match super::docs::generate_http_input(&fields, false) {
+    let http_input = match super::docs::generate_http_input(&fields) {
         Ok(result) => result,
         Err(err) => err.to_compile_error(),
     };

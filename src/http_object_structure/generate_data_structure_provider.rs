@@ -31,7 +31,7 @@ pub fn generate_data_structure_provider(
     let result = quote::quote! {
 
         impl #generic my_http_server_controllers::controllers::documentation::DataTypeProvider for #struct_name #generic_ident {
-            fn get_data_type(generic_type: Option<&'static str>) -> my_http_server_controllers::controllers::documentation::data_types::HttpDataType {
+            fn get_data_type() -> my_http_server_controllers::controllers::documentation::data_types::HttpDataType {
                 #use_documentation;
 
                 let mut __hos = data_types::HttpObjectStructure::new(#struct_name_as_str, #generic_param);
@@ -50,7 +50,7 @@ fn render_obj_fields(
 ) -> Result<Vec<proc_macro2::TokenStream>, syn::Error> {
     let mut result = Vec::with_capacity(fields.len());
     for field in fields {
-        let line = crate::types::compile_http_field(field.get_name()?, &field.ty, None, true)?;
+        let line = crate::types::compile_http_field(field.get_name()?, &field.ty, None)?;
 
         result.push(quote::quote!(__hos.fields.push(#line);));
     }

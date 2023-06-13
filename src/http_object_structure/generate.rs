@@ -77,7 +77,7 @@ pub fn generate_http_object_structure(
     let mut result = Vec::new();
 
     for field in fields {
-        let line = crate::types::compile_http_field(field.get_name()?, &field.ty, None, true)?;
+        let line = crate::types::compile_http_field(field.get_name()?, &field.ty, None)?;
 
         result.push(line);
     }
