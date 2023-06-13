@@ -31,29 +31,18 @@ pub fn generate(results: &Option<Vec<HttpResult>>) -> TokenStream {
     quote::quote!(vec![#(#fields),*]).into()
 }
 
-fn generate_as_object(object_name: &str) -> TokenStream {
+fn generate_as_object(object_name: &str, into_structure: TokenStream) -> TokenStream {
     if let Some(index) = object_name.find('<') {
-        let end_index = object_name.find('>');
-        let name = &object_name[..index];
-        let generic_name = &object_name[index + 1..end_index.unwrap()];
+        let mut result_obj_name = String::new();
 
-        quote::quote! {
-            HttpObjectStructure {
-                struct_id: #name,
-                generic_struct_id: Some(#generic_name),
-                fields: vec![],
-            }
-            .into_http_data_type_object()
-        }
+        result_obj_name.push_str(&object_name[..index]);
+        result_obj_name.push_str("::");
+        result_obj_name.push_str(&object_name[index..]);
+
+        let object_name = TokenStream::from_str(result_obj_name.as_str()).unwrap();
+        quote::quote!(#object_name::get_http_data_structure(None).#into_structure())
     } else {
-        quote::quote! {
-            HttpObjectStructure {
-                struct_id: #object_name,
-                generic_struct_id: None,
-                fields: vec![],
-            }
-            .into_http_data_type_object()
-        }
+        quote::quote!(#object_name::get_http_data_structure(None).#into_structure())
     }
 }
 
@@ -66,10 +55,10 @@ fn generate_as_array(object_name: &str, into_structure: TokenStream) -> TokenStr
         result_obj_name.push_str(&object_name[index..]);
 
         let object_name = TokenStream::from_str(result_obj_name.as_str()).unwrap();
-        quote::quote!(#object_name::get_http_data_structure().#into_structure())
+        quote::quote!(#object_name::get_http_data_structure(None).#into_structure())
     } else {
         let object_name = TokenStream::from_str(object_name).unwrap();
-        quote::quote!(#object_name::get_http_data_structure().#into_structure())
+        quote::quote!(#object_name::get_http_data_structure(None).#into_structure())
     }
 }
 
@@ -79,7 +68,7 @@ fn compile_data_type(http_result: &HttpResult) -> TokenStream {
     if let Some(result_type) = &http_result.result_type {
         match result_type {
             super::attributes::HttpResultModel::Object(object_name) => {
-                generate_as_object(object_name)
+                generate_as_object(object_name, quote::quote!(into_http_data_type_object))
             }
             super::attributes::HttpResultModel::Array(object_name) => {
                 generate_as_array(object_name, quote::quote!(into_http_data_type_array))
