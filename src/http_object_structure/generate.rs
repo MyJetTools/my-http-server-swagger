@@ -54,7 +54,7 @@ pub fn generate(ast: &syn::DeriveInput) -> (proc_macro::TokenStream, bool) {
        #data_structure_provider
 
         impl #generic #struct_name #generic_ident {
-            pub fn get_http_data_structure(generic_type: Option<&'s static str>)->my_http_server_controllers::controllers::documentation::data_types::HttpObjectStructure{
+            pub fn get_http_data_structure(generic_type: Option<&'static str>)->my_http_server_controllers::controllers::documentation::data_types::HttpObjectStructure{
                 #use_documentation;
 
                 data_types::HttpObjectStructure{
