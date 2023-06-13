@@ -12,15 +12,10 @@ pub fn generate_data_structure_provider(
     let use_documentation = crate::consts::get_use_documentation();
 
     let (generic, generic_ident, generic_param) = if let Some(generic) = GenericData::new(ast) {
+        let generic_param = generic.get_generic_name_as_string();
         let generic_token_stream = generic.generic;
         let generic_ident = generic.generic_ident;
-        let mut generic_param = generic_ident.to_string();
 
-        if generic_param.starts_with("<") {
-            generic_param.remove(0);
-            generic_param.remove(generic_param.len() - 1);
-            generic_param = generic_param.trim().to_string();
-        }
         (
             generic_token_stream,
             generic_ident,

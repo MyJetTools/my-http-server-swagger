@@ -10,12 +10,18 @@ pub fn generate(ast: &syn::DeriveInput) -> (proc_macro::TokenStream, bool) {
 
     let mut debug = false;
 
-    let (generic, generic_ident) = if let Some(generic) = GenericData::new(ast) {
+    let (generic, generic_ident, generic_name) = if let Some(generic) = GenericData::new(ast) {
+        let generic_param = generic.get_generic_name_as_string();
         let generic_token_stream = generic.generic;
         let generic_ident = generic.generic_ident;
-        (generic_token_stream, generic_ident)
+
+        (
+            generic_token_stream,
+            generic_ident,
+            quote!(Some(#generic_param)),
+        )
     } else {
-        (quote! {}, quote! {})
+        (quote! {}, quote! {}, quote!(None))
     };
 
     let fields = match StructProperty::read(ast) {
@@ -53,6 +59,7 @@ pub fn generate(ast: &syn::DeriveInput) -> (proc_macro::TokenStream, bool) {
 
                 data_types::HttpObjectStructure{
                     struct_id: #struct_name_as_str,
+                    generic_struct_id: #generic_name,
                     fields: vec![#(#fields),*]
                 }
             }

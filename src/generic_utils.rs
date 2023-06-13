@@ -30,4 +30,15 @@ impl GenericData {
         }
         .into()
     }
+    pub fn get_generic_name_as_string(&self) -> String {
+        let mut generic_param = self.generic_ident.to_string();
+
+        if generic_param.starts_with("<") {
+            generic_param.remove(0);
+            generic_param.remove(generic_param.len() - 1);
+            generic_param = generic_param.trim().to_string();
+        }
+
+        generic_param
+    }
 }
