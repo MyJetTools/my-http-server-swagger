@@ -39,14 +39,13 @@ pub fn generate(ast: &syn::DeriveInput) -> (proc_macro::TokenStream, bool) {
         Err(err) => return (err.into_compile_error().into(), debug),
     };
 
-    let data_structure_provider =
-        match crate::http_object_structure::generate_data_structure_provider(
-            struct_name,
-            generic_data.as_ref(),
-        ) {
-            Ok(result) => result,
-            Err(err) => return (err.into_compile_error().into(), debug),
-        };
+    let data_structure_provider = match crate::http_object_structure::generate_data_provider(
+        struct_name,
+        generic_data.as_ref(),
+    ) {
+        Ok(result) => result,
+        Err(err) => return (err.into_compile_error().into(), debug),
+    };
 
     let result = quote! {
 

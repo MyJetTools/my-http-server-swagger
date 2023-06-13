@@ -27,11 +27,9 @@ pub fn generate_get_http_data_structure(
         pub fn get_http_data_structure()->my_http_server_controllers::controllers::documentation::data_types::HttpObjectStructure{
             #use_documentation;
 
-            data_types::HttpObjectStructure{
-                struct_id: #struct_name_as_str,
-                generic_struct_id: #generic_name,
-                fields: vec![#(#fields),*]
-            }
+            let mut _hos = data_types::HttpObjectStructure::new(#struct_name_as_str, #generic_name);
+            #(#fields)*
+            _hos
         }
     };
 

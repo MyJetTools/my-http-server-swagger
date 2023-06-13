@@ -1,6 +1,6 @@
 use crate::generic_utils::GenericData;
 
-pub fn generate_data_structure_provider(
+pub fn generate_data_provider(
     struct_name: &syn::Ident,
     generic_data: Option<&GenericData>,
 ) -> Result<proc_macro2::TokenStream, syn::Error> {
