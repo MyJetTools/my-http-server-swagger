@@ -136,28 +136,36 @@ fn generate_reading_required(struct_property: &StructProperty) -> Result<TokenSt
             let data_src = get_query_string_data_src();
             let input_field_name = input_field.get_input_field_name()?;
             if let Some(default_value) = input_field.get_default_value()? {
-                let default = default_value.unwrap_value()?;
+                match default_value {
+                    crate::input_models::DefaultValue::Empty(_) => {
+                        let prop_type = struct_property.get_syn_type();
+                        let result = quote!(#prop_type::create_default()?);
 
-                let else_data = proc_macro2::TokenStream::from_str(default);
+                        return Ok(result);
+                    }
+                    crate::input_models::DefaultValue::Value(default) => {
+                        let else_data = proc_macro2::TokenStream::from_str(default);
 
-                if let Err(err) = else_data {
-                    return Err(syn::Error::new_spanned(
-                        struct_property.field,
-                        format!("Invalid default value: {}", err),
-                    ));
+                        if let Err(err) = else_data {
+                            return Err(syn::Error::new_spanned(
+                                struct_property.field,
+                                format!("Invalid default value: {}", err),
+                            ));
+                        }
+
+                        let else_data = else_data.unwrap();
+
+                        let result = quote! {
+                            let #struct_field_name = if let Some(value) = #data_src.get_optional(#input_field_name){
+                                my_http_server::InputParamValue::from(value).try_into()?
+                            }else{
+                                #else_data
+                            };
+                        };
+
+                        return Ok(result);
+                    }
                 }
-
-                let else_data = else_data.unwrap();
-
-                let result = quote! {
-                    let #struct_field_name = if let Some(value) = #data_src.get_optional(#input_field_name){
-                        my_http_server::InputParamValue::from(value).try_into()?
-                    }else{
-                        #else_data
-                    };
-                };
-
-                return Ok(result);
             } else {
                 return Ok(
                     quote!(let #struct_field_name = my_http_server::InputParamValue::from(#data_src.get_required(#input_field_name)?).try_into()?;),
