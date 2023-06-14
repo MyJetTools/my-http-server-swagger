@@ -42,7 +42,7 @@ impl<'s> InputFieldData<'s> {
                     return Ok(Some(DefaultValue::Empty(value)));
                 }
 
-                let value = value.unwrap_as_string_value()?.into();
+                let value = value.get_any_value_as_str()?.into();
 
                 Ok(Some(DefaultValue::Value(value)))
             }
