@@ -68,10 +68,13 @@ pub fn generate_read_not_body(
                 let prop_type = struct_property.get_syn_type();
 
                 let default_value = if let Some(default_value) = input_field.get_default_value()? {
-                    if default_value == "" {
-                        Some(quote!(#prop_type::create_default()?))
-                    } else {
-                        Some(quote!(<#prop_type as std::str::FromStr>::from_str(#default_value)?))
+                    match default_value {
+                        crate::input_models::DefaultValue::Empty(_) => {
+                            Some(quote!(#prop_type::create_default()?))
+                        }
+                        crate::input_models::DefaultValue::Value(default_value) => Some(
+                            quote!(<#prop_type as std::str::FromStr>::from_str(#default_value)?),
+                        ),
                     }
                 } else {
                     None
@@ -132,7 +135,9 @@ fn generate_reading_required(struct_property: &StructProperty) -> Result<TokenSt
         InputField::Query(_) => {
             let data_src = get_query_string_data_src();
             let input_field_name = input_field.get_input_field_name()?;
-            if let Some(default) = input_field.get_default_value()? {
+            if let Some(default_value) = input_field.get_default_value()? {
+                let default = default_value.unwrap_value()?;
+
                 let else_data = proc_macro2::TokenStream::from_str(default);
 
                 if let Err(err) = else_data {

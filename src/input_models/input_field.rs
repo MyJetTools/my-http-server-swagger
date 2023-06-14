@@ -1,6 +1,19 @@
 use proc_macro2::TokenStream;
-use types_reader::{ParamsList, StructProperty};
+use types_reader::{ParamValue, ParamsList, StructProperty};
 
+pub enum DefaultValue<'s> {
+    Empty(&'s ParamValue),
+    Value(&'s str),
+}
+
+impl<'s> DefaultValue<'s> {
+    pub fn unwrap_value(&'s self) -> Result<&'s str, syn::Error> {
+        match self {
+            DefaultValue::Empty(value) => Err(value.throw_error("Default value is not specified")),
+            DefaultValue::Value(value) => Ok(value),
+        }
+    }
+}
 pub struct InputFieldData<'s> {
     pub property: &'s StructProperty<'s>,
     pub attr_params: &'s ParamsList,
@@ -22,9 +35,17 @@ impl<'s> InputFieldData<'s> {
         }
     }
 
-    pub fn get_default_value(&self) -> Result<Option<&str>, syn::Error> {
+    pub fn get_default_value(&self) -> Result<Option<DefaultValue>, syn::Error> {
         match self.attr_params.try_get_named_param("default") {
-            Some(value) => Ok(Some(value.unwrap_as_string_value()?.into())),
+            Some(value) => {
+                if value.is_none().is_some() {
+                    return Ok(Some(DefaultValue::Empty(value)));
+                }
+
+                let value = value.unwrap_as_string_value()?.into();
+
+                Ok(Some(DefaultValue::Value(value)))
+            }
             None => Ok(None),
         }
     }
@@ -54,20 +75,6 @@ pub enum InputField<'s> {
 }
 
 impl<'s> InputField<'s> {
-    /*
-       pub fn from_str(src: &str) -> Option<Self> {
-           match src {
-               "http_query" => Some(Self::Query),
-               "http_header" => Some(Self::Header),
-               "http_path" => Some(Self::Path),
-               "http_form_data" => Some(Self::FormData),
-               "http_body" => Some(Self::Body),
-               "http_body_raw" => Some(Self::BodyRaw),
-               _ => None,
-           }
-       }
-    */
-
     pub fn get_input_data(&'s self) -> &'s InputFieldData<'s> {
         match self {
             Self::Query(data) => data,
@@ -111,7 +118,7 @@ impl<'s> InputField<'s> {
         data.get_input_field_name()
     }
 
-    pub fn get_default_value(&self) -> Result<Option<&str>, syn::Error> {
+    pub fn get_default_value(&self) -> Result<Option<DefaultValue>, syn::Error> {
         let data = self.get_input_data();
         data.get_default_value()
     }
