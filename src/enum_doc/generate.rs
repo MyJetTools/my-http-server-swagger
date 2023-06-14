@@ -94,7 +94,7 @@ pub fn generate(ast: &syn::DeriveInput) -> TokenStream {
 
             pub fn create_default() -> Result<Self,#http_fail_result>{
                 #create_default_impl
-            }c
+            }
 
             #default_as_str_fn
         }
