@@ -16,7 +16,7 @@ pub fn compile_http_field(
         Some(default_value) => match default_value {
             DefaultValue::Empty(_) => {
                 let tp = pt.get_token_stream();
-                quote::quote!(Some(#tp::default()))
+                quote::quote!(Some(#tp::default_as_str()))
             }
             DefaultValue::Value(value) => quote::quote!(Some(#value)),
         },

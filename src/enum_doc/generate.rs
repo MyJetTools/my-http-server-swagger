@@ -5,6 +5,8 @@ use types_reader::EnumCase;
 
 use crate::enum_doc::enum_json::{EnumJson, HTTP_ENUM_ATTR_NAME};
 
+use super::generate_default::generate_default_as_str_fn;
+
 pub fn generate(ast: &syn::DeriveInput) -> TokenStream {
     let struct_name = &ast.ident;
     let struct_name_as_str = struct_name.to_string();
@@ -85,6 +87,8 @@ pub fn generate(ast: &syn::DeriveInput) -> TokenStream {
         Err(err) => return err.to_compile_error().into(),
     };
 
+    let default_as_str_fn = generate_default_as_str_fn(default_case.as_ref());
+
     quote::quote! {
         impl #struct_name{
 
@@ -92,6 +96,7 @@ pub fn generate(ast: &syn::DeriveInput) -> TokenStream {
                 #create_default_impl
             }
 
+            #default_as_str_fn
         }
 
         #default_trait
