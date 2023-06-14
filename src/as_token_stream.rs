@@ -23,6 +23,7 @@ impl<'s> AsTokenStream for Option<&'s ParamValue> {
     }
 }
 
+/*
 impl<'s> AsTokenStream for Option<DefaultValue<'s>> {
     fn as_token_stream(&self) -> Result<TokenStream, syn::Error> {
         if let Some(value) = self {
@@ -37,6 +38,8 @@ impl<'s> AsTokenStream for Option<DefaultValue<'s>> {
         }
     }
 }
+
+ */
 
 impl<'s> AsTokenStream for Option<&'s str> {
     fn as_token_stream(&self) -> Result<TokenStream, syn::Error> {
