@@ -20,7 +20,7 @@ pub fn compile_http_field(
             }
             DefaultValue::Value(value) => {
                 let value = value.get_any_value_as_str()?;
-                quote::quote!(#value.to_string())
+                quote::quote!(Some(#value))
             } //todo!(Why do we have here DefaultValue)
         },
         None => quote::quote!(None),
