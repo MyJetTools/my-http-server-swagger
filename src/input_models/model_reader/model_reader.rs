@@ -22,7 +22,8 @@ pub fn generate(name: &Ident, properties: &HttpInputProperties) -> Result<TokenS
         let mut result = Vec::with_capacity(header_fields.len());
         for input_field in header_fields {
             let struct_field_name = input_field.property.get_field_name_ident();
-            result.push(read_header_field(input_field)?);
+            let reading_value = read_header_field(input_field)?;
+            result.push(quote!(let #struct_field_name = #reading_value));
             fields_to_return.push(quote!(#struct_field_name));
         }
 
@@ -235,13 +236,12 @@ fn read_body_single_field(
 
 fn read_header_field(input_field: &InputField) -> Result<proc_macro2::TokenStream, syn::Error> {
     let input_field_name = input_field.get_input_field_name()?;
-    let struct_field_name = input_field.property.get_struct_field_name_as_token_stream();
 
     if input_field.property.ty.is_option() {
         let default_value = input_field.get_default_value_opt_case()?;
 
         let result = quote! {
-            let #struct_field_name = if let Some(value) = ctx.request.get_optional_header(#input_field_name) {
+            if let Some(value) = ctx.request.get_optional_header(#input_field_name) {
                 Some(value.try_into()?)
             } else {
                 #default_value
@@ -252,14 +252,14 @@ fn read_header_field(input_field: &InputField) -> Result<proc_macro2::TokenStrea
     }
 
     if !input_field.has_default_value() {
-        let result = quote!(let #struct_field_name = ctx.request.get_required_header(#input_field_name)?.try_into()?;);
+        let result = quote!(ctx.request.get_required_header(#input_field_name)?.try_into()?;);
         return Ok(result);
     }
 
     let default_value = input_field.get_default_value_non_opt_case()?;
 
     let result = quote! {
-        let #struct_field_name = if let Some(value) = ctx.request.get_optional_header(#input_field_name) {
+        if let Some(value) = ctx.request.get_optional_header(#input_field_name) {
             value.try_into()?
         } else {
             #default_value
