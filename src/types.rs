@@ -18,7 +18,10 @@ pub fn compile_http_field(
                 let tp = pt.get_token_stream();
                 quote::quote!(Some(#tp::default_as_str()))
             }
-            DefaultValue::Value(value) => quote::quote!(Some(#value)),
+            DefaultValue::Value(value) => {
+                let value = value.get_any_value_as_str()?;
+                quote::quote!(#value)
+            } //Why do we have here DefaultValue
         },
         None => quote::quote!(None),
     };

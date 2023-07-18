@@ -1,5 +1,5 @@
 use proc_macro2::TokenStream;
-use types_reader::{ParamValue, ParamsList, StructProperty};
+use types_reader::{ParamValue, ParamsList, PropertyType, StructProperty};
 
 #[derive(Clone)]
 pub enum HttpInputSource {
@@ -27,11 +27,11 @@ impl HttpInputSource {
 
 pub enum DefaultValue<'s> {
     Empty(&'s ParamValue),
-    Value(&'s str),
+    Value(&'s ParamValue),
 }
 
 impl<'s> DefaultValue<'s> {
-    pub fn unwrap_value(&'s self) -> Result<&'s str, syn::Error> {
+    pub fn unwrap_value(&'s self) -> Result<&'s ParamValue, syn::Error> {
         match self {
             DefaultValue::Empty(value) => Err(value.throw_error("Default value is not specified")),
             DefaultValue::Value(value) => Ok(value),
@@ -74,8 +74,6 @@ impl<'s> InputField<'s> {
                     return Ok(Some(DefaultValue::Empty(value)));
                 }
 
-                let value = value.get_any_value_as_str()?.into();
-
                 Ok(Some(DefaultValue::Value(value)))
             }
             None => Ok(None),
@@ -83,14 +81,91 @@ impl<'s> InputField<'s> {
     }
 
     pub fn get_default_value_opt_case(&self) -> Result<TokenStream, syn::Error> {
-        let result = if let Some(default) = self.get_default_value()? {
+        if let Some(default) = self.get_default_value()? {
             let value = default.unwrap_value()?;
-            quote::quote!(Some(#value))
-        } else {
-            quote::quote!(None)
-        };
+            if let PropertyType::OptionOf(pt) = &self.property.ty {
+                match pt.as_ref() {
+                    PropertyType::U8 => {
+                        let value = value.unwrap_as_number_value()?.as_u8();
+                        return Ok(quote::quote!(Some(#value)));
+                    }
+                    PropertyType::I8 => {
+                        let value = value.unwrap_as_number_value()?.as_i8();
+                        return Ok(quote::quote!(Some(#value)));
+                    }
+                    PropertyType::U16 => {
+                        let value = value.unwrap_as_number_value()?.as_u16();
+                        return Ok(quote::quote!(Some(#value)));
+                    }
+                    PropertyType::I16 => {
+                        let value = value.unwrap_as_number_value()?.as_i16();
+                        return Ok(quote::quote!(Some(#value)));
+                    }
+                    PropertyType::U32 => {
+                        let value = value.unwrap_as_number_value()?.as_u32();
+                        return Ok(quote::quote!(Some(#value)));
+                    }
+                    PropertyType::I32 => {
+                        let value = value.unwrap_as_number_value()?.as_i32();
+                        return Ok(quote::quote!(Some(#value)));
+                    }
+                    PropertyType::U64 => {
+                        let value = value.unwrap_as_number_value()?.as_u64();
+                        return Ok(quote::quote!(Some(#value)));
+                    }
+                    PropertyType::I64 => {
+                        let value = value.unwrap_as_number_value()?.as_i64();
+                        return Ok(quote::quote!(Some(#value)));
+                    }
+                    PropertyType::F32 => {
+                        let value = value.unwrap_as_double_value()?.as_f32();
+                        return Ok(quote::quote!(Some(#value)));
+                    }
+                    PropertyType::F64 => {
+                        let value = value.unwrap_as_double_value()?.as_f64();
+                        return Ok(quote::quote!(Some(#value)));
+                    }
+                    PropertyType::USize => {
+                        let value = value.unwrap_as_number_value()?.as_i64() as usize;
+                        return Ok(quote::quote!(Some(#value)));
+                    }
+                    PropertyType::ISize => {
+                        let value = value.unwrap_as_number_value()?.as_i64() as isize;
+                        return Ok(quote::quote!(Some(#value)));
+                    }
+                    PropertyType::String => {
+                        let value = value.unwrap_as_number_value()?.as_str();
+                        return Ok(quote::quote!(Some(#value)));
+                    }
+                    PropertyType::Str => {
+                        let value = value.unwrap_as_number_value()?.as_str();
+                        return Ok(quote::quote!(Some(#value)));
+                    }
+                    PropertyType::Bool => {
+                        let value = value.unwrap_as_bool_value()?.get_value();
+                        return Ok(quote::quote!(Some(#value)));
+                    }
+                    PropertyType::DateTime => {
+                        let value = value.get_any_value_as_str()?;
+                        return Ok(quote::quote!(DateTimeAsMicroseconds::from_str(#value)));
+                    }
+                    PropertyType::OptionOf(_) => {
+                        return Ok(quote::quote!(None));
+                    }
+                    PropertyType::VecOf(_) => {
+                        return Ok(quote::quote!(None));
+                    }
+                    PropertyType::Struct(_, _) => {
+                        return Ok(quote::quote!(None));
+                    }
+                    PropertyType::HashMap(_, _) => {
+                        return Ok(quote::quote!(None));
+                    }
+                }
+            }
+        }
 
-        Ok(result)
+        Ok(quote::quote!(None))
     }
 
     pub fn get_description(&self) -> Result<&str, syn::Error> {

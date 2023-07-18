@@ -23,12 +23,14 @@ pub fn generate_read_not_body(
             PropertyType::OptionOf(_) => {
                 let input_field_name = input_field.get_input_field_name()?;
 
+                let default_value = input_field.get_default_value_opt_case()?;
+
                 let item = quote! {
                     let #struct_field_name = if let Some(value) = #data_src.get_optional(#input_field_name){
                         let value = my_http_server::InputParamValue::from(value);
                         Some(value.try_into()?)
                     }else{
-                        None
+                        #default_value
                     };
                 }.into();
 
@@ -58,43 +60,23 @@ pub fn generate_read_not_body(
             PropertyType::Struct(..) => {
                 let input_field_name = input_field.get_input_field_name()?;
 
-                let prop_type = input_field.property.get_syn_type();
+                let default_value = input_field.get_default_value_opt_case()?;
 
-                let default_value = if let Some(default_value) = input_field.get_default_value()? {
-                    match default_value {
-                        crate::input_models::DefaultValue::Empty(_) => {
-                            Some(quote!(#prop_type::create_default()?))
-                        }
-                        crate::input_models::DefaultValue::Value(default_value) => Some(
-                            quote!(<#prop_type as std::str::FromStr>::from_str(#default_value)?),
-                        ),
-                    }
-                } else {
-                    None
-                };
-
-                match default_value {
-                    Some(default_value) => {
-                        let item = quote! {
-                           let #struct_field_name = match #data_src.get_optional(#input_field_name){
-                            Some(value) =>{
-                                let value = my_http_server::InputParamValue::from(value);
-                                value.try_into()?
-                            },
-                            None => {
-                                #default_value
-                            }
-                           };
-
-                        }
-                        .into();
-
-                        reading_fields.push(item);
-                    }
+                let item = quote! {
+                   let #struct_field_name = match #data_src.get_optional(#input_field_name){
+                    Some(value) =>{
+                        let value = my_http_server::InputParamValue::from(value);
+                        value.try_into()?
+                    },
                     None => {
-                        reading_fields.push(generate_reading_required(input_field, &data_src)?);
+                        #default_value
                     }
+                   };
+
                 }
+                .into();
+
+                reading_fields.push(item);
             }
             _ => {
                 reading_fields.push(generate_reading_required(input_field, &data_src)?);
@@ -136,6 +118,7 @@ fn generate_reading_required(
                 return Ok(result);
             }
             crate::input_models::DefaultValue::Value(default) => {
+                let default = default.get_any_value_as_str()?;
                 let else_data = proc_macro2::TokenStream::from_str(default);
 
                 if let Err(err) = else_data {
