@@ -67,6 +67,10 @@ impl<'s> InputField<'s> {
         }
     }
 
+    pub fn has_default_value(&self) -> bool {
+        self.attr_params.try_get_named_param("default").is_some()
+    }
+
     pub fn get_default_value(&self) -> Result<Option<DefaultValue>, syn::Error> {
         match self.attr_params.try_get_named_param("default") {
             Some(value) => {

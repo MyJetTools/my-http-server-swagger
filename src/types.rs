@@ -4,9 +4,17 @@ use types_reader::PropertyType;
 
 use crate::property_type_ext::PropertyTypeExt;
 
-pub fn compile_http_field(name: &str, pt: &PropertyType) -> Result<TokenStream, syn::Error> {
+pub fn compile_http_field(
+    name: &str,
+    pt: &PropertyType,
+    has_default_value: bool,
+) -> Result<TokenStream, syn::Error> {
     let data_type = compile_data_type(pt);
-    let required = pt.required();
+    let mut required = pt.required();
+
+    if has_default_value {
+        required = false;
+    }
 
     let http_field_type = crate::consts::get_http_field_type();
 
