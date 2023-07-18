@@ -1,3 +1,5 @@
+use std::str::FromStr;
+
 use proc_macro2::TokenStream;
 use types_reader::{ParamValue, ParamsList, PropertyType, StructProperty};
 
@@ -169,7 +171,69 @@ impl<'s> InputField<'s> {
             }
         }
 
-        Ok(quote::quote!(None))
+        match &self.property.ty {
+            PropertyType::U8 => {
+                return Ok(quote::quote!(None));
+            }
+            PropertyType::I8 => {
+                return Ok(quote::quote!(None));
+            }
+            PropertyType::U16 => {
+                return Ok(quote::quote!(None));
+            }
+            PropertyType::I16 => {
+                return Ok(quote::quote!(None));
+            }
+            PropertyType::U32 => {
+                return Ok(quote::quote!(None));
+            }
+            PropertyType::I32 => {
+                return Ok(quote::quote!(None));
+            }
+            PropertyType::U64 => {
+                return Ok(quote::quote!(None));
+            }
+            PropertyType::I64 => {
+                return Ok(quote::quote!(None));
+            }
+            PropertyType::F32 => {
+                return Ok(quote::quote!(None));
+            }
+            PropertyType::F64 => {
+                return Ok(quote::quote!(None));
+            }
+            PropertyType::USize => {
+                return Ok(quote::quote!(None));
+            }
+            PropertyType::ISize => {
+                return Ok(quote::quote!(None));
+            }
+            PropertyType::String => {
+                return Ok(quote::quote!(None));
+            }
+            PropertyType::Str => {
+                return Ok(quote::quote!(None));
+            }
+            PropertyType::Bool => {
+                return Ok(quote::quote!(None));
+            }
+            PropertyType::DateTime => {
+                return Ok(quote::quote!(None));
+            }
+            PropertyType::OptionOf(_) => {
+                return Ok(quote::quote!(None));
+            }
+            PropertyType::VecOf(_) => {
+                return Ok(quote::quote!(None));
+            }
+            PropertyType::Struct(name, _) => {
+                let ty_ident = TokenStream::from_str(name).unwrap();
+                return Ok(quote::quote!(#ty_ident::create_default()?));
+            }
+            PropertyType::HashMap(_, _) => {
+                return Ok(quote::quote!(None));
+            }
+        }
     }
 
     pub fn get_description(&self) -> Result<&str, syn::Error> {
