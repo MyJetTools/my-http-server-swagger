@@ -135,7 +135,7 @@ impl<'s> InputField<'s> {
                     }
                     PropertyType::String => {
                         let value = value.unwrap_as_number_value()?.as_str();
-                        return Ok(quote::quote!(Some(#value)));
+                        return Ok(quote::quote!(Some(#value.to_string())));
                     }
                     PropertyType::Str => {
                         let value = value.unwrap_as_number_value()?.as_str();
