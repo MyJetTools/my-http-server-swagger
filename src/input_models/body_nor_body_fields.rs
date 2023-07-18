@@ -1,48 +1,42 @@
+use rust_extensions::lazy::LazyVec;
 use types_reader::StructProperty;
 
 use super::{input_model_struct_property_ext::InputModelStructPropertyExt, InputField};
 
 pub struct BodyNotBodyFields<'s> {
+    pub header_fields: Option<Vec<&'s StructProperty<'s>>>,
+    pub query_string_fields: Option<Vec<&'s StructProperty<'s>>>,
     pub body_fields: Option<Vec<&'s StructProperty<'s>>>,
-    pub not_body_fields: Option<Vec<&'s StructProperty<'s>>>,
     pub path_fields: Option<Vec<&'s StructProperty<'s>>>,
 }
 
 impl<'s> BodyNotBodyFields<'s> {
     pub fn new(props: &'s [StructProperty]) -> Result<Self, syn::Error> {
-        let mut body_fields = Vec::with_capacity(props.len());
-        let mut not_body_fields = Vec::with_capacity(props.len());
+        let mut body_fields = LazyVec::with_capacity(props.len());
+        let mut query_string_fields = LazyVec::with_capacity(props.len());
+        let mut header_fields = LazyVec::with_capacity(props.len());
 
-        let mut path_fields = Vec::with_capacity(props.len());
+        let mut path_fields = LazyVec::with_capacity(props.len());
 
         for struct_property in props {
             let http_input = struct_property.get_input_field()?;
             if http_input.is_body() {
-                body_fields.push(struct_property);
+                body_fields.add(struct_property);
             } else if http_input.is_path() {
-                path_fields.push(struct_property);
+                path_fields.add(struct_property);
+            }
+            if http_input.is_header() {
+                header_fields.add(struct_property);
             } else {
-                not_body_fields.push(struct_property);
+                query_string_fields.add(struct_property);
             }
         }
 
         Ok(Self {
-            body_fields: if body_fields.len() == 0 {
-                None
-            } else {
-                Some(body_fields)
-            },
-
-            not_body_fields: if not_body_fields.len() == 0 {
-                None
-            } else {
-                Some(not_body_fields)
-            },
-            path_fields: if path_fields.len() == 0 {
-                None
-            } else {
-                Some(path_fields)
-            },
+            body_fields: body_fields.get_result(),
+            header_fields: header_fields.get_result(),
+            query_string_fields: query_string_fields.get_result(),
+            path_fields: path_fields.get_result(),
         })
     }
 

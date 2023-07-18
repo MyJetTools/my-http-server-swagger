@@ -11,8 +11,18 @@ use crate::input_models::{
 pub fn generate(name: &Ident, properties: &[StructProperty]) -> Result<TokenStream, syn::Error> {
     let fields = BodyNotBodyFields::new(properties)?;
 
-    let reading_no_body = if let Some(not_body_fields) = &fields.not_body_fields {
-        Some(super::generate_read_not_body(&not_body_fields)?)
+    let reading_query_string = if let Some(query_string_fields) = &fields.query_string_fields {
+        Some(super::generate_read_not_body(&query_string_fields, || {
+            quote!(__query_string)
+        })?)
+    } else {
+        None
+    };
+
+    let reading_headers = if let Some(header_fields) = &fields.header_fields {
+        Some(super::generate_read_not_body(&header_fields, || {
+            quote!(__headers)
+        })?)
     } else {
         None
     };
@@ -79,7 +89,8 @@ pub fn generate(name: &Ident, properties: &[StructProperty]) -> Result<TokenStre
     }
 
     let result = quote! {
-        #reading_no_body
+        #reading_headers
+        #reading_query_string
         #read_body
         Ok(#name{
             #(#fields_to_return),*

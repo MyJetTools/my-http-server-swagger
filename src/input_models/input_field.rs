@@ -113,6 +113,13 @@ impl<'s> InputField<'s> {
         }
     }
 
+    pub fn is_header(&self) -> bool {
+        match self {
+            Self::Header(_) => true,
+            _ => false,
+        }
+    }
+
     pub fn get_input_field_name(&self) -> Result<&str, syn::Error> {
         let data = self.get_input_data();
         data.get_input_field_name()

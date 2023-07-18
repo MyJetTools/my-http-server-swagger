@@ -10,15 +10,12 @@ use crate::{
     input_models::{input_model_struct_property_ext::InputModelStructPropertyExt, InputField},
 };
 
-pub fn get_query_string_data_src() -> TokenStream {
-    quote!(__query_string)
-}
-
 pub fn generate_read_not_body(
     properties: &Vec<&StructProperty>,
+    read_data_src: impl Fn() -> TokenStream,
 ) -> Result<TokenStream, syn::Error> {
     let mut validation = Vec::with_capacity(properties.len());
-    let data_src = get_query_string_data_src();
+    let data_src = read_data_src();
 
     let mut reading_fields: Vec<TokenStream> = Vec::with_capacity(properties.len());
 
@@ -99,12 +96,12 @@ pub fn generate_read_not_body(
                         reading_fields.push(item);
                     }
                     None => {
-                        reading_fields.push(generate_reading_required(struct_property)?);
+                        reading_fields.push(generate_reading_required(struct_property, &data_src)?);
                     }
                 }
             }
             _ => {
-                reading_fields.push(generate_reading_required(struct_property)?);
+                reading_fields.push(generate_reading_required(struct_property, &data_src)?);
             }
         }
 
@@ -128,12 +125,14 @@ pub fn generate_read_not_body(
     Ok(result)
 }
 
-fn generate_reading_required(struct_property: &StructProperty) -> Result<TokenStream, syn::Error> {
+fn generate_reading_required(
+    struct_property: &StructProperty,
+    data_src: &TokenStream,
+) -> Result<TokenStream, syn::Error> {
     let input_field = struct_property.get_input_field()?;
     let struct_field_name = struct_property.get_field_name_ident();
     match input_field {
         InputField::Query(_) => {
-            let data_src = get_query_string_data_src();
             let input_field_name = input_field.get_input_field_name()?;
             if let Some(default_value) = input_field.get_default_value()? {
                 match default_value {
