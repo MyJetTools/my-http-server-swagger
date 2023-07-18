@@ -95,6 +95,11 @@ impl<'s> InputField<'s> {
 
     pub fn get_default_value_opt_case(&self) -> Result<TokenStream, syn::Error> {
         if let Some(default) = self.get_default_value()? {
+            if default.is_empty() {
+                let name = self.property.ty.get_token_stream();
+                return Ok(quote::quote!(#name::create_default()?));
+            }
+
             let value = default.unwrap_value()?;
             if let PropertyType::OptionOf(pt) = &self.property.ty {
                 match pt.as_ref() {
