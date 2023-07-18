@@ -134,11 +134,11 @@ impl<'s> InputField<'s> {
                         return Ok(quote::quote!(Some(#value)));
                     }
                     PropertyType::String => {
-                        let value = value.unwrap_as_number_value()?.as_str();
+                        let value = value.unwrap_as_string_value()?.as_str();
                         return Ok(quote::quote!(Some(#value.to_string())));
                     }
                     PropertyType::Str => {
-                        let value = value.unwrap_as_number_value()?.as_str();
+                        let value = value.unwrap_as_string_value()?.as_str();
                         return Ok(quote::quote!(Some(#value)));
                     }
                     PropertyType::Bool => {
