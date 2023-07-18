@@ -153,7 +153,7 @@ impl<'s> InputField<'s> {
                     }
                     PropertyType::DateTime => {
                         let value = value.get_any_value_as_str()?;
-                        return Ok(quote::quote!(DateTimeAsMicroseconds::from_str(#value)));
+                        return Ok(quote::quote!(Some(DateTimeAsMicroseconds::from_str(#value))));
                     }
                     PropertyType::OptionOf(_) => {
                         return Ok(quote::quote!(None));
@@ -171,69 +171,95 @@ impl<'s> InputField<'s> {
             }
         }
 
-        match &self.property.ty {
-            PropertyType::U8 => {
-                return Ok(quote::quote!(None));
-            }
-            PropertyType::I8 => {
-                return Ok(quote::quote!(None));
-            }
-            PropertyType::U16 => {
-                return Ok(quote::quote!(None));
-            }
-            PropertyType::I16 => {
-                return Ok(quote::quote!(None));
-            }
-            PropertyType::U32 => {
-                return Ok(quote::quote!(None));
-            }
-            PropertyType::I32 => {
-                return Ok(quote::quote!(None));
-            }
-            PropertyType::U64 => {
-                return Ok(quote::quote!(None));
-            }
-            PropertyType::I64 => {
-                return Ok(quote::quote!(None));
-            }
-            PropertyType::F32 => {
-                return Ok(quote::quote!(None));
-            }
-            PropertyType::F64 => {
-                return Ok(quote::quote!(None));
-            }
-            PropertyType::USize => {
-                return Ok(quote::quote!(None));
-            }
-            PropertyType::ISize => {
-                return Ok(quote::quote!(None));
-            }
-            PropertyType::String => {
-                return Ok(quote::quote!(None));
-            }
-            PropertyType::Str => {
-                return Ok(quote::quote!(None));
-            }
-            PropertyType::Bool => {
-                return Ok(quote::quote!(None));
-            }
-            PropertyType::DateTime => {
-                return Ok(quote::quote!(None));
-            }
-            PropertyType::OptionOf(_) => {
-                return Ok(quote::quote!(None));
-            }
-            PropertyType::VecOf(_) => {
-                return Ok(quote::quote!(None));
-            }
-            PropertyType::Struct(name, _) => {
-                let ty_ident = TokenStream::from_str(name).unwrap();
-                return Ok(quote::quote!(#ty_ident::create_default()?));
-            }
-            PropertyType::HashMap(_, _) => {
-                return Ok(quote::quote!(None));
+        return Ok(quote::quote!(None));
+    }
+
+    pub fn get_default_value_non_opt_case(&self) -> Result<TokenStream, syn::Error> {
+        if let Some(default) = self.get_default_value()? {
+            let value = default.unwrap_value()?;
+
+            match &self.property.ty {
+                PropertyType::U8 => {
+                    let value = value.unwrap_as_number_value()?.as_u8();
+                    return Ok(quote::quote!(#value));
+                }
+                PropertyType::I8 => {
+                    let value = value.unwrap_as_number_value()?.as_i8();
+                    return Ok(quote::quote!(#value));
+                }
+                PropertyType::U16 => {
+                    let value = value.unwrap_as_number_value()?.as_u16();
+                    return Ok(quote::quote!(#value));
+                }
+                PropertyType::I16 => {
+                    let value = value.unwrap_as_number_value()?.as_i16();
+                    return Ok(quote::quote!(#value));
+                }
+                PropertyType::U32 => {
+                    let value = value.unwrap_as_number_value()?.as_u32();
+                    return Ok(quote::quote!(#value));
+                }
+                PropertyType::I32 => {
+                    let value = value.unwrap_as_number_value()?.as_i32();
+                    return Ok(quote::quote!(#value));
+                }
+                PropertyType::U64 => {
+                    let value = value.unwrap_as_number_value()?.as_u64();
+                    return Ok(quote::quote!(#value));
+                }
+                PropertyType::I64 => {
+                    let value = value.unwrap_as_number_value()?.as_i64();
+                    return Ok(quote::quote!(#value));
+                }
+                PropertyType::F32 => {
+                    let value = value.unwrap_as_double_value()?.as_f32();
+                    return Ok(quote::quote!(#value));
+                }
+                PropertyType::F64 => {
+                    let value = value.unwrap_as_double_value()?.as_f64();
+                    return Ok(quote::quote!(#value));
+                }
+                PropertyType::USize => {
+                    let value = value.unwrap_as_number_value()?.as_i64() as usize;
+                    return Ok(quote::quote!(#value));
+                }
+                PropertyType::ISize => {
+                    let value = value.unwrap_as_number_value()?.as_i64() as isize;
+                    return Ok(quote::quote!(#value));
+                }
+                PropertyType::String => {
+                    let value = value.unwrap_as_string_value()?.as_str();
+                    return Ok(quote::quote!(#value.to_string()));
+                }
+                PropertyType::Str => {
+                    let value = value.unwrap_as_string_value()?.as_str();
+                    return Ok(quote::quote!(#value));
+                }
+                PropertyType::Bool => {
+                    let value = value.unwrap_as_bool_value()?.get_value();
+                    return Ok(quote::quote!(#value));
+                }
+                PropertyType::DateTime => {
+                    let value = value.get_any_value_as_str()?;
+                    return Ok(quote::quote!(DateTimeAsMicroseconds::from_str(#value)));
+                }
+                PropertyType::OptionOf(_) => {
+                    return Err(value.throw_error("Option default value is not supported"));
+                }
+                PropertyType::VecOf(_) => {
+                    return Err(value.throw_error("VecOf default value is not supported"));
+                }
+                PropertyType::Struct(name, _) => {
+                    let name = TokenStream::from_str(name)?;
+                    return Ok(quote::quote!(#name::create_default()?));
+                }
+                PropertyType::HashMap(_, _) => {
+                    return Err(value.throw_error("HashMap default value is not supported"));
+                }
             }
         }
+
+        return Ok(quote::quote!(None));
     }
 
     pub fn get_description(&self) -> Result<&str, syn::Error> {

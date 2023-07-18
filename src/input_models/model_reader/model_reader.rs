@@ -237,24 +237,23 @@ fn read_header_field(input_field: &InputField) -> Result<proc_macro2::TokenStrea
     let input_field_name = input_field.get_input_field_name()?;
     let struct_field_name = input_field.property.get_struct_field_name_as_token_stream();
 
-    if !input_field.has_default_value() {
-        if input_field.property.ty.is_option() {
-            let default_value = input_field.get_default_value_opt_case()?;
+    if input_field.property.ty.is_option() {
+        let default_value = input_field.get_default_value_opt_case()?;
 
-            let result = quote! {
-                let #struct_field_name = if let Some(value) = ctx.request.get_optional_header(#input_field_name) {
-                    Some(value.try_into()?)
-                } else {
-                    #default_value
-                };
+        let result = quote! {
+            let #struct_field_name = if let Some(value) = ctx.request.get_optional_header(#input_field_name) {
+                Some(value.try_into()?)
+            } else {
+                #default_value
             };
-
-            return Ok(result);
-        } else {
-            let result = quote!(let #struct_field_name = ctx.request.get_required_header(#input_field_name)?.try_into()?;);
-
-            return Ok(result);
         };
+
+        return Ok(result);
+    }
+
+    if !input_field.has_default_value() {
+        let result = quote!(let #struct_field_name = ctx.request.get_required_header(#input_field_name)?.try_into()?;);
+        return Ok(result);
     }
 
     let default_value = input_field.get_default_value_opt_case()?;
