@@ -10,21 +10,12 @@ use crate::input_models::{
 
 pub fn generate(name: &Ident, properties: &HttpInputProperties) -> Result<TokenStream, syn::Error> {
     let mut fields_to_return = Vec::new();
-    let reading_path = if let Some(path_fields) = &properties.path_fields {
-        if path_fields.len() > 1 {
-            let reading_fields = super::utils::get_fields_to_read(path_fields)?;
-
-            quote! {
-
-                let #reading_fields = {
-                    let __src = ctx.request.get_path_reader()?;
-                }
-            }
-        } else {
-            quote!()
+    if let Some(path_fields) = &properties.path_fields {
+        for input_field in path_fields {
+            let input_field_name = input_field.get_input_field_name()?;
+            let struct_field_name = input_field.property.get_struct_field_name_as_token_stream();
+            fields_to_return.push(quote!(#struct_field_name: http_route.get_value(&ctx.request.http_path, #input_field_name)?.try_into()?));
         }
-    } else {
-        quote!()
     };
 
     let reading_headers = if let Some(header_fields) = &properties.header_fields {
@@ -166,7 +157,6 @@ pub fn generate(name: &Ident, properties: &HttpInputProperties) -> Result<TokenS
     */
 
     let result = quote! {
-        #reading_path
         #reading_headers
         #reading_query_string
         #read_body
