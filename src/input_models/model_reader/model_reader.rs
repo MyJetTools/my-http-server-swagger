@@ -55,6 +55,10 @@ pub fn generate(name: &Ident, properties: &HttpInputProperties) -> Result<TokenS
     };
 
     let reading_query_string = if let Some(query_string_fields) = &properties.query_string_fields {
+        for input_field in query_string_fields {
+            let struct_field_name = input_field.property.get_field_name_ident();
+            fields_to_return.push(quote!(#struct_field_name));
+        }
         super::generate_read_not_body(query_string_fields.as_slice(), || quote!(__query_string))?
     } else {
         quote!()
@@ -70,6 +74,11 @@ pub fn generate(name: &Ident, properties: &HttpInputProperties) -> Result<TokenS
 
     let read_body = if let Some(body_fields) = &properties.body_fields {
         if body_fields.len() > 1 {
+            for input_field in body_fields {
+                let struct_field_name = input_field.property.get_field_name_ident();
+                fields_to_return.push(quote!(#struct_field_name));
+            }
+
             super::read_body::generate_read_body(body_fields)?
         } else {
             fields_to_return.push(read_body_single_field(body_fields.get(0).unwrap())?);
@@ -81,6 +90,11 @@ pub fn generate(name: &Ident, properties: &HttpInputProperties) -> Result<TokenS
 
     let read_form_data = if let Some(form_data_fields) = &properties.form_data_fields {
         if form_data_fields.len() > 1 {
+            for input_field in form_data_fields {
+                let struct_field_name = input_field.property.get_field_name_ident();
+                fields_to_return.push(quote!(#struct_field_name));
+            }
+
             super::read_body::generate_read_body(form_data_fields)?
         } else {
             let input_field = form_data_fields.get(0).unwrap();
@@ -240,10 +254,5 @@ fn read_body_single_field(
         value.try_into()?
     });
 
-    Ok(result)
-}
-
-fn reading_headers(input_fields: &[InputField]) -> Result<TokenStream, syn::Error> {
-    let result = quote!();
     Ok(result)
 }
