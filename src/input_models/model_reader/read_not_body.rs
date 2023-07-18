@@ -23,7 +23,7 @@ pub fn generate_read_not_body(
             PropertyType::OptionOf(_) => {
                 let input_field_name = input_field.get_input_field_name()?;
 
-                let default_value = input_field.get_default_value_opt_case()?;
+                let default_value = input_field.get_default_value_non_opt_case()?;
 
                 let item = quote! {
                     let #struct_field_name = if let Some(value) = #data_src.get_optional(#input_field_name){

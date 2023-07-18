@@ -39,6 +39,13 @@ impl<'s> DefaultValue<'s> {
             DefaultValue::Value(value) => Ok(value),
         }
     }
+
+    pub fn is_empty(&self) -> bool {
+        match self {
+            DefaultValue::Empty(_) => true,
+            DefaultValue::Value(_) => false,
+        }
+    }
 }
 
 #[derive(Clone)]
@@ -176,6 +183,11 @@ impl<'s> InputField<'s> {
 
     pub fn get_default_value_non_opt_case(&self) -> Result<TokenStream, syn::Error> {
         if let Some(default) = self.get_default_value()? {
+            if default.is_empty() {
+                let name = self.property.ty.get_token_stream();
+                return Ok(quote::quote!(#name::create_default()?));
+            }
+
             let value = default.unwrap_value()?;
 
             match &self.property.ty {
