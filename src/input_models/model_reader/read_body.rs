@@ -2,32 +2,26 @@ use std::str::FromStr;
 
 use proc_macro2::{Ident, TokenStream};
 use quote::quote;
-use types_reader::{PropertyType, StructProperty};
+use types_reader::PropertyType;
 
-use crate::{
-    as_token_stream::AsTokenStream,
-    input_models::{input_model_struct_property_ext::InputModelStructPropertyExt, InputField},
-};
+use crate::input_models::InputField;
 
 pub fn get_body_data_src() -> TokenStream {
     quote!(__reader)
 }
-pub fn generate_read_body(properties: &Vec<&StructProperty>) -> Result<TokenStream, syn::Error> {
+pub fn generate_read_body(input_fields: &[InputField]) -> Result<TokenStream, syn::Error> {
     let data_src = get_body_data_src();
 
-    let mut validation = Vec::with_capacity(properties.len());
+    let mut validation = Vec::with_capacity(input_fields.len());
 
-    let mut reading_fields = Vec::with_capacity(properties.len());
+    let mut reading_fields = Vec::with_capacity(input_fields.len());
 
-    for prop_structure in properties {
-        let input_field = prop_structure.get_input_field()?;
-        let input_field_data = input_field.get_input_data();
+    for input_field in input_fields {
+        let struct_field_name = input_field.property.get_field_name_ident();
 
-        let struct_field_name = prop_structure.get_field_name_ident();
-
-        match &prop_structure.ty {
+        match &input_field.property.ty {
             PropertyType::OptionOf(sub_type) => {
-                let input_field_name = input_field_data.get_input_field_name()?;
+                let input_field_name = input_field.get_input_field_name()?;
 
                 let sub_type = sub_type.get_token_stream();
 
@@ -57,7 +51,7 @@ pub fn generate_read_body(properties: &Vec<&StructProperty>) -> Result<TokenStre
         }
     }
 
-    let init_fields = properties.as_token_stream()?;
+    let init_fields = super::utils::get_fields_to_read(input_fields)?;
 
     let result = quote! {
         let #init_fields ={
@@ -79,6 +73,5 @@ fn generate_reading_required(
     struct_field: &Ident,
 ) -> Result<TokenStream, syn::Error> {
     let input_field_name = input_field.get_input_field_name()?;
-
     Ok(quote!(let #struct_field = #data_src.get_required(#input_field_name)?.try_into()?;))
 }

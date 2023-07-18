@@ -1,5 +1,28 @@
-use proc_macro2::TokenStream;
 use types_reader::{ParamValue, ParamsList, StructProperty};
+
+#[derive(Clone)]
+pub enum HttpInputSource {
+    Query,
+    Header,
+    FormData,
+    Body,
+    BodyRaw,
+    Path,
+}
+
+impl HttpInputSource {
+    pub fn get_input_src_token(&self) -> proc_macro2::TokenStream {
+        let http_parameter_input_src = crate::consts::get_http_parameter_input_src();
+        match self {
+            Self::Query => quote::quote!(#http_parameter_input_src::Query),
+            Self::Path => quote::quote!(#http_parameter_input_src::Path),
+            Self::Header => quote::quote!(#http_parameter_input_src::Header),
+            Self::Body => quote::quote!(#http_parameter_input_src::BodyModel),
+            Self::FormData => quote::quote!(#http_parameter_input_src::FormData),
+            Self::BodyRaw => quote:: quote!(#http_parameter_input_src::BodyRaw),
+        }
+    }
+}
 
 pub enum DefaultValue<'s> {
     Empty(&'s ParamValue),
@@ -14,16 +37,24 @@ impl<'s> DefaultValue<'s> {
         }
     }
 }
-pub struct InputFieldData<'s> {
+
+#[derive(Clone)]
+pub struct InputField<'s> {
     pub property: &'s StructProperty<'s>,
     pub attr_params: &'s ParamsList,
+    pub src: HttpInputSource,
 }
 
-impl<'s> InputFieldData<'s> {
-    pub fn new(property: &'s StructProperty<'s>, attr_params: &'s ParamsList) -> Self {
+impl<'s> InputField<'s> {
+    pub fn new(
+        property: &'s StructProperty<'s>,
+        attr_params: &'s ParamsList,
+        src: HttpInputSource,
+    ) -> Self {
         Self {
             property,
             attr_params,
+            src,
         }
     }
 
@@ -65,15 +96,7 @@ impl<'s> InputFieldData<'s> {
     }
 }
 
-pub enum InputField<'s> {
-    Query(InputFieldData<'s>),
-    Path(InputFieldData<'s>),
-    Header(InputFieldData<'s>),
-    Body(InputFieldData<'s>),
-    FormData(InputFieldData<'s>),
-    BodyRaw(InputFieldData<'s>),
-}
-
+/*
 impl<'s> InputField<'s> {
     pub fn get_input_data(&'s self) -> &'s InputFieldData<'s> {
         match self {
@@ -92,19 +115,18 @@ impl<'s> InputField<'s> {
         }
     }
 
-    pub fn get_input_src_token(&self) -> TokenStream {
-        let http_parameter_input_src = crate::consts::get_http_parameter_input_src();
+
+
+    pub fn is_body(&self) -> bool {
         match self {
-            Self::Query(_) => quote::quote!(#http_parameter_input_src::Query),
-            Self::Path(_) => quote::quote!(#http_parameter_input_src::Path),
-            Self::Header(_) => quote::quote!(#http_parameter_input_src::Header),
-            Self::Body(_) => quote::quote!(#http_parameter_input_src::BodyModel),
-            Self::FormData(_) => quote::quote!(#http_parameter_input_src::FormData),
-            Self::BodyRaw(_) => quote:: quote!(#http_parameter_input_src::BodyRaw),
+            Self::Body(_) => true,
+            Self::BodyRaw(_) => true,
+            Self::FormData(_) => true,
+            _ => false,
         }
     }
 
-    pub fn is_body(&self) -> bool {
+    pub fn is_body_raw(&self) -> bool {
         match self {
             Self::Body(_) => true,
             Self::BodyRaw(_) => true,
@@ -135,3 +157,4 @@ impl<'s> InputField<'s> {
         data.validator()
     }
 }
+ */

@@ -1,6 +1,6 @@
-pub mod body_nor_body_fields;
 pub mod docs;
 mod generate;
+pub mod http_input_props;
 mod input_field;
 mod input_model_struct_property_ext;
 pub mod model_reader;

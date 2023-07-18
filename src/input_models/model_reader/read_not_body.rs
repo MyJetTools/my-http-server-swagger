@@ -1,29 +1,25 @@
 use std::str::FromStr;
 
 use proc_macro2::TokenStream;
-use types_reader::{PropertyType, StructProperty};
+use types_reader::PropertyType;
 
 use quote::quote;
 
-use crate::{
-    as_token_stream::AsTokenStream,
-    input_models::{input_model_struct_property_ext::InputModelStructPropertyExt, InputField},
-};
+use crate::input_models::InputField;
 
 pub fn generate_read_not_body(
-    properties: &Vec<&StructProperty>,
+    input_fields: &[InputField],
     read_data_src: impl Fn() -> TokenStream,
 ) -> Result<TokenStream, syn::Error> {
-    let mut validation = Vec::with_capacity(properties.len());
+    let mut validation = Vec::with_capacity(input_fields.len());
     let data_src = read_data_src();
 
-    let mut reading_fields: Vec<TokenStream> = Vec::with_capacity(properties.len());
+    let mut reading_fields: Vec<TokenStream> = Vec::with_capacity(input_fields.len());
 
-    for struct_property in properties {
-        let input_field = struct_property.get_input_field()?;
-        let struct_field_name = struct_property.get_field_name_ident();
+    for input_field in input_fields {
+        let struct_field_name = input_field.property.get_field_name_ident();
 
-        match &struct_property.ty {
+        match &input_field.property.ty {
             PropertyType::OptionOf(_) => {
                 let input_field_name = input_field.get_input_field_name()?;
 
@@ -62,7 +58,7 @@ pub fn generate_read_not_body(
             PropertyType::Struct(..) => {
                 let input_field_name = input_field.get_input_field_name()?;
 
-                let prop_type = struct_property.get_syn_type();
+                let prop_type = input_field.property.get_syn_type();
 
                 let default_value = if let Some(default_value) = input_field.get_default_value()? {
                     match default_value {
@@ -96,12 +92,12 @@ pub fn generate_read_not_body(
                         reading_fields.push(item);
                     }
                     None => {
-                        reading_fields.push(generate_reading_required(struct_property, &data_src)?);
+                        reading_fields.push(generate_reading_required(input_field, &data_src)?);
                     }
                 }
             }
             _ => {
-                reading_fields.push(generate_reading_required(struct_property, &data_src)?);
+                reading_fields.push(generate_reading_required(input_field, &data_src)?);
             }
         }
 
@@ -111,7 +107,7 @@ pub fn generate_read_not_body(
         }
     }
 
-    let init_fields = properties.as_token_stream()?;
+    let init_fields = super::utils::get_fields_to_read(input_fields)?;
 
     let result = quote! {
         let #init_fields = {
@@ -126,69 +122,45 @@ pub fn generate_read_not_body(
 }
 
 fn generate_reading_required(
-    struct_property: &StructProperty,
+    input_field: &InputField,
     data_src: &TokenStream,
 ) -> Result<TokenStream, syn::Error> {
-    let input_field = struct_property.get_input_field()?;
-    let struct_field_name = struct_property.get_field_name_ident();
-    match input_field {
-        InputField::Query(_) => {
-            let input_field_name = input_field.get_input_field_name()?;
-            if let Some(default_value) = input_field.get_default_value()? {
-                match default_value {
-                    crate::input_models::DefaultValue::Empty(_) => {
-                        let prop_type = struct_property.get_syn_type();
-                        let result = quote!(#prop_type::create_default()?);
+    let struct_field_name = input_field.property.get_field_name_ident();
+    let input_field_name = input_field.get_input_field_name()?;
+    if let Some(default_value) = input_field.get_default_value()? {
+        match default_value {
+            crate::input_models::DefaultValue::Empty(_) => {
+                let prop_type = input_field.property.get_syn_type();
+                let result = quote!(#prop_type::create_default()?);
 
-                        return Ok(result);
-                    }
-                    crate::input_models::DefaultValue::Value(default) => {
-                        let else_data = proc_macro2::TokenStream::from_str(default);
+                return Ok(result);
+            }
+            crate::input_models::DefaultValue::Value(default) => {
+                let else_data = proc_macro2::TokenStream::from_str(default);
 
-                        if let Err(err) = else_data {
-                            return Err(syn::Error::new_spanned(
-                                struct_property.field,
-                                format!("Invalid default value: {}", err),
-                            ));
-                        }
-
-                        let else_data = else_data.unwrap();
-
-                        let result = quote! {
-                            let #struct_field_name = if let Some(value) = #data_src.get_optional(#input_field_name){
-                                my_http_server::InputParamValue::from(value).try_into()?
-                            }else{
-                                #else_data
-                            };
-                        };
-
-                        return Ok(result);
-                    }
+                if let Err(err) = else_data {
+                    return Err(syn::Error::new_spanned(
+                        input_field.property.field,
+                        format!("Invalid default value: {}", err),
+                    ));
                 }
-            } else {
-                return Ok(
-                    quote!(let #struct_field_name = my_http_server::InputParamValue::from(#data_src.get_required(#input_field_name)?).try_into()?;),
-                );
-            };
-        }
-        InputField::Path(_) => {
-            panic!("Bug. Should not read from Path at read_not_body part of script");
-        }
-        InputField::Header(_) => {
-            let input_field_name = input_field.get_input_field_name()?;
 
-            let result = quote!(let #struct_field_name = ctx.request.get_required_header(#input_field_name)?.try_into()?;);
+                let else_data = else_data.unwrap();
 
-            Ok(result)
+                let result = quote! {
+                    let #struct_field_name = if let Some(value) = #data_src.get_optional(#input_field_name){
+                        my_http_server::InputParamValue::from(value).try_into()?
+                    }else{
+                        #else_data
+                    };
+                };
+
+                return Ok(result);
+            }
         }
-        InputField::Body(_) => {
-            panic!("Bug. Should not read from Body at read_not_body part of script");
-        }
-        InputField::FormData(_) => {
-            panic!("Bug. Should not read from FormData at read_not_body part of script");
-        }
-        InputField::BodyRaw(_) => {
-            panic!("Bug. Should not read from BodyRaw at read_not_body part of script");
-        }
-    }
+    } else {
+        return Ok(
+            quote!(let #struct_field_name = my_http_server::InputParamValue::from(#data_src.get_required(#input_field_name)?).try_into()?;),
+        );
+    };
 }

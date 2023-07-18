@@ -1,32 +1,87 @@
 use proc_macro2::{Ident, TokenStream};
-use types_reader::{PropertyType, StructProperty};
+use types_reader::PropertyType;
 
 use quote::quote;
 
 use crate::input_models::{
-    body_nor_body_fields::BodyNotBodyFields,
-    input_model_struct_property_ext::InputModelStructPropertyExt, InputField, InputFieldData,
+    http_input_props::HttpInputProperties,
+    input_model_struct_property_ext::InputModelStructPropertyExt, InputField,
 };
 
-pub fn generate(name: &Ident, properties: &[StructProperty]) -> Result<TokenStream, syn::Error> {
-    let fields = BodyNotBodyFields::new(properties)?;
+pub fn generate(name: &Ident, properties: &HttpInputProperties) -> Result<TokenStream, syn::Error> {
+    let mut fields_to_return = Vec::new();
+    let reading_path = if let Some(path_fields) = &properties.path_fields {
+        if path_fields.len() > 1 {
+            let reading_fields = super::utils::get_fields_to_read(path_fields)?;
 
-    let reading_query_string = if let Some(query_string_fields) = &fields.query_string_fields {
-        Some(super::generate_read_not_body(&query_string_fields, || {
-            quote!(__query_string)
-        })?)
+            quote! {
+
+                let #reading_fields = {
+                    let __src = ctx.request.get_path_reader()?;
+                }
+            }
+        } else {
+            quote!()
+        }
     } else {
-        None
+        quote!()
     };
 
-    let reading_headers = if let Some(header_fields) = &fields.header_fields {
-        Some(super::generate_read_not_body(&header_fields, || {
-            quote!(__headers)
-        })?)
+    let reading_headers = if let Some(header_fields) = &properties.header_fields {
+        let mut result = Vec::with_capacity(header_fields.len());
+        for input_field in header_fields {
+            let input_field_name = input_field.get_input_field_name()?;
+            let struct_field_name = input_field.property.get_field_name_ident();
+            let reading_header = quote!(let #struct_field_name = ctx.request.get_required_header(#input_field_name)?.try_into()?;);
+            result.push(reading_header);
+            fields_to_return.push(quote!(#struct_field_name));
+        }
+
+        quote!(#(result))
     } else {
-        None
+        quote!()
     };
 
+    let reading_query_string = if let Some(query_string_fields) = &properties.query_string_fields {
+        super::generate_read_not_body(query_string_fields.as_slice(), || quote!(__query_string))?
+    } else {
+        quote!()
+    };
+
+    if let Some(body_raw_field) = &properties.body_raw_field {
+        let struct_field_name = body_raw_field
+            .property
+            .get_struct_field_name_as_token_stream();
+        let read_value = read_from_body_raw(&body_raw_field)?;
+        fields_to_return.push(quote!(#struct_field_name: #read_value));
+    };
+
+    let read_body = if let Some(body_fields) = &properties.body_fields {
+        if body_fields.len() > 1 {
+            super::read_body::generate_read_body(body_fields)?
+        } else {
+            fields_to_return.push(read_body_single_field(body_fields.get(0).unwrap())?);
+            quote!()
+        }
+    } else {
+        quote!()
+    };
+
+    let read_form_data = if let Some(form_data_fields) = &properties.form_data_fields {
+        if form_data_fields.len() > 1 {
+            super::read_body::generate_read_body(form_data_fields)?
+        } else {
+            let input_field = form_data_fields.get(0).unwrap();
+            let struct_field_name = input_field.property.get_struct_field_name_as_token_stream();
+            let read_value = read_from_form_data_as_single_field(input_field)?;
+            fields_to_return.push(quote!(#struct_field_name: #read_value));
+            quote!()
+        }
+    } else {
+        quote!()
+    };
+
+    /*
     let has_body_data_to_read = fields.has_body_data_to_read()?;
     let read_body = if let Some(body_data_to_read) = &has_body_data_to_read {
         let body_fields = fields.body_fields.as_ref().unwrap();
@@ -39,59 +94,57 @@ pub fn generate(name: &Ident, properties: &[StructProperty]) -> Result<TokenStre
         None
     };
 
-    let mut fields_to_return = Vec::new();
 
-    for struct_property in properties {
-        let input_field = struct_property.get_input_field()?;
+       for struct_property in properties {
+           let input_field = struct_property.get_input_field()?;
 
-        match &input_field {
-            InputField::Query(_) => {
-                fields_to_return.push(struct_property.get_struct_field_name_as_token_stream());
-            }
-            InputField::Path(field_data) => {
-                let input_field_name = field_data.get_input_field_name()?;
+           match &input_field {
+               InputField::Query(_) => {
+                   fields_to_return.push(struct_property.get_struct_field_name_as_token_stream());
+               }
+               InputField::Path(field_data) => {
+                   let input_field_name = field_data.get_input_field_name()?;
 
-                //          quote!(let #struct_field_name = http_route.get_value(&ctx.request.http_path, #input_field_name)?.try_into()?;)
+                   //          quote!(let #struct_field_name = http_route.get_value(&ctx.request.http_path, #input_field_name)?.try_into()?;)
 
-                let struct_field_name = struct_property.get_struct_field_name_as_token_stream();
-                fields_to_return.push(quote!(#struct_field_name: http_route.get_value(&ctx.request.http_path, #input_field_name)?.try_into()?));
-            }
-            InputField::Header(_) => {
-                fields_to_return.push(struct_property.get_struct_field_name_as_token_stream());
-            }
-            InputField::Body(field_data) => {
-                let body_data_to_read = has_body_data_to_read.as_ref().unwrap();
+                   let struct_field_name = struct_property.get_struct_field_name_as_token_stream();
+                   fields_to_return.push(quote!(#struct_field_name: http_route.get_value(&ctx.request.http_path, #input_field_name)?.try_into()?));
+               }
+               InputField::Header(_) => {
+                   fields_to_return.push(struct_property.get_struct_field_name_as_token_stream());
+               }
+               InputField::Body(field_data) => {
+                   let body_data_to_read = has_body_data_to_read.as_ref().unwrap();
 
-                if body_data_to_read.http_body > 1 {
-                    fields_to_return.push(struct_property.get_struct_field_name_as_token_stream());
-                } else {
-                    fields_to_return.push(read_body_single_field(struct_property, field_data)?);
-                }
-            }
-            InputField::BodyRaw(field_data) => {
-                let struct_field_name = struct_property.get_struct_field_name_as_token_stream();
-                let read_value = read_from_body_raw(struct_property, field_data)?;
-                fields_to_return.push(quote!(#struct_field_name: #read_value));
-            }
-            InputField::FormData(field_data) => {
-                let body_data_to_read = has_body_data_to_read.as_ref().unwrap();
+                   if body_data_to_read.http_body > 1 {
+                       fields_to_return.push(struct_property.get_struct_field_name_as_token_stream());
+                   } else {
+                       fields_to_return.push(read_body_single_field(struct_property, field_data)?);
+                   }
+               }
+               InputField::BodyRaw(field_data) => {}
+               InputField::FormData(field_data) => {
+                   let body_data_to_read = has_body_data_to_read.as_ref().unwrap();
 
-                if body_data_to_read.http_form > 1 {
-                    fields_to_return.push(struct_property.get_struct_field_name_as_token_stream());
-                } else {
-                    let struct_field_name = struct_property.get_struct_field_name_as_token_stream();
-                    let read_value =
-                        read_from_form_data_as_single_field(struct_property, field_data)?;
-                    fields_to_return.push(quote!(#struct_field_name: #read_value));
-                }
-            }
-        }
-    }
+                   if body_data_to_read.http_form > 1 {
+                       fields_to_return.push(struct_property.get_struct_field_name_as_token_stream());
+                   } else {
+                       let struct_field_name = struct_property.get_struct_field_name_as_token_stream();
+                       let read_value =
+                           read_from_form_data_as_single_field(struct_property, field_data)?;
+                       fields_to_return.push(quote!(#struct_field_name: #read_value));
+                   }
+               }
+           }
+       }
+    */
 
     let result = quote! {
+        #reading_path
         #reading_headers
         #reading_query_string
         #read_body
+        #read_form_data
         Ok(#name{
             #(#fields_to_return),*
         })
@@ -100,12 +153,9 @@ pub fn generate(name: &Ident, properties: &[StructProperty]) -> Result<TokenStre
     Ok(result)
 }
 
-fn read_from_body_raw(
-    struct_property: &StructProperty,
-    input_field_data: &InputFieldData,
-) -> Result<TokenStream, syn::Error> {
-    if struct_property.ty.is_option() {
-        let field_name = input_field_data.get_input_field_name()?;
+fn read_from_body_raw(input_field: &InputField) -> Result<TokenStream, syn::Error> {
+    if input_field.property.ty.is_option() {
+        let field_name = input_field.get_input_field_name()?;
 
         let result = quote!({
             let body = ctx.request.receive_body().await?;
@@ -124,12 +174,11 @@ fn read_from_body_raw(
 }
 
 fn read_from_form_data_as_single_field(
-    struct_property: &StructProperty,
-    input_field_data: &InputFieldData,
+    input_field: &InputField,
 ) -> Result<TokenStream, syn::Error> {
-    let field_name = input_field_data.get_input_field_name()?;
+    let field_name = input_field.get_input_field_name()?;
 
-    if struct_property.ty.is_option() {
+    if input_field.property.ty.is_option() {
         let result = quote!({
             let body = ctx.request.receive_body().await?;
             let body_reader = body.get_body_data_reader()?;
@@ -151,13 +200,12 @@ fn read_from_form_data_as_single_field(
 }
 
 fn read_body_single_field(
-    struct_property: &StructProperty,
-    input_field_data: &InputFieldData,
+    input_field: &InputField,
 ) -> Result<proc_macro2::TokenStream, syn::Error> {
-    let struct_field_name = struct_property.get_struct_field_name_as_token_stream();
-    let field_name = input_field_data.get_input_field_name()?;
+    let struct_field_name = input_field.property.get_struct_field_name_as_token_stream();
+    let field_name = input_field.get_input_field_name()?;
 
-    if let PropertyType::OptionOf(_) = &struct_property.ty {
+    if let PropertyType::OptionOf(_) = &input_field.property.ty {
         let result = quote!(
             #struct_field_name: {
                 let data_reader = ctx.request.get_body().await?.get_body_data_reader()?;
