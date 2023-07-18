@@ -260,7 +260,7 @@ fn read_header_field(input_field: &InputField) -> Result<proc_macro2::TokenStrea
 
     let result = quote! {
         let #struct_field_name = if let Some(value) = ctx.request.get_optional_header(#input_field_name) {
-            Some(value.try_into()?)
+            value.try_into()?
         } else {
             #default_value
         };
