@@ -1,3 +1,4 @@
+use proc_macro2::TokenStream;
 use types_reader::{ParamValue, ParamsList, StructProperty};
 
 #[derive(Clone)]
@@ -79,6 +80,17 @@ impl<'s> InputField<'s> {
             }
             None => Ok(None),
         }
+    }
+
+    pub fn get_default_value_opt_case(&self) -> Result<TokenStream, syn::Error> {
+        let result = if let Some(default) = self.get_default_value()? {
+            let value = default.unwrap_value()?;
+            quote::quote!(Some(#value))
+        } else {
+            quote::quote!(None)
+        };
+
+        Ok(result)
     }
 
     pub fn get_description(&self) -> Result<&str, syn::Error> {

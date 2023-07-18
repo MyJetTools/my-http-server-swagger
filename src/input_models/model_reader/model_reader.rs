@@ -25,12 +25,8 @@ pub fn generate(name: &Ident, properties: &HttpInputProperties) -> Result<TokenS
             let struct_field_name = input_field.property.get_field_name_ident();
 
             let reading_header = if input_field.property.ty.is_option() {
-                let default_value = if let Some(default) = input_field.get_default_value()? {
-                    let value = default.unwrap_value()?;
-                    quote!(Some(#value))
-                } else {
-                    quote!(None)
-                };
+                let default_value = input_field.get_default_value_opt_case()?;
+
                 quote! {
                     let #struct_field_name = if let Some(value) = ctx.request.get_optional_header(#input_field_name) {
                         Some(value.try_into()?)
