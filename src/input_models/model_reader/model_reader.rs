@@ -256,7 +256,7 @@ fn read_header_field(input_field: &InputField) -> Result<proc_macro2::TokenStrea
         return Ok(result);
     }
 
-    let default_value = input_field.get_default_value_opt_case()?;
+    let default_value = input_field.get_default_value_non_opt_case()?;
 
     let result = quote! {
         let #struct_field_name = if let Some(value) = ctx.request.get_optional_header(#input_field_name) {
