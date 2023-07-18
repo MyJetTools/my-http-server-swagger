@@ -75,6 +75,11 @@ impl<'s> InputModelStructPropertyExt for StructProperty<'s> {
                 _ => {}
             }
         }
+
+        if result.is_some() {
+            return Ok(result);
+        }
+
         return Err(syn::Error::new(
             self.get_field_name_ident().span(),
             format!("Please specify single attribute as http_query, http_header, http_path, http_form_data or http_body."),
