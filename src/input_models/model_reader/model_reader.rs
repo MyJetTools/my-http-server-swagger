@@ -32,7 +32,19 @@ pub fn generate(name: &Ident, properties: &HttpInputProperties) -> Result<TokenS
         for input_field in header_fields {
             let input_field_name = input_field.get_input_field_name()?;
             let struct_field_name = input_field.property.get_field_name_ident();
-            let reading_header = quote!(let #struct_field_name = ctx.request.get_required_header(#input_field_name)?.try_into()?;);
+
+            let reading_header = if input_field.property.ty.is_option() {
+                quote! {
+                    let #struct_field_name = if let Some(value) = ctx.request.get_optional_header(#input_field_name) {
+                        Some(value.try_into()?)
+                    } else {
+                        None
+                    };
+                }
+            } else {
+                quote!(let #struct_field_name = ctx.request.get_required_header(#input_field_name)?.try_into()?;)
+            };
+
             result.push(reading_header);
             fields_to_return.push(quote!(#struct_field_name));
         }
@@ -228,5 +240,10 @@ fn read_body_single_field(
         value.try_into()?
     });
 
+    Ok(result)
+}
+
+fn reading_headers(input_fields: &[InputField]) -> Result<TokenStream, syn::Error> {
+    let result = quote!();
     Ok(result)
 }
