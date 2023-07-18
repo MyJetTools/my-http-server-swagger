@@ -37,7 +37,7 @@ pub fn generate(name: &Ident, properties: &HttpInputProperties) -> Result<TokenS
             fields_to_return.push(quote!(#struct_field_name));
         }
 
-        quote!(#(result))
+        quote!(#(#result),*)
     } else {
         quote!()
     };
