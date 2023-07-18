@@ -28,7 +28,6 @@ fn generate_http_input_parameter(input_field: &InputField) -> Result<TokenStream
     let field = crate::types::compile_http_field(
         input_field.get_input_field_name()?,
         &input_field.property.ty,
-        input_field.get_default_value()?,
     )?;
 
     let http_input_parameter_type = crate::consts::get_http_input_parameter();
