@@ -103,7 +103,7 @@ impl<'s> InputField<'s> {
         match &self.property.ty {
             PropertyType::Str => true,
             PropertyType::String => true,
-            PropertyType::OptionOf(sub_ty) => match &self.property.ty {
+            PropertyType::OptionOf(sub_ty) => match sub_ty.as_ref() {
                 PropertyType::Str => true,
                 PropertyType::String => true,
                 _ => false,
