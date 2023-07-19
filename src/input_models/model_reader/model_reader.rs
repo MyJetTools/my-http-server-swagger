@@ -48,6 +48,12 @@ pub fn generate(name: &Ident, properties: &HttpInputProperties) -> Result<TokenS
     };
 
     let read_body = if let Some(body_fields) = &properties.body_fields {
+        for body_field in body_fields {
+            fields_to_return.push(body_field.read_value_with_transformation()?);
+        }
+        super::generate_reading_query_fields(body_fields)?
+
+        /*
         if body_fields.len() > 1 {
             for input_field in body_fields {
                 let struct_field_name = input_field.property.get_field_name_ident();
@@ -58,26 +64,25 @@ pub fn generate(name: &Ident, properties: &HttpInputProperties) -> Result<TokenS
         } else {
             fields_to_return.push(read_body_single_field(body_fields.get(0).unwrap())?);
             quote!()
-        }
+        } */
     } else {
         quote!()
     };
 
     let read_form_data = if let Some(form_data_fields) = &properties.form_data_fields {
-        if form_data_fields.len() > 1 {
-            for input_field in form_data_fields {
-                let struct_field_name = input_field.property.get_field_name_ident();
-                fields_to_return.push(quote!(#struct_field_name));
-            }
-
-            super::read_body::generate_read_body(form_data_fields)?
-        } else {
-            let input_field = form_data_fields.get(0).unwrap();
-            let struct_field_name = input_field.property.get_struct_field_name_as_token_stream();
-            let read_value = read_from_form_data_as_single_field(input_field)?;
-            fields_to_return.push(quote!(#struct_field_name: #read_value));
-            quote!()
+        for form_data_field in form_data_fields {
+            fields_to_return.push(form_data_field.read_value_with_transformation()?);
         }
+        super::generate_reading_query_fields(form_data_fields)?
+    /*
+    if form_data_fields.len() > 1 {
+        for input_field in form_data_fields {
+            let struct_field_name = input_field.property.get_field_name_ident();
+            fields_to_return.push(quote!(#struct_field_name));
+        }
+
+        super::read_body::generate_read_body(form_data_fields)?
+         */
     } else {
         quote!()
     };
