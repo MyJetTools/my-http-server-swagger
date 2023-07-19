@@ -144,11 +144,11 @@ impl<'s> InputField<'s> {
 
     pub fn get_final_transformation(&self) -> Result<Option<TokenStream>, syn::Error> {
         if self.to_upper_case_string()? {
-            return Ok(Some(quote::quote!(.to_upper_case())));
+            return Ok(Some(quote::quote!(.to_uppercase())));
         }
 
         if self.to_lower_case_string()? {
-            return Ok(Some(quote::quote!(.to_lower_case())));
+            return Ok(Some(quote::quote!(.to_lowercase())));
         }
 
         Ok(None)
