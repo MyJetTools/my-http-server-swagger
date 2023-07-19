@@ -155,7 +155,7 @@ impl<'s> InputField<'s> {
         if self.to_upper_case_string()? {
             if self.property.ty.is_option() {
                 return Ok(
-                    quote::quote!(#ident: if let Some(value) = #ident {#ident.to_uppercase().into()}else{None}),
+                    quote::quote!(#ident: if let Some(value) = #ident {value.to_uppercase().into()}else{None}),
                 );
             } else {
                 return Ok(quote::quote!(#ident: #ident.to_uppercase()));
@@ -165,7 +165,7 @@ impl<'s> InputField<'s> {
         if self.to_lower_case_string()? {
             if self.property.ty.is_option() {
                 return Ok(
-                    quote::quote!(#ident: if let Some(value) = #ident {#ident.to_lowercase().into()}else{None}),
+                    quote::quote!(#ident: if let Some(value) = #ident {value.to_lowercase().into()}else{None}),
                 );
             } else {
                 return Ok(quote::quote!(#ident: #ident.to_lowercase()));
