@@ -19,16 +19,11 @@ pub fn generate(name: &Ident, properties: &HttpInputProperties) -> Result<TokenS
     };
 
     let reading_headers = if let Some(header_fields) = &properties.header_fields {
-        let mut result = Vec::with_capacity(header_fields.len());
         for input_field in header_fields {
-            let struct_field_name = input_field.property.get_field_name_ident();
-            let reading_value = read_header_field(input_field)?;
-            result.push(quote!(let #struct_field_name = #reading_value));
-
             fields_to_return.push(input_field.read_value_with_transformation()?);
         }
 
-        quote!(#(#result)*)
+        super::reading_from_header(header_fields)?
     } else {
         quote!()
     };
@@ -174,39 +169,4 @@ fn read_body_single_field(
     });
 
     Ok(result)
-}
-
-fn read_header_field(input_field: &InputField) -> Result<proc_macro2::TokenStream, syn::Error> {
-    let input_field_name = input_field.get_input_field_name()?;
-
-    if input_field.property.ty.is_option() {
-        let default_value = input_field.get_default_value_opt_case()?;
-
-        let result = quote! {
-            if let Some(value) = ctx.request.get_optional_header(#input_field_name) {
-                Some(value.try_into()?)
-            } else {
-                #default_value
-            };
-        };
-
-        return Ok(result);
-    }
-
-    if !input_field.has_default_value() {
-        let result = quote!(ctx.request.get_required_header(#input_field_name)?.try_into()?;);
-        return Ok(result);
-    }
-
-    let default_value = input_field.get_default_value_non_opt_case()?;
-
-    let result = quote! {
-        if let Some(value) = ctx.request.get_optional_header(#input_field_name) {
-            value.try_into()?
-        } else {
-            #default_value
-        };
-    };
-
-    return Ok(result);
 }

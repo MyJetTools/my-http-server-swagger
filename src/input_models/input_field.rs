@@ -143,14 +143,6 @@ impl<'s> InputField<'s> {
     }
 
     pub fn read_value_with_transformation(&self) -> Result<TokenStream, syn::Error> {
-        /*
-            if let Some(transformation) = input_field.get_final_transformation()? {
-               fields_to_return
-                   .push(quote!(#struct_field_name: #struct_field_name #transformation));
-           } else {
-               fields_to_return.push(quote!(#struct_field_name));
-           }
-        */
         let ident = self.property.get_field_name_ident();
         if self.to_upper_case_string()? {
             if self.property.ty.is_option() {
