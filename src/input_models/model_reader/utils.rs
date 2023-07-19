@@ -8,7 +8,7 @@ pub fn get_fields_to_read(fields: &[InputField]) -> Result<(TokenStream, TokenSt
         let field = fields.get(0).unwrap();
         let name = field.property.get_field_name_ident();
         let string_transformation = field.get_final_string_transformation()?;
-        let string_transformation = return Ok((
+        return Ok((
             quote::quote!(#name),
             quote::quote!(#name #string_transformation),
         ));
