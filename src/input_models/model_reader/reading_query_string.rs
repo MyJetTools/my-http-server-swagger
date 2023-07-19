@@ -123,13 +123,13 @@ fn reading_query_string(
         _ => {
             super::utils::verify_default_value(input_field, &input_field.property.ty)?;
 
-            let struct_field_name = input_field.property.get_field_name_ident();
+            let let_input_param = input_field.get_let_input_param();
 
             if input_field.has_default_value() {
                 let default_value = input_field.get_default_value_non_opt_case()?;
 
                 let result = quote::quote! {
-                   let #struct_field_name = match #data_src.get_optional(#input_field_name){
+                   let #let_input_param = match #data_src.get_optional(#input_field_name){
                     Some(value) =>{
                         let value = my_http_server::InputParamValue::from(value);
                         value.try_into()?
