@@ -98,7 +98,7 @@ impl<'s> HttpInputProperties<'s> {
         }
 
         if let Some(body_fields) = &self.body_fields {
-            check_duplicated(body_fields);
+            check_duplicated(body_fields)?;
             if let Some(body_raw) = &self.body_raw_field {
                 let err = syn::Error::new_spanned(
                     body_raw.property.field,
@@ -116,7 +116,7 @@ impl<'s> HttpInputProperties<'s> {
             }
         }
         if let Some(form_data_fields) = &self.form_data_fields {
-            check_duplicated(form_data_fields);
+            check_duplicated(form_data_fields)?;
             if let Some(body_raw) = &self.body_raw_field {
                 let err = syn::Error::new_spanned(
                     body_raw.property.field,
@@ -135,11 +135,11 @@ impl<'s> HttpInputProperties<'s> {
         }
 
         if let Some(header_fields) = &self.header_fields {
-            check_duplicated(header_fields);
+            check_duplicated(header_fields)?;
         }
 
         if let Some(query_string_fields) = &self.query_string_fields {
-            check_duplicated(query_string_fields);
+            check_duplicated(query_string_fields)?;
         }
 
         Ok(())
