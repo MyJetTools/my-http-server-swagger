@@ -37,7 +37,7 @@ pub fn generate(name: &Ident, properties: &HttpInputProperties) -> Result<TokenS
             let struct_field_name = input_field.property.get_field_name_ident();
             fields_to_return.push(quote!(#struct_field_name));
         }
-        super::generate_read_not_body(query_string_fields.as_slice(), || quote!(__query_string))?
+        super::generate_reading_query_fields(query_string_fields)?
     } else {
         quote!()
     };

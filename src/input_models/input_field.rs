@@ -40,6 +40,13 @@ impl<'s> DefaultValue<'s> {
         }
     }
 
+    pub fn has_value(&self) -> bool {
+        match self {
+            DefaultValue::Empty(_) => false,
+            DefaultValue::Value(_) => true,
+        }
+    }
+
     pub fn is_empty(&self) -> bool {
         match self {
             DefaultValue::Empty(_) => true,
@@ -291,6 +298,18 @@ impl<'s> InputField<'s> {
             Some(value) => Ok(Some(value.unwrap_as_string_value()?.into())),
             _ => Ok(None),
         }
+    }
+
+    pub fn get_validator(&self) -> Result<Option<proc_macro2::TokenStream>, syn::Error> {
+        if let Some(validator) = self.validator()? {
+            let validation_fn_name = proc_macro2::TokenStream::from_str(validator).unwrap();
+            let struct_field_name = self.property.get_field_name_ident();
+            return Ok(Some(
+                quote::quote!(#validation_fn_name(ctx, &#struct_field_name)?;),
+            ));
+        }
+
+        Ok(None)
     }
 }
 
