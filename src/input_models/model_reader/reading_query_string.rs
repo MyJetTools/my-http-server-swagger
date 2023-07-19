@@ -52,8 +52,10 @@ fn reading_query_string(
 
             let struct_field_name = input_field.property.get_field_name_ident();
 
+            let ty = sub_ty.get_token_stream();
+
             let result = quote::quote! {
-                let #struct_field_name = if let Some(value) = #data_src.get_optional(#input_field_name) {
+                let #struct_field_name: #ty = if let Some(value) = #data_src.get_optional(#input_field_name) {
                     let value = my_http_server::InputParamValue::from(value);
                     Some(value.try_into()?)
                 } else {
@@ -101,9 +103,10 @@ fn reading_query_string(
                 }
 
                 let default_value = input_field.get_default_value_opt_case()?;
+                let ty = input_field.property.ty.get_token_stream();
 
                 let result = quote::quote! {
-                   let #struct_field_name = match #data_src.get_optional(#input_field_name){
+                   let #struct_field_name: #ty = match #data_src.get_optional(#input_field_name){
                     Some(value) =>{
                         let value = my_http_server::InputParamValue::from(value);
                         value.try_into()?
