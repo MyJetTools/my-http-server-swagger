@@ -14,7 +14,7 @@ pub fn reading_from_path(
 
         let input_field_name = input_field.get_input_field_name()?;
 
-        reading_fields.push(quote::quote!(let #let_input_param =  http_route.get_value(&ctx.request.http_path, #input_field_name)?.try_into()?))
+        reading_fields.push(quote::quote!(let #let_input_param =  http_route.get_value(&ctx.request.http_path, #input_field_name)?.try_into()?;))
     }
 
     let result = quote::quote! {
