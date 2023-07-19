@@ -41,7 +41,12 @@ pub fn generate(name: &Ident, properties: &HttpInputProperties) -> Result<TokenS
     let reading_query_string = if let Some(query_string_fields) = &properties.query_string_fields {
         for input_field in query_string_fields {
             let struct_field_name = input_field.property.get_field_name_ident();
-            fields_to_return.push(quote!(#struct_field_name));
+            if let Some(transformation) = input_field.get_final_transformation()? {
+                fields_to_return
+                    .push(quote!(#struct_field_name: #struct_field_name #transformation));
+            } else {
+                fields_to_return.push(quote!(#struct_field_name));
+            }
         }
         super::generate_reading_query_fields(query_string_fields)?
     } else {
