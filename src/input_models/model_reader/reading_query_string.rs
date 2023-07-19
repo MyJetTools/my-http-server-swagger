@@ -90,6 +90,7 @@ fn reading_query_string(
         }
         PropertyType::Struct(..) => {
             let struct_field_name = input_field.property.get_field_name_ident();
+            let final_string_transformation = input_field.get_final_string_transformation()?;
 
             if let Some(default_value) = input_field.get_default_value()? {
                 if default_value.has_value() {
@@ -103,7 +104,6 @@ fn reading_query_string(
                 }
 
                 let default_value = input_field.get_default_value_opt_case()?;
-                let final_string_transformation = input_field.get_final_string_transformation()?;
 
                 let result = quote::quote! {
                    let #struct_field_name = match #data_src.get_optional(#input_field_name){
@@ -121,7 +121,11 @@ fn reading_query_string(
                 return Ok(result);
             }
 
-            return Ok(generate_reading_required(input_field, &data_src)?);
+            return Ok(generate_reading_required(
+                input_field,
+                &data_src,
+                &final_string_transformation,
+            )?);
         }
         _ => {
             super::utils::verify_default_value(input_field, &input_field.property.ty)?;
@@ -147,8 +151,12 @@ fn reading_query_string(
                 };
                 return Ok(result);
             }
-
-            return Ok(generate_reading_required(input_field, &data_src)?);
+            let final_string_transformation = input_field.get_final_string_transformation()?;
+            return Ok(generate_reading_required(
+                input_field,
+                &data_src,
+                &final_string_transformation,
+            )?);
         }
     }
 }
