@@ -12,7 +12,7 @@ pub fn generate_reading_query_fields(
 
     let data_src = TokenStream::from_str("___data_src").unwrap();
 
-    let (init_fields, out_fields) = super::utils::get_fields_to_read(input_fields)?;
+    let init_fields = super::utils::get_fields_to_read(input_fields)?;
 
     let mut validations = Vec::with_capacity(input_fields.len());
 
@@ -30,7 +30,7 @@ pub fn generate_reading_query_fields(
         let #init_fields = {
             let #data_src = ctx.request.get_query_string()?;
             #(#reading_fields)*
-            #out_fields
+            #init_fields
         };
         #(#validations)*
     };

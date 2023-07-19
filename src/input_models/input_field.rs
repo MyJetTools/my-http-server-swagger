@@ -142,16 +142,16 @@ impl<'s> InputField<'s> {
         Ok(result)
     }
 
-    pub fn get_final_string_transformation(&self) -> Result<TokenStream, syn::Error> {
+    pub fn get_final_transformation(&self) -> Result<Option<TokenStream>, syn::Error> {
         if self.to_upper_case_string()? {
-            return Ok(quote::quote!(.to_upper_case()));
+            return Ok(Some(quote::quote!(.to_upper_case())));
         }
 
         if self.to_lower_case_string()? {
-            return Ok(quote::quote!(.to_lower_case()));
+            return Ok(Some(quote::quote!(.to_lower_case())));
         }
 
-        Ok(quote::quote!())
+        Ok(None)
     }
 
     pub fn get_default_value(&self) -> Result<Option<DefaultValue>, syn::Error> {

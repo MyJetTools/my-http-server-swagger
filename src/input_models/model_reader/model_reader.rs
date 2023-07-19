@@ -24,7 +24,13 @@ pub fn generate(name: &Ident, properties: &HttpInputProperties) -> Result<TokenS
             let struct_field_name = input_field.property.get_field_name_ident();
             let reading_value = read_header_field(input_field)?;
             result.push(quote!(let #struct_field_name = #reading_value));
-            fields_to_return.push(quote!(#struct_field_name));
+
+            if let Some(transformation) = input_field.get_final_transformation()? {
+                fields_to_return
+                    .push(quote!(#struct_field_name: #struct_field_name #transformation));
+            } else {
+                fields_to_return.push(quote!(#struct_field_name));
+            }
         }
 
         quote!(#(#result)*)

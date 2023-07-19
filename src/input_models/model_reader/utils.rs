@@ -3,40 +3,30 @@ use types_reader::PropertyType;
 
 use crate::input_models::InputField;
 
-pub fn get_fields_to_read(fields: &[InputField]) -> Result<(TokenStream, TokenStream), syn::Error> {
+pub fn get_fields_to_read(fields: &[InputField]) -> Result<TokenStream, syn::Error> {
     if fields.len() == 1 {
         let field = fields.get(0).unwrap();
         let name = field.property.get_field_name_ident();
-        let string_transformation = field.get_final_string_transformation()?;
-        return Ok((
-            quote::quote!(#name),
-            quote::quote!(#name #string_transformation),
-        ));
+
+        return Ok(quote::quote!(#name));
     }
 
     let mut no = 0;
 
-    let mut in_result = Vec::with_capacity(fields.len());
-    let mut out_result = Vec::with_capacity(fields.len());
+    let mut result = Vec::with_capacity(fields.len());
 
     for input_field in fields {
         if no > 0 {
-            in_result.push(quote::quote!(,));
-            out_result.push(quote::quote!(,));
+            result.push(quote::quote!(,));
         }
 
         let ident = input_field.property.get_field_name_ident();
-        let string_transformation = input_field.get_final_string_transformation()?;
-        in_result.push(quote::quote!(#ident));
+        result.push(quote::quote!(#ident));
 
-        out_result.push(quote::quote!(#ident #string_transformation));
         no += 1;
     }
 
-    Ok((
-        quote::quote! {(#(#in_result)*)},
-        quote::quote! {(#(#out_result)*)},
-    ))
+    Ok(quote::quote! {(#(#result)*)})
 }
 
 pub fn verify_default_value(input_field: &InputField, ty: &PropertyType) -> Result<(), syn::Error> {
