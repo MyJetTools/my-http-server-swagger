@@ -156,6 +156,7 @@ fn reading_query_string(
 fn generate_reading_required(
     input_field: &InputField,
     data_src: &TokenStream,
+    final_string_transformation: &TokenStream,
 ) -> Result<TokenStream, syn::Error> {
     let struct_field_name = input_field.property.get_field_name_ident();
     let input_field_name = input_field.get_input_field_name()?;
@@ -182,7 +183,7 @@ fn generate_reading_required(
 
                 let result = quote::quote! {
                     let #struct_field_name = if let Some(value) = #data_src.get_optional(#input_field_name){
-                        my_http_server::InputParamValue::from(value).try_into()?
+                        my_http_server::InputParamValue::from(value).try_into()?#final_string_transformation
                     }else{
                         #else_data
                     };
@@ -193,7 +194,7 @@ fn generate_reading_required(
         }
     } else {
         return Ok(
-            quote::quote!(let #struct_field_name = my_http_server::InputParamValue::from(#data_src.get_required(#input_field_name)?).try_into()?;),
+            quote::quote!(let #struct_field_name = my_http_server::InputParamValue::from(#data_src.get_required(#input_field_name)?).try_into()?#final_string_transformation;),
         );
     }
 }
