@@ -133,6 +133,8 @@ impl<'s> InputField<'s> {
             .try_get_named_param("to_uppercase")
             .is_some();
 
+        println!("{} to_upper_case_string: {}", self.property.name, result);
+
         if result && !self.is_str() {
             return self
                 .property
