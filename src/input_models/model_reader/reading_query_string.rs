@@ -126,7 +126,7 @@ fn reading_query_string(
             verify_default_value(input_field, &input_field.property.ty)?;
 
             if input_field.has_default_value() {
-                let default_value = input_field.get_default_value_opt_case()?;
+                let default_value = input_field.get_default_value_non_opt_case()?;
 
                 let result = quote::quote! {
                    let #struct_field_name = match #data_src.get_optional(#input_field_name){
