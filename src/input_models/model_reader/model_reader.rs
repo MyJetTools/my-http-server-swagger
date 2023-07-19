@@ -85,64 +85,6 @@ pub fn generate(name: &Ident, properties: &HttpInputProperties) -> Result<TokenS
         quote!()
     };
 
-    /*
-    let has_body_data_to_read = fields.has_body_data_to_read()?;
-    let read_body = if let Some(body_data_to_read) = &has_body_data_to_read {
-        let body_fields = fields.body_fields.as_ref().unwrap();
-        if body_data_to_read.http_form > 1 || body_data_to_read.http_body > 1 {
-            Some(super::generate_read_body(body_fields)?)
-        } else {
-            None
-        }
-    } else {
-        None
-    };
-
-
-       for struct_property in properties {
-           let input_field = struct_property.get_input_field()?;
-
-           match &input_field {
-               InputField::Query(_) => {
-                   fields_to_return.push(struct_property.get_struct_field_name_as_token_stream());
-               }
-               InputField::Path(field_data) => {
-                   let input_field_name = field_data.get_input_field_name()?;
-
-                   //          quote!(let #struct_field_name = http_route.get_value(&ctx.request.http_path, #input_field_name)?.try_into()?;)
-
-                   let struct_field_name = struct_property.get_struct_field_name_as_token_stream();
-                   fields_to_return.push(quote!(#struct_field_name: http_route.get_value(&ctx.request.http_path, #input_field_name)?.try_into()?));
-               }
-               InputField::Header(_) => {
-                   fields_to_return.push(struct_property.get_struct_field_name_as_token_stream());
-               }
-               InputField::Body(field_data) => {
-                   let body_data_to_read = has_body_data_to_read.as_ref().unwrap();
-
-                   if body_data_to_read.http_body > 1 {
-                       fields_to_return.push(struct_property.get_struct_field_name_as_token_stream());
-                   } else {
-                       fields_to_return.push(read_body_single_field(struct_property, field_data)?);
-                   }
-               }
-               InputField::BodyRaw(field_data) => {}
-               InputField::FormData(field_data) => {
-                   let body_data_to_read = has_body_data_to_read.as_ref().unwrap();
-
-                   if body_data_to_read.http_form > 1 {
-                       fields_to_return.push(struct_property.get_struct_field_name_as_token_stream());
-                   } else {
-                       let struct_field_name = struct_property.get_struct_field_name_as_token_stream();
-                       let read_value =
-                           read_from_form_data_as_single_field(struct_property, field_data)?;
-                       fields_to_return.push(quote!(#struct_field_name: #read_value));
-                   }
-               }
-           }
-       }
-    */
-
     let result = quote! {
         #reading_headers
         #reading_query_string

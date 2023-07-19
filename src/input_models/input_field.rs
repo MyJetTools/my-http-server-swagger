@@ -323,6 +323,15 @@ impl<'s> InputField<'s> {
 
         Ok(None)
     }
+
+    pub fn throw_error<TResult>(
+        &self,
+        message: impl Into<StrOrString<'s>>,
+    ) -> Result<TResult, syn::Error> {
+        let message: StrOrString<'s> = message.into();
+        let err = syn::Error::new_spanned(self.property.field, message.as_str());
+        Err(err)
+    }
 }
 
 /*

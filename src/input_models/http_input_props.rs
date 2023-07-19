@@ -98,6 +98,7 @@ impl<'s> HttpInputProperties<'s> {
         }
 
         if let Some(body_fields) = &self.body_fields {
+            check_duplicated(body_fields);
             if let Some(body_raw) = &self.body_raw_field {
                 let err = syn::Error::new_spanned(
                     body_raw.property.field,
@@ -115,6 +116,7 @@ impl<'s> HttpInputProperties<'s> {
             }
         }
         if let Some(form_data_fields) = &self.form_data_fields {
+            check_duplicated(form_data_fields);
             if let Some(body_raw) = &self.body_raw_field {
                 let err = syn::Error::new_spanned(
                     body_raw.property.field,
@@ -130,6 +132,14 @@ impl<'s> HttpInputProperties<'s> {
                 );
                 return Err(err);
             }
+        }
+
+        if let Some(header_fields) = &self.header_fields {
+            check_duplicated(header_fields);
+        }
+
+        if let Some(query_string_fields) = &self.query_string_fields {
+            check_duplicated(query_string_fields);
         }
 
         Ok(())
@@ -164,4 +174,26 @@ impl<'s> HttpInputProperties<'s> {
 
         result
     }
+}
+
+fn check_duplicated(items: &[InputField]) -> Result<(), syn::Error> {
+    for i in 0..items.len() {
+        for j in 0..items.len() {
+            if i == j {
+                continue;
+            }
+
+            let one = items.get(i).unwrap();
+            let another = items.get(j).unwrap();
+
+            if one.get_input_field_name()? == another.get_input_field_name()? {
+                if j > i {
+                    another.throw_error("Duplicated field name")?;
+                } else {
+                    one.throw_error("Duplicated field name")?;
+                }
+            }
+        }
+    }
+    Ok(())
 }
