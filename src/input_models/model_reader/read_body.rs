@@ -1,4 +1,4 @@
-use proc_macro2::{Ident, TokenStream};
+use proc_macro2::TokenStream;
 use quote::quote;
 use types_reader::PropertyType;
 
@@ -38,7 +38,6 @@ fn generate_reading(
     input_field: &InputField,
     data_src: &TokenStream,
 ) -> Result<proc_macro2::TokenStream, syn::Error> {
-    let struct_field_name = input_field.property.get_field_name_ident();
     let input_field_name = input_field.get_input_field_name()?;
     match &input_field.property.ty {
         PropertyType::OptionOf(sub_type) => {
@@ -48,8 +47,10 @@ fn generate_reading(
 
             let default_value = input_field.get_default_value_opt_case()?;
 
+            let let_field_name = input_field.get_let_input_param();
+
             let line = quote::quote! {
-                let #struct_field_name = if let Some(value) = #data_src.get_optional(#input_field_name){
+                let #let_field_name = if let Some(value) = #data_src.get_optional(#input_field_name){
                     let value: #sub_type = value.try_into()?;
                     Some(value)
                 }else{
@@ -60,8 +61,6 @@ fn generate_reading(
             return Ok(line);
         }
         PropertyType::Struct(..) => {
-            let struct_field_name = input_field.property.get_field_name_ident();
-
             if let Some(default_value) = input_field.get_default_value()? {
                 if default_value.has_value() {
                     let value = default_value.unwrap_value()?;
@@ -75,8 +74,10 @@ fn generate_reading(
 
                 let default_value = input_field.get_default_value_opt_case()?;
 
+                let let_field_name = input_field.get_let_input_param();
+
                 let result = quote::quote! {
-                   let #struct_field_name = match #data_src.get_optional(#input_field_name){
+                   let #let_field_name = match #data_src.get_optional(#input_field_name){
                     Some(value) =>{
                         let value = my_http_server::InputParamValue::from(value);
                         value.try_into()?
@@ -91,7 +92,7 @@ fn generate_reading(
                 return Ok(result);
             }
 
-            let result = generate_reading_required(&input_field, &data_src, &struct_field_name)?;
+            let result = generate_reading_required(&input_field, &data_src)?;
             return Ok(result);
         }
         _ => {
@@ -100,8 +101,9 @@ fn generate_reading(
             if input_field.has_default_value() {
                 let default_value = input_field.get_default_value_non_opt_case()?;
 
+                let let_field_name = input_field.get_let_input_param();
                 let result = quote::quote! {
-                   let #struct_field_name = match #data_src.get_optional(#input_field_name){
+                   let #let_field_name = match #data_src.get_optional(#input_field_name){
                     Some(value) =>{
                         let value = my_http_server::InputParamValue::from(value);
                         value.try_into()?
@@ -115,7 +117,7 @@ fn generate_reading(
                 return Ok(result);
             }
 
-            let result = generate_reading_required(&input_field, &data_src, &struct_field_name)?;
+            let result = generate_reading_required(&input_field, &data_src)?;
             return Ok(result);
         }
     }
@@ -124,8 +126,8 @@ fn generate_reading(
 fn generate_reading_required(
     input_field: &InputField,
     data_src: &TokenStream,
-    struct_field: &Ident,
 ) -> Result<TokenStream, syn::Error> {
     let input_field_name = input_field.get_input_field_name()?;
-    Ok(quote!(let #struct_field = #data_src.get_required(#input_field_name)?.try_into()?;))
+    let let_field_name = input_field.get_let_input_param();
+    Ok(quote!(let #let_field_name = #data_src.get_required(#input_field_name)?.try_into()?;))
 }
