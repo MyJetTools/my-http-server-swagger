@@ -89,8 +89,6 @@ fn reading_query_string(
             }
         }
         PropertyType::Struct(..) => {
-            let struct_field_name = input_field.property.get_field_name_ident();
-
             if let Some(default_value) = input_field.get_default_value()? {
                 if default_value.has_value() {
                     let value = default_value.unwrap_value()?;
@@ -103,10 +101,11 @@ fn reading_query_string(
                 }
 
                 let default_value = input_field.get_default_value_opt_case()?;
-                let ty = input_field.property.ty.get_token_stream();
+
+                let let_input_param = input_field.get_let_input_param();
 
                 let result = quote::quote! {
-                   let #struct_field_name: #ty = match #data_src.get_optional(#input_field_name){
+                   let #let_input_param = match #data_src.get_optional(#input_field_name){
                     Some(value) =>{
                         let value = my_http_server::InputParamValue::from(value);
                         value.try_into()?
@@ -177,10 +176,10 @@ fn generate_reading_required(
 
                 let else_data = else_data.unwrap();
 
-                let ty: TokenStream = input_field.property.ty.get_token_stream();
+                let let_input_param = input_field.get_let_input_param();
 
                 let result = quote::quote! {
-                    let #struct_field_name: #ty = if let Some(value) = #data_src.get_optional(#input_field_name){
+                    let #let_input_param = if let Some(value) = #data_src.get_optional(#input_field_name){
                         my_http_server::InputParamValue::from(value).try_into()?
                     }else{
                         #else_data

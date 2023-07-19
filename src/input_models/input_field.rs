@@ -379,6 +379,37 @@ impl<'s> InputField<'s> {
         Ok(None)
     }
 
+    pub fn get_let_input_param(&self) -> proc_macro2::TokenStream {
+        match &self.property.ty {
+            PropertyType::Str => {
+                let struct_name = self.property.get_field_name_ident();
+                return quote::quote! {#struct_name: String};
+            }
+            PropertyType::String => {
+                let struct_name = self.property.get_field_name_ident();
+                return quote::quote! {#struct_name String};
+            }
+            PropertyType::OptionOf(sub_ty) => match sub_ty.as_ref() {
+                PropertyType::Str => {
+                    let struct_name = self.property.get_field_name_ident();
+                    return quote::quote! {#struct_name: Option<String>};
+                }
+                PropertyType::String => {
+                    let struct_name = self.property.get_field_name_ident();
+                    return quote::quote! {#struct_name: Option<String>};
+                }
+                _ => {
+                    let struct_name = self.property.get_field_name_ident();
+                    return quote::quote! {#struct_name};
+                }
+            },
+            _ => {
+                let struct_name = self.property.get_field_name_ident();
+                return quote::quote! {#struct_name};
+            }
+        }
+    }
+
     pub fn throw_error<TResult>(
         &self,
         message: impl Into<StrOrString<'s>>,
