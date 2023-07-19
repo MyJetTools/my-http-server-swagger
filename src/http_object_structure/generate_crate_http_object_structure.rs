@@ -40,7 +40,8 @@ fn render_obj_fields(
 ) -> Result<Vec<proc_macro2::TokenStream>, syn::Error> {
     let mut result = Vec::with_capacity(fields.len());
     for field in fields {
-        let line = crate::types::compile_http_field(field.get_name()?, &field.ty, true)?; //todo!("Plug has default value from Type")
+        let line =
+            crate::types::compile_http_field(field.get_name()?, &field.ty, field.ty.is_option())?; //todo!("Plug has default value from Type")
 
         result.push(quote::quote!(__hos.main.fields.push(#line);));
     }
