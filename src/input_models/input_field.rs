@@ -115,13 +115,13 @@ impl<'s> InputField<'s> {
     pub fn to_lower_case_string(&self) -> Result<bool, syn::Error> {
         let result = self
             .attr_params
-            .try_get_named_param("to_lower_case")
+            .try_get_named_param("to_lowercase")
             .is_some();
 
         if result && !self.is_str() {
             return self
                 .property
-                .throw_error("to_lower_case_string attribute can be only with String property");
+                .throw_error("to_lowercase attribute can be only with String property");
         }
 
         Ok(result)
@@ -130,13 +130,13 @@ impl<'s> InputField<'s> {
     pub fn to_upper_case_string(&self) -> Result<bool, syn::Error> {
         let result = self
             .attr_params
-            .try_get_named_param("to_upper_case")
+            .try_get_named_param("to_uppercase")
             .is_some();
 
         if result && !self.is_str() {
             return self
                 .property
-                .throw_error("to_lower_case_string attribute can be only with String property");
+                .throw_error("to_uppercase attribute can be only with String property");
         }
 
         Ok(result)
@@ -388,66 +388,3 @@ impl<'s> InputField<'s> {
         Err(err)
     }
 }
-
-/*
-impl<'s> InputField<'s> {
-    pub fn get_input_data(&'s self) -> &'s InputFieldData<'s> {
-        match self {
-            Self::Query(data) => data,
-            Self::Path(data) => data,
-            Self::Header(data) => data,
-            Self::Body(data) => data,
-            Self::FormData(data) => data,
-            Self::BodyRaw(data) => data,
-        }
-    }
-    pub fn is_path(&self) -> bool {
-        match self {
-            Self::Path(_) => true,
-            _ => false,
-        }
-    }
-
-
-
-    pub fn is_body(&self) -> bool {
-        match self {
-            Self::Body(_) => true,
-            Self::BodyRaw(_) => true,
-            Self::FormData(_) => true,
-            _ => false,
-        }
-    }
-
-    pub fn is_body_raw(&self) -> bool {
-        match self {
-            Self::Body(_) => true,
-            Self::BodyRaw(_) => true,
-            Self::FormData(_) => true,
-            _ => false,
-        }
-    }
-
-    pub fn is_header(&self) -> bool {
-        match self {
-            Self::Header(_) => true,
-            _ => false,
-        }
-    }
-
-    pub fn get_input_field_name(&self) -> Result<&str, syn::Error> {
-        let data = self.get_input_data();
-        data.get_input_field_name()
-    }
-
-    pub fn get_default_value(&self) -> Result<Option<DefaultValue>, syn::Error> {
-        let data = self.get_input_data();
-        data.get_default_value()
-    }
-
-    pub fn validator(&self) -> Result<Option<&str>, syn::Error> {
-        let data = self.get_input_data();
-        data.validator()
-    }
-}
- */
