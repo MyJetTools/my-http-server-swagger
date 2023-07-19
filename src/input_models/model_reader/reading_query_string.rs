@@ -177,8 +177,10 @@ fn generate_reading_required(
 
                 let else_data = else_data.unwrap();
 
+                let ty: TokenStream = input_field.property.ty.get_token_stream();
+
                 let result = quote::quote! {
-                    let #struct_field_name = if let Some(value) = #data_src.get_optional(#input_field_name){
+                    let #struct_field_name: #ty = if let Some(value) = #data_src.get_optional(#input_field_name){
                         my_http_server::InputParamValue::from(value).try_into()?
                     }else{
                         #else_data
@@ -189,8 +191,9 @@ fn generate_reading_required(
             }
         }
     } else {
+        let ty = input_field.property.ty.get_token_stream();
         return Ok(
-            quote::quote!(let #struct_field_name = my_http_server::InputParamValue::from(#data_src.get_required(#input_field_name)?).try_into()?;),
+            quote::quote!(let #struct_field_name: #ty = my_http_server::InputParamValue::from(#data_src.get_required(#input_field_name)?).try_into()?;),
         );
     }
 }
