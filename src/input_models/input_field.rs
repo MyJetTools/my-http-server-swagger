@@ -142,16 +142,37 @@ impl<'s> InputField<'s> {
         Ok(result)
     }
 
-    pub fn get_final_transformation(&self) -> Result<Option<TokenStream>, syn::Error> {
+    pub fn read_value_with_transformation(&self) -> Result<TokenStream, syn::Error> {
+        /*
+            if let Some(transformation) = input_field.get_final_transformation()? {
+               fields_to_return
+                   .push(quote!(#struct_field_name: #struct_field_name #transformation));
+           } else {
+               fields_to_return.push(quote!(#struct_field_name));
+           }
+        */
+        let ident = self.property.get_field_name_ident();
         if self.to_upper_case_string()? {
-            return Ok(Some(quote::quote!(.to_uppercase())));
+            if self.property.ty.is_option() {
+                return Ok(
+                    quote::quote!(#ident: if let Some(value) = #ident {#ident.to_uppercase().into()}else{None}),
+                );
+            } else {
+                return Ok(quote::quote!(#ident: #ident.to_uppercase()));
+            }
         }
 
         if self.to_lower_case_string()? {
-            return Ok(Some(quote::quote!(.to_lowercase())));
+            if self.property.ty.is_option() {
+                return Ok(
+                    quote::quote!(#ident: if let Some(value) = #ident {#ident.to_lowercase().into()}else{None}),
+                );
+            } else {
+                return Ok(quote::quote!(#ident: #ident.to_lowercase()));
+            }
         }
 
-        Ok(None)
+        Ok(quote::quote!(#ident))
     }
 
     pub fn get_default_value(&self) -> Result<Option<DefaultValue>, syn::Error> {
