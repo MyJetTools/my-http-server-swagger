@@ -408,7 +408,7 @@ impl<'s> InputField<'s> {
             }
             PropertyType::String => {
                 let struct_name = self.property.get_field_name_ident();
-                return quote::quote! {#struct_name String};
+                return quote::quote! {#struct_name: String};
             }
             PropertyType::OptionOf(sub_ty) => match sub_ty.as_ref() {
                 PropertyType::Str => {
