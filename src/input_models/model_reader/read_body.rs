@@ -18,14 +18,14 @@ pub fn generate_read_body(input_fields: &[InputField]) -> Result<TokenStream, sy
         }
     }
 
-    let init_fields = super::utils::get_fields_to_read(input_fields)?;
+    let (init_fields, out_fields) = super::utils::get_fields_to_read(input_fields)?;
 
     let result = quote! {
         let #init_fields ={
             let __body = ctx.request.get_body().await?;
             let __reader = __body.get_body_data_reader()?;
             #(#reading_fields)*
-            #init_fields
+            #out_fields
         };
 
         #(#validations)*

@@ -12,7 +12,7 @@ pub fn generate_reading_query_fields(
 
     let data_src = TokenStream::from_str("___data_src").unwrap();
 
-    let init_fields = super::utils::get_fields_to_read(input_fields)?;
+    let (init_fields, out_fields) = super::utils::get_fields_to_read(input_fields)?;
 
     let mut validations = Vec::with_capacity(input_fields.len());
 
@@ -30,7 +30,7 @@ pub fn generate_reading_query_fields(
         let #init_fields = {
             let #data_src = ctx.request.get_query_string()?;
             #(#reading_fields)*
-            #init_fields
+            #out_fields
         };
         #(#validations)*
     };
@@ -52,12 +52,10 @@ fn reading_query_string(
 
             let struct_field_name = input_field.property.get_field_name_ident();
 
-            let final_string_transformation = input_field.get_final_string_transformation()?;
-
             let result = quote::quote! {
                 let #struct_field_name = if let Some(value) = #data_src.get_optional(#input_field_name) {
                     let value = my_http_server::InputParamValue::from(value);
-                    Some(value.try_into()?#final_string_transformation)
+                    Some(value.try_into()?)
                 } else {
                     #default_value
                 };
@@ -90,7 +88,6 @@ fn reading_query_string(
         }
         PropertyType::Struct(..) => {
             let struct_field_name = input_field.property.get_field_name_ident();
-            let final_string_transformation = input_field.get_final_string_transformation()?;
 
             if let Some(default_value) = input_field.get_default_value()? {
                 if default_value.has_value() {
@@ -109,7 +106,7 @@ fn reading_query_string(
                    let #struct_field_name = match #data_src.get_optional(#input_field_name){
                     Some(value) =>{
                         let value = my_http_server::InputParamValue::from(value);
-                        value.try_into()?#final_string_transformation
+                        value.try_into()?
                     },
                     None => {
                         #default_value
@@ -121,18 +118,12 @@ fn reading_query_string(
                 return Ok(result);
             }
 
-            return Ok(generate_reading_required(
-                input_field,
-                &data_src,
-                &final_string_transformation,
-            )?);
+            return Ok(generate_reading_required(input_field, &data_src)?);
         }
         _ => {
             super::utils::verify_default_value(input_field, &input_field.property.ty)?;
 
             let struct_field_name = input_field.property.get_field_name_ident();
-
-            let final_string_transformation = input_field.get_final_string_transformation()?;
 
             if input_field.has_default_value() {
                 let default_value = input_field.get_default_value_non_opt_case()?;
@@ -141,7 +132,7 @@ fn reading_query_string(
                    let #struct_field_name = match #data_src.get_optional(#input_field_name){
                     Some(value) =>{
                         let value = my_http_server::InputParamValue::from(value);
-                        value.try_into()?#final_string_transformation
+                        value.try_into()?
                     },
                     None => {
                         #default_value
@@ -151,12 +142,7 @@ fn reading_query_string(
                 };
                 return Ok(result);
             }
-            let final_string_transformation = input_field.get_final_string_transformation()?;
-            return Ok(generate_reading_required(
-                input_field,
-                &data_src,
-                &final_string_transformation,
-            )?);
+            return Ok(generate_reading_required(input_field, &data_src)?);
         }
     }
 }
@@ -164,7 +150,6 @@ fn reading_query_string(
 fn generate_reading_required(
     input_field: &InputField,
     data_src: &TokenStream,
-    final_string_transformation: &TokenStream,
 ) -> Result<TokenStream, syn::Error> {
     let struct_field_name = input_field.property.get_field_name_ident();
     let input_field_name = input_field.get_input_field_name()?;
@@ -191,7 +176,7 @@ fn generate_reading_required(
 
                 let result = quote::quote! {
                     let #struct_field_name = if let Some(value) = #data_src.get_optional(#input_field_name){
-                        my_http_server::InputParamValue::from(value).try_into()?#final_string_transformation
+                        my_http_server::InputParamValue::from(value).try_into()?
                     }else{
                         #else_data
                     };
@@ -202,7 +187,7 @@ fn generate_reading_required(
         }
     } else {
         return Ok(
-            quote::quote!(let #struct_field_name = my_http_server::InputParamValue::from(#data_src.get_required(#input_field_name)?).try_into()?#final_string_transformation;),
+            quote::quote!(let #struct_field_name = my_http_server::InputParamValue::from(#data_src.get_required(#input_field_name)?).try_into()?;),
         );
     }
 }
