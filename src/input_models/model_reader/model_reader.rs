@@ -51,7 +51,7 @@ pub fn generate(name: &Ident, properties: &HttpInputProperties) -> Result<TokenS
         for body_field in body_fields {
             fields_to_return.push(body_field.read_value_with_transformation()?);
         }
-        super::generate_reading_query_fields(body_fields)?
+        super::read_body::generate_read_body(body_fields)?
 
         /*
         if body_fields.len() > 1 {
@@ -73,7 +73,7 @@ pub fn generate(name: &Ident, properties: &HttpInputProperties) -> Result<TokenS
         for form_data_field in form_data_fields {
             fields_to_return.push(form_data_field.read_value_with_transformation()?);
         }
-        super::generate_reading_query_fields(form_data_fields)?
+        super::read_body::generate_read_body(form_data_fields)?
     /*
     if form_data_fields.len() > 1 {
         for input_field in form_data_fields {
