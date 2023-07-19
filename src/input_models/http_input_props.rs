@@ -188,9 +188,9 @@ fn check_duplicated(items: &[InputField]) -> Result<(), syn::Error> {
 
             if one.get_input_field_name()? == another.get_input_field_name()? {
                 if j > i {
-                    another.throw_error("Duplicated field name")?;
+                    return another.throw_error("Duplicated field name")?;
                 } else {
-                    one.throw_error("Duplicated field name")?;
+                    return one.throw_error("Duplicated field name")?;
                 }
             }
         }
