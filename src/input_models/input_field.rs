@@ -113,30 +113,31 @@ impl<'s> InputField<'s> {
     }
 
     pub fn to_lower_case_string(&self) -> Result<bool, syn::Error> {
-        if self.is_str() {
-            return self
-                .property
-                .throw_error("to_lower_case_string attribute can be only with String property");
-        }
         let result = self
             .attr_params
             .try_get_named_param("to_lower_case")
             .is_some();
 
-        Ok(result)
-    }
-
-    pub fn to_upper_case_string(&self) -> Result<bool, syn::Error> {
-        if self.is_str() {
+        if result && !self.is_str() {
             return self
                 .property
                 .throw_error("to_lower_case_string attribute can be only with String property");
         }
 
+        Ok(result)
+    }
+
+    pub fn to_upper_case_string(&self) -> Result<bool, syn::Error> {
         let result = self
             .attr_params
             .try_get_named_param("to_upper_case")
             .is_some();
+
+        if result && !self.is_str() {
+            return self
+                .property
+                .throw_error("to_lower_case_string attribute can be only with String property");
+        }
 
         Ok(result)
     }
