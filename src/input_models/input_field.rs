@@ -55,7 +55,11 @@ impl<'s> DefaultValue<'s> {
         }
     }
 
-    pub fn throw_error<TOk>(&self, src: StrOrString<'static>) -> Result<TOk, syn::Error> {
+    pub fn throw_error<TOk>(
+        &self,
+        src: impl Into<StrOrString<'static>>,
+    ) -> Result<TOk, syn::Error> {
+        let src: StrOrString<'static> = src.into();
         match self {
             DefaultValue::Empty(value) => Err(value.throw_error(src.as_str())),
             DefaultValue::Value(value) => Err(value.throw_error(src.as_str())),
