@@ -90,12 +90,11 @@ fn reading_query_string(
             if let Some(default_value) = input_field.get_default_value()? {
                 if default_value.has_value() {
                     let value = default_value.unwrap_value()?;
-                    return input_field.property.throw_error(
+                    return default_value.throw_error(
                         format!(
                             "Please use default without value '{}'. Struct or Enum should implement create_default and default value is going to be read from there",
                             value.get_any_value_as_str()?
-                        )
-                        .as_str(),
+                        ).into(),
                     );
                 }
 
@@ -124,8 +123,9 @@ fn reading_query_string(
 
             if let Some(default_value) = input_field.get_default_value()? {
                 if !default_value.has_value() {
-                    return input_field.property.throw_error(
-                        "Please use default with value if it's a simple type like i64 or String",
+                    return default_value.throw_error(
+                        "Please use default with value if it's a simple type like i64 or String"
+                            .into(),
                     );
                 }
 

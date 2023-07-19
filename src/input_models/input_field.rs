@@ -1,6 +1,7 @@
 use std::str::FromStr;
 
 use proc_macro2::TokenStream;
+use rust_extensions::StrOrString;
 use types_reader::{ParamValue, ParamsList, PropertyType, StructProperty};
 
 #[derive(Clone)]
@@ -51,6 +52,13 @@ impl<'s> DefaultValue<'s> {
         match self {
             DefaultValue::Empty(_) => true,
             DefaultValue::Value(_) => false,
+        }
+    }
+
+    pub fn throw_error<TOk>(&self, src: StrOrString<'static>) -> Result<TOk, syn::Error> {
+        match self {
+            DefaultValue::Empty(value) => Err(value.throw_error(src.as_str())),
+            DefaultValue::Value(value) => Err(value.throw_error(src.as_str())),
         }
     }
 }
