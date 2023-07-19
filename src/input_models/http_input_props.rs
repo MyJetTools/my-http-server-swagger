@@ -142,6 +142,18 @@ impl<'s> HttpInputProperties<'s> {
             check_duplicated(query_string_fields)?;
         }
 
+        if let Some(path_fields) = &self.path_fields {
+            for path_field in path_fields {
+                if path_field.property.ty.is_option() {
+                    let err = syn::Error::new_spanned(
+                        path_field.property.field,
+                        "Path field can not be optional",
+                    );
+                    return Err(err);
+                }
+            }
+        }
+
         Ok(())
     }
 
