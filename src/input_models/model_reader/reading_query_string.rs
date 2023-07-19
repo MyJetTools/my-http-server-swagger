@@ -52,10 +52,12 @@ fn reading_query_string(
 
             let struct_field_name = input_field.property.get_field_name_ident();
 
+            let final_string_transformation = input_field.get_final_string_transformation()?;
+
             let result = quote::quote! {
                 let #struct_field_name = if let Some(value) = #data_src.get_optional(#input_field_name) {
                     let value = my_http_server::InputParamValue::from(value);
-                    Some(value.try_into()?)
+                    Some(value.try_into()?#final_string_transformation)
                 } else {
                     #default_value
                 };
@@ -101,12 +103,13 @@ fn reading_query_string(
                 }
 
                 let default_value = input_field.get_default_value_opt_case()?;
+                let final_string_transformation = input_field.get_final_string_transformation()?;
 
                 let result = quote::quote! {
                    let #struct_field_name = match #data_src.get_optional(#input_field_name){
                     Some(value) =>{
                         let value = my_http_server::InputParamValue::from(value);
-                        value.try_into()?
+                        value.try_into()?#final_string_transformation
                     },
                     None => {
                         #default_value
@@ -125,6 +128,8 @@ fn reading_query_string(
 
             let struct_field_name = input_field.property.get_field_name_ident();
 
+            let final_string_transformation = input_field.get_final_string_transformation()?;
+
             if input_field.has_default_value() {
                 let default_value = input_field.get_default_value_non_opt_case()?;
 
@@ -132,7 +137,7 @@ fn reading_query_string(
                    let #struct_field_name = match #data_src.get_optional(#input_field_name){
                     Some(value) =>{
                         let value = my_http_server::InputParamValue::from(value);
-                        value.try_into()?
+                        value.try_into()?#final_string_transformation
                     },
                     None => {
                         #default_value

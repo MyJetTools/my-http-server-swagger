@@ -99,6 +99,60 @@ impl<'s> InputField<'s> {
         self.attr_params.try_get_named_param("default").is_some()
     }
 
+    fn is_str(&self) -> bool {
+        match &self.property.ty {
+            PropertyType::Str => true,
+            PropertyType::String => true,
+            PropertyType::OptionOf(sub_ty) => match &self.property.ty {
+                PropertyType::Str => true,
+                PropertyType::String => true,
+                _ => false,
+            },
+            _ => false,
+        }
+    }
+
+    pub fn to_lower_case_string(&self) -> Result<bool, syn::Error> {
+        if self.is_str() {
+            return self
+                .property
+                .throw_error("to_lower_case_string attribute can be only with String property");
+        }
+        let result = self
+            .attr_params
+            .try_get_named_param("to_lower_case")
+            .is_some();
+
+        Ok(result)
+    }
+
+    pub fn to_upper_case_string(&self) -> Result<bool, syn::Error> {
+        if self.is_str() {
+            return self
+                .property
+                .throw_error("to_lower_case_string attribute can be only with String property");
+        }
+
+        let result = self
+            .attr_params
+            .try_get_named_param("to_upper_case")
+            .is_some();
+
+        Ok(result)
+    }
+
+    pub fn get_final_string_transformation(&self) -> Result<TokenStream, syn::Error> {
+        if self.to_upper_case_string()? {
+            return Ok(quote::quote!(.to_upper_case()));
+        }
+
+        if self.to_lower_case_string()? {
+            return Ok(quote::quote!(.to_lower_case()));
+        }
+
+        Ok(quote::quote!())
+    }
+
     pub fn get_default_value(&self) -> Result<Option<DefaultValue>, syn::Error> {
         match self.attr_params.try_get_named_param("default") {
             Some(value) => {
