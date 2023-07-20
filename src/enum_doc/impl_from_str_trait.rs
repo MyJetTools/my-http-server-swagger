@@ -12,7 +12,7 @@ pub fn generate(name: &str, enum_cases: &[EnumJson]) -> Result<Vec<TokenStream>,
             continue;
         }
 
-        let value = enum_case.get_value()?;
+        let value = enum_case.get_enum_case_str_value()?;
         let value = value.as_str();
 
         let enum_id = enum_case.get_enum_case_value();
