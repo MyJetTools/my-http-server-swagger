@@ -15,13 +15,15 @@ pub fn generate(ast: &syn::DeriveInput) -> Result<TokenStream, syn::Error> {
 
     let mut fields = Vec::new();
 
-    let mut default_case = None;
+    let mut default_str_value = None;
+    let mut default_case_value = None;
 
     for src_field in src_fields {
         let name = src_field.get_name_ident().to_string();
         if let Some(enum_json) = EnumJson::new(src_field) {
             if enum_json.is_default_value {
-                default_case = Some(enum_json.get_value()?);
+                default_str_value = Some(enum_json.get_enum_case_str_value()?);
+                default_case_value = Some(enum_json.get_enum_case_value());
             }
 
             fields.push(enum_json);
@@ -35,25 +37,23 @@ pub fn generate(ast: &syn::DeriveInput) -> Result<TokenStream, syn::Error> {
 
     //Default Trait
 
-    let default_trait = if let Some(default_case) = &default_case {
+    let default_trait = if let Some(default_case) = &default_case_value {
         let default_case = proc_macro2::TokenStream::from_str(default_case).unwrap();
 
-        let result = quote::quote! {
+        quote::quote! {
             impl std::default::Default for #struct_name{
                 fn default() -> Self {
                     Self::#default_case
                 }
             }
-        };
-
-        Some(result)
+        }
     } else {
-        None
+        quote::quote!()
     };
 
     let http_fail_result = crate::consts::get_http_fail_result();
 
-    let create_default_impl = if default_case.is_some() {
+    let create_default_impl = if default_case_value.is_some() {
         quote::quote!(Ok(Self::default()))
     } else {
         let err = format!(
@@ -81,7 +81,7 @@ pub fn generate(ast: &syn::DeriveInput) -> Result<TokenStream, syn::Error> {
 
     let enum_cases = generate_enum_cases(&fields)?;
 
-    let default_as_str_fn = generate_default_as_str_fn(default_case.as_ref());
+    let default_as_str_fn = generate_default_as_str_fn(default_str_value.as_ref());
 
     let result = quote::quote! {
         impl #struct_name{
