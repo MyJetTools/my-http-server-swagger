@@ -63,13 +63,19 @@ pub fn my_http_output_object_derive(input: TokenStream) -> TokenStream {
 #[proc_macro_derive(MyHttpStringEnum, attributes(http_enum_case))]
 pub fn my_http_string_enum_derive(input: TokenStream) -> TokenStream {
     let ast = syn::parse(input).unwrap();
-    crate::enum_doc::generate(&ast)
+    match crate::enum_doc::generate(&ast) {
+        Ok(result) => result,
+        Err(err) => err.to_compile_error().into(),
+    }
 }
 
 #[proc_macro_derive(MyHttpIntegerEnum, attributes(http_enum_case))]
 pub fn my_http_integer_enum_derive(input: TokenStream) -> TokenStream {
     let ast = syn::parse(input).unwrap();
-    crate::enum_doc::generate(&ast)
+    match crate::enum_doc::generate(&ast) {
+        Ok(result) => result,
+        Err(err) => err.to_compile_error().into(),
+    }
 }
 
 #[proc_macro_attribute]

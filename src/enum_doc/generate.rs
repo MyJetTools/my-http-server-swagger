@@ -7,14 +7,11 @@ use crate::enum_doc::enum_json::{EnumJson, HTTP_ENUM_ATTR_NAME};
 
 use super::generate_default::generate_default_as_str_fn;
 
-pub fn generate(ast: &syn::DeriveInput) -> TokenStream {
+pub fn generate(ast: &syn::DeriveInput) -> Result<TokenStream, syn::Error> {
     let struct_name = &ast.ident;
     let struct_name_as_str = struct_name.to_string();
 
-    let src_fields = match EnumCase::read(ast) {
-        Ok(result) => result,
-        Err(err) => return err.into_compile_error().into(),
-    };
+    let src_fields = EnumCase::read(ast)?;
 
     let mut fields = Vec::new();
 
@@ -24,7 +21,7 @@ pub fn generate(ast: &syn::DeriveInput) -> TokenStream {
         let name = src_field.get_name_ident().to_string();
         if let Some(enum_json) = EnumJson::new(src_field) {
             if enum_json.is_default_value {
-                default_case = Some(enum_json.get_enum_case_value().to_string());
+                default_case = Some(enum_json.get_value()?);
             }
 
             fields.push(enum_json);
@@ -82,14 +79,11 @@ pub fn generate(ast: &syn::DeriveInput) -> TokenStream {
 
     let use_documentation = crate::consts::get_use_documentation();
 
-    let enum_cases = match generate_enum_cases(&fields) {
-        Ok(result) => result,
-        Err(err) => return err.to_compile_error().into(),
-    };
+    let enum_cases = generate_enum_cases(&fields)?;
 
     let default_as_str_fn = generate_default_as_str_fn(default_case.as_ref());
 
-    quote::quote! {
+    let result = quote::quote! {
         impl #struct_name{
 
             pub fn create_default() -> Result<Self,#http_fail_result>{
@@ -148,8 +142,9 @@ pub fn generate(ast: &syn::DeriveInput) -> TokenStream {
 
 
 
-    }
-    .into()
+    };
+
+    Ok(result.into())
 }
 
 fn generate_enum_cases(cases: &[EnumJson]) -> Result<Vec<proc_macro2::TokenStream>, syn::Error> {
