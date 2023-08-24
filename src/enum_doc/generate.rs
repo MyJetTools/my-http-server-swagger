@@ -7,7 +7,7 @@ use crate::enum_doc::enum_json::{EnumJson, HTTP_ENUM_ATTR_NAME};
 
 use super::generate_default::generate_default_as_str_fn;
 
-pub fn generate(ast: &syn::DeriveInput) -> Result<TokenStream, syn::Error> {
+pub fn generate(ast: &syn::DeriveInput, as_integer: bool) -> Result<TokenStream, syn::Error> {
     let struct_name = &ast.ident;
     let struct_name_as_str = struct_name.to_string();
 
@@ -83,6 +83,12 @@ pub fn generate(ast: &syn::DeriveInput) -> Result<TokenStream, syn::Error> {
 
     let default_as_str_fn = generate_default_as_str_fn(default_str_value.as_ref());
 
+    let enum_type = if as_integer {
+        quote::quote!(EnumType::Integer)
+    } else {
+        quote::quote!(EnumType::String)
+    };
+
     let result = quote::quote! {
         impl #struct_name{
 
@@ -126,7 +132,7 @@ pub fn generate(ast: &syn::DeriveInput) -> Result<TokenStream, syn::Error> {
 
                 let mut __es = data_types::HttpEnumStructure{
                     struct_id: #struct_name_as_str,
-                    enum_type: EnumType::Integer,
+                    enum_type: #enum_type,
                     cases: vec![],
                 };
 

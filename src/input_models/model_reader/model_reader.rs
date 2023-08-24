@@ -1,5 +1,4 @@
 use proc_macro2::{Ident, TokenStream};
-use types_reader::PropertyType;
 
 use quote::quote;
 

@@ -11,6 +11,7 @@ mod generic_utils;
 mod http_input_object_structure;
 mod http_object_structure;
 mod input_models;
+mod out_enum_with_model;
 mod property_type_ext;
 mod types;
 
@@ -60,10 +61,19 @@ pub fn my_http_output_object_derive(input: TokenStream) -> TokenStream {
     result
 }
 
+#[proc_macro_derive(MyHttpOutputEnumWithModel, attributes(http_enum_case))]
+pub fn my_http_output_enum_with_data_derive(input: TokenStream) -> TokenStream {
+    let ast = syn::parse(input).unwrap();
+    match crate::out_enum_with_model::generate(&ast) {
+        Ok(result) => result,
+        Err(err) => err.to_compile_error().into(),
+    }
+}
+
 #[proc_macro_derive(MyHttpStringEnum, attributes(http_enum_case))]
 pub fn my_http_string_enum_derive(input: TokenStream) -> TokenStream {
     let ast = syn::parse(input).unwrap();
-    match crate::enum_doc::generate(&ast) {
+    match crate::enum_doc::generate(&ast, false) {
         Ok(result) => result,
         Err(err) => err.to_compile_error().into(),
     }
@@ -72,7 +82,7 @@ pub fn my_http_string_enum_derive(input: TokenStream) -> TokenStream {
 #[proc_macro_derive(MyHttpIntegerEnum, attributes(http_enum_case))]
 pub fn my_http_integer_enum_derive(input: TokenStream) -> TokenStream {
     let ast = syn::parse(input).unwrap();
-    match crate::enum_doc::generate(&ast) {
+    match crate::enum_doc::generate(&ast, true) {
         Ok(result) => result,
         Err(err) => err.to_compile_error().into(),
     }
