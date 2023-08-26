@@ -11,7 +11,7 @@ pub fn build_action(attr: TokenStream, input: TokenStream) -> Result<TokenStream
     let ast: syn::DeriveInput = syn::parse(input).unwrap();
 
 
-    let params_list = ParamsList::new(attr.into())?;
+    let params_list = ParamsList::new(attr.into(), ||None)?;
 
     let action_model = HttpRouteModel::parse(&params_list)?;
 
